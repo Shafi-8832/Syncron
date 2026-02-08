@@ -9,6 +9,7 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.syncron.controllers.DashboardController"
+            fx:id="mainBorderPane"
             stylesheets="@../style.css"
             prefHeight="600.0" prefWidth="900.0">
 
@@ -16,7 +17,7 @@
         <VBox spacing="10" styleClass="sidebar" prefWidth="200">
             <Label text="SYNCRON" textFill="white" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-padding: 0 0 20 0;"/>
             <Button text="Dashboard" styleClass="nav-btn" maxWidth="Infinity"/>
-            <Button text="My Courses" styleClass="nav-btn" maxWidth="Infinity"/>
+            <Button text="My Courses" styleClass="nav-btn" maxWidth="Infinity" onAction="#handleShowCourses"/>
             <Button text="Timeline" styleClass="nav-btn" maxWidth="Infinity"/>
             <Pane VBox.vgrow="ALWAYS"/> <Button text="Logout" styleClass="nav-btn" maxWidth="Infinity"/>
         </VBox>

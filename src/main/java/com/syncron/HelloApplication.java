@@ -25,7 +25,7 @@ public class HelloApplication extends Application {
             scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
         }
 
-        stage.setTitle("Syncron - Student Dashboard");
+        stage.setTitle("Syncron");
         stage.setScene(scene);
         stage.show();
     }
