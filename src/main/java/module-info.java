@@ -6,6 +6,6 @@ module com.syncron.syncron {
     requires com.dlsc.formsfx;
     requires org.kordamp.bootstrapfx.core;
 
-    opens com.syncron.syncron to javafx.fxml;
-    exports com.syncron.syncron;
+    opens com.syncron to javafx.fxml;
+    exports com.syncron;
 }

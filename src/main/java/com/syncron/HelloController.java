@@ -1,4 +1,4 @@
-package com.syncron.syncron;
+package com.syncron;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
