@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.syncron.controllers.CoursesController"
+      spacing="15" style="-fx-padding: 30;">
+
+    <Label text="My Courses" style="-fx-font-size: 24px; -fx-font-weight: bold;"/>
+
+    <VBox fx:id="coursesVBox" spacing="10"/>
+</VBox>
