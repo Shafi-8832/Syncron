@@ -14,6 +14,7 @@ public class HelloApplication extends Application {
         // 1. Initialize Database
         DatabaseHandler.initializeDB();
         DatabaseHandler.addSampleData();
+        DatabaseHandler.addGhostTeacherData();
 
         // 2. Load the NEW Dashboard
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("views/dashboard.fxml"));
