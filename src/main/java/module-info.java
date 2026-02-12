@@ -22,4 +22,5 @@ module com.syncron {
 
     // Allow access to your Database Utils
     exports com.syncron.utils;
+    opens com.syncron.models to javafx.base;
 }
