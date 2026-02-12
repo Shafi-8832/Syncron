@@ -13,6 +13,7 @@ public class HelloApplication extends Application {
     public void start(Stage stage) throws IOException {
         // 1. Initialize Database
         DatabaseHandler.initializeDB();
+        DatabaseHandler.addSampleData();
 
         // 2. Load the NEW Dashboard
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("views/dashboard.fxml"));
