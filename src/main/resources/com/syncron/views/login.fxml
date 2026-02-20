@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.syncron.controllers.LoginController"
+      alignment="CENTER" spacing="20" style="-fx-background-color: #f4f4f4; -fx-padding: 50;">
+
+    <Label text="Syncron Login" style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+
+    <VBox alignment="CENTER_LEFT" spacing="5" maxWidth="300">
+        <Label text="Student ID:"/>
+        <TextField fx:id="idField" promptText="Enter your ID (e.g., 123)"/>
+    </VBox>
+
+    <VBox alignment="CENTER_LEFT" spacing="5" maxWidth="300">
+        <Label text="Password:"/>
+        <PasswordField fx:id="passwordField" promptText="Enter your password"/>
+    </VBox>
+
+    <Label fx:id="errorLabel" textFill="RED"/>
+
+    <Button text="Login" onAction="#handleLoginClick"
+            style="-fx-background-color: #3498DB; -fx-text-fill: white; -fx-font-weight: bold; -fx-pref-width: 300;"/>
+
+</VBox>

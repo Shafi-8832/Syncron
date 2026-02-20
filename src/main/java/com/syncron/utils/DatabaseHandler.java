@@ -59,6 +59,9 @@ public class DatabaseHandler {
         String sql1 = "INSERT OR IGNORE INTO courses(code, title) VALUES('CSE 108', 'Object Oriented Programming');";
         String sql2 = "INSERT OR IGNORE INTO courses(code, title) VALUES('CSE 105', 'Data Structures');";
         String sql3 = "INSERT OR IGNORE INTO courses(code, title) VALUES('HUM 103', 'Economics');";
+        // Dummy user: ID is '123', Password is 'pass123'
+        String dummyStudent = "INSERT OR IGNORE INTO students(id, name, password) VALUES('123', 'Shafi', 'pass123');";
+
 
         try (Connection conn = connect();
              Statement stmt = conn.createStatement()) {
@@ -66,6 +69,7 @@ public class DatabaseHandler {
             stmt.execute(sql1);
             stmt.execute(sql2);
             stmt.execute(sql3);
+            stmt.execute(dummyStudent);
 
             System.out.println("Sample courses added.");
 
@@ -101,5 +105,25 @@ public class DatabaseHandler {
         }
 
         return courseList; // Return the full list
+    }
+    // New Method: Checks if ID and Password match the database
+    public static boolean verifyLogin(String studentId, String password) {
+        String sql = "SELECT * FROM students WHERE id = ? AND password = ?";
+
+        try (Connection conn = connect();
+             java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, studentId); // Replaces the first '?'
+            pstmt.setString(2, password);  // Replaces the second '?'
+
+            java.sql.ResultSet rs = pstmt.executeQuery();
+
+            // If rs.next() is true, it means a matching row was found!
+            return rs.next();
+
+        } catch (SQLException e) {
+            System.out.println("Login error: " + e.getMessage());
+            return false;
+        }
     }
 }

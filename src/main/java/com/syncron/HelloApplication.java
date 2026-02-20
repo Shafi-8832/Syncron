@@ -16,10 +16,10 @@ public class HelloApplication extends Application {
         DatabaseHandler.addSampleData();
 
         // 2. Load the NEW Dashboard
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("views/dashboard.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("views/login.fxml"));
 
-        // 3. Create Scene
-        Scene scene = new Scene(fxmlLoader.load(), 900, 600);
+
+        Scene scene = new Scene(fxmlLoader.load(), 400, 500);
 
         // 4. Load CSS (Wrap in try-catch or check null to avoid crashes if file is missing)
         if (getClass().getResource("style.css") != null) {
