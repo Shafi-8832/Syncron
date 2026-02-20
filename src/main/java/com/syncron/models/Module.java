@@ -6,13 +6,15 @@ public class Module {
     private String title; // resources?offline?online?
     private String description;
     private String fileLink;
+    private String dueDate;
 
-    public Module(int id, String type, String title, String description, String fileLink) {
+    public Module(int id, String type, String title, String description, String fileLink, String dueDate) {
         this.id = id;
         this.type = type;
         this.title = title;
         this.description = description;
         this.fileLink = fileLink;
+        this.dueDate = dueDate;
     }
 
     // UI will read data
@@ -21,4 +23,12 @@ public class Module {
     public String getType() {return type;}
     public String getDescription() { return description; }
     public String getFileLink() { return fileLink; }
+
+    public String getDueDate() {
+        return dueDate;
+    }
+    public void setDueDate(String dueDate) {
+        this.dueDate = dueDate;
+    }
+
 }

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.syncron.controllers.SemesterDetailsController">
+    <content>
+
+        <VBox alignment="TOP_CENTER" spacing="30.0" style="-fx-background-color: white; -fx-padding: 40;">
+
+            <HBox alignment="CENTER_LEFT">
+                <Button fx:id="backBtn" text="← Back to Dashboard" style="-fx-background-color: transparent; -fx-text-fill: #2980B9; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 14px;" />
+            </HBox>
+
+            <VBox alignment="CENTER" spacing="10">
+                <Label text="Term Final Exam" style="-fx-font-size: 24px; -fx-text-fill: #7F8C8D;" />
+                <Label text="12 October 2026" style="-fx-font-size: 18px; -fx-text-fill: #95A5A6;" />
+
+                <Label fx:id="daysLeftLabel" text="--" style="-fx-font-size: 96px; -fx-font-weight: bold; -fx-text-fill: #E74C3C;" />
+                <Label text="DAYS REMAINING" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #E74C3C; -fx-letter-spacing: 2;" />
+            </VBox>
+
+            <Separator />
+
+            <HBox alignment="CENTER" spacing="50">
+                <VBox alignment="CENTER" spacing="5">
+                    <Label text="Preparatory Leave (PL) Starts" style="-fx-text-fill: #7F8C8D;" />
+                    <Label text="28 September 2026" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;" />
+                </VBox>
+
+                <Separator orientation="VERTICAL" />
+
+                <VBox alignment="CENTER" spacing="5">
+                    <Label text="Current Week" style="-fx-text-fill: #7F8C8D;" />
+                    <Label text="Week 9" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;" />
+                </VBox>
+            </HBox>
+
+            <Separator />
+
+            <VBox spacing="15" maxWidth="500">
+                <Label text="Academic Resources" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
+
+                <Button text="📄 Download Class Routine (PDF)" maxWidth="Infinity" style="-fx-background-color: #F4F6F8; -fx-text-fill: #2C3E50; -fx-alignment: CENTER_LEFT; -fx-padding: 15; -fx-cursor: hand; -fx-font-size: 14px;" />
+                <Button text="📅 BUET Academic Calendar" maxWidth="Infinity" style="-fx-background-color: #F4F6F8; -fx-text-fill: #2C3E50; -fx-alignment: CENTER_LEFT; -fx-padding: 15; -fx-cursor: hand; -fx-font-size: 14px;" />
+                <Button text="📚 Semester Syllabus" maxWidth="Infinity" style="-fx-background-color: #F4F6F8; -fx-text-fill: #2C3E50; -fx-alignment: CENTER_LEFT; -fx-padding: 15; -fx-cursor: hand; -fx-font-size: 14px;" />
+            </VBox>
+
+        </VBox>
+    </content>
+</ScrollPane>

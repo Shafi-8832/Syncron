@@ -68,6 +68,7 @@ public class DatabaseHandler {
                 "description TEXT, " +
                 "file_link TEXT, " +
                 "is_active INTEGER DEFAULT 1, " +
+                "due_date TEXT, " +
                 "FOREIGN KEY(section_id) REFERENCES course_sections(section_id)" +
                 ");";
 
@@ -83,7 +84,7 @@ public class DatabaseHandler {
             stmt.execute(sqlSections);
             stmt.execute(sqlModules);
 
-            System.out.println("Database initialized: A ll Tables created.");
+            System.out.println("Database initialized: All Tables created.");
 
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -92,54 +93,77 @@ public class DatabaseHandler {
 
     // --- NEW METHOD: The "Ghost Teacher" Data ---
     public static void addGhostTeacherData() {
-        // SQL to create a Section (Week)
         String sqlSection = "INSERT INTO course_sections (course_code, title, week_number, flair_type) VALUES (?, ?, ?, ?)";
-        // SQL to create a Module (Item)
-        String sqlModule  = "INSERT INTO course_modules (section_id, module_type, title, description) VALUES (?, ?, ?, ?)";
+        String sqlModule  = "INSERT INTO course_modules (section_id, module_type, title, description, due_date) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = connect();
              PreparedStatement psSection = conn.prepareStatement(sqlSection, Statement.RETURN_GENERATED_KEYS);
              PreparedStatement psModule = conn.prepareStatement(sqlModule)) {
 
-            // 1. Create "Common Resources" (Week 0) for CSE 108
+            // ==========================================
+            // 1. CREATE "GENERAL RESOURCES" (Week 0)
+            // ==========================================
             psSection.setString(1, "CSE 108");
             psSection.setString(2, "General Resources");
             psSection.setInt(3, 0);
             psSection.setString(4, "none");
             psSection.executeUpdate();
 
-            // Get the ID of the section we just made (to put items inside it)
             int commonSectionId = psSection.getGeneratedKeys().getInt(1);
 
-            // Add a Syllabus PDF to Common Section
+            // Add Item 1: Syllabus (Resource)
             psModule.setInt(1, commonSectionId);
             psModule.setString(2, "resource");
             psModule.setString(3, "Course Syllabus.pdf");
             psModule.setString(4, "Mark distribution inside.");
             psModule.executeUpdate();
 
-            // 2. Create "Week 12" (Project Week) for CSE 108
+            // Add Item 2: Teacher Contact Info (Resource)
+            psModule.setInt(1, commonSectionId);
+            psModule.setString(2, "resource");
+            psModule.setString(3, "Faculty Office Hours.txt");
+            psModule.setString(4, "Room 305");
+            psModule.executeUpdate();
+
+            // ==========================================
+            // 2. CREATE "HELL WEEK" (Week 12)
+            // ==========================================
             psSection.setString(1, "CSE 108");
             psSection.setString(2, "Week 12: Final Project");
             psSection.setInt(3, 12);
-            psSection.setString(4, "project"); // <--- The Red Flair!
+            psSection.setString(4, "project"); // The Red Flair!
             psSection.executeUpdate();
 
             int projectSectionId = psSection.getGeneratedKeys().getInt(1);
 
-            // Add the Project Submission Link
+            // Add Item 1: Project Guidelines (Resource)
+            psModule.setInt(1, projectSectionId);
+            psModule.setString(2, "resource");
+            psModule.setString(3, "Project_Guidelines_v2.pdf");
+            psModule.setString(4, "Read this before starting.");
+            psModule.executeUpdate();
+
+            // Add Item 2: Phase 1 Code Submission (Offline)
             psModule.setInt(1, projectSectionId);
             psModule.setString(2, "offline");
-            psModule.setString(3, "Submit Final Project");
+            psModule.setString(3, "Submit Phase 1 (JavaFX)");
             psModule.setString(4, "Upload .zip only.");
             psModule.executeUpdate();
 
-            System.out.println("Ghost Teacher data added!");
+            // Add Item 3: Phase 2 Database Submission (Offline)
+            psModule.setInt(1, projectSectionId);
+            psModule.setString(2, "offline");
+            psModule.setString(3, "Submit Phase 2 (SQLite DB)");
+            psModule.setString(4, "Upload your .db file.");
+            psModule.executeUpdate();
+
+            System.out.println("Ghost Teacher data added! (Packed with content)");
 
         } catch (SQLException e) {
             System.out.println("Ghost Data Error: " + e.getMessage());
         }
     }
+
 
     // A helper method to put fake data in so we can test the app
     public static void addSampleData() {
@@ -248,7 +272,8 @@ public class DatabaseHandler {
                         rs.getString("module_type"),
                         rs.getString("title"),
                         rs.getString("description"),
-                        rs.getString("file_link")
+                        rs.getString("file_link"),
+                        rs.getString("due_date")
                 ));
             }
         }
@@ -257,6 +282,36 @@ public class DatabaseHandler {
         }
 
         return moduleList;
+    }
+
+    public static List<Module> getUpcomingDeadlines() throws SQLException {
+        List<Module> urgentList = new ArrayList<>();
+
+        // SQL : Find items where due_date is between TODAY and 7 DAYS from now
+        String sql = "SELECT * FROM course_modules " +
+                "WHERE due_date BETWEEN date('now') AND date('now', '+7 days') " +
+                "ORDER BY due_date ASC";
+
+        try (Connection conn = connect();
+            Statement stmt = conn.createStatement();
+            ResultSet rs = stmt.executeQuery(sql)) {
+
+
+            while (rs.next()) {
+                Module module = new Module(
+                        rs.getInt("module_id"),
+                        rs.getString("title"),
+                        rs.getString("module_type"),
+                        rs.getString("description"),
+                        rs.getString("file_link"),
+                        rs.getString("due_date")
+                );
+                urgentList.add(module);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return urgentList;
     }
 
 }

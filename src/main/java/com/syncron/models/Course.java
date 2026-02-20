@@ -31,4 +31,5 @@ public class Course {
     public ArrayList<Teacher> getInstructors() { return instructors; }
 
     public ArrayList<Student> getEnrolledStudents() { return enrolledStudents; }
+
 }
