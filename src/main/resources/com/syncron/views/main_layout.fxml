@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.syncron.controllers.MainController"
+            fx:id="mainBorderPane"
+            stylesheets="@../style.css"
+            prefHeight="600.0" prefWidth="900.0">
+
+    <!-- TOP: Breadcrumb Bar -->
+    <top>
+        <HBox fx:id="breadcrumbBar" alignment="CENTER_LEFT" spacing="5"
+              style="-fx-background-color: white; -fx-padding: 12 20; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;">
+            <Label fx:id="breadcrumbLabel" text="Dashboard"
+                   style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
+        </HBox>
+    </top>
+
+    <!-- LEFT: Sidebar -->
+    <left>
+        <VBox fx:id="sidebar" spacing="5" styleClass="sidebar" prefWidth="200">
+            <Label text="SYNCRON" textFill="white"
+                   style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-padding: 0 0 20 0;"/>
+            <VBox fx:id="sidebarButtonContainer" spacing="5">
+                <!-- Buttons will be populated dynamically by MainController -->
+            </VBox>
+            <Pane VBox.vgrow="ALWAYS"/>
+            <Button text="← Back to Home" styleClass="nav-btn" maxWidth="Infinity"
+                    onAction="#handleBackToHome"/>
+        </VBox>
+    </left>
+
+    <!-- CENTER: Dynamic Content Area -->
+    <center>
+        <StackPane fx:id="contentArea" style="-fx-background-color: #F4F7FC;">
+            <!-- Content views will be loaded here dynamically -->
+        </StackPane>
+    </center>
+
+</BorderPane>

@@ -90,19 +90,17 @@ public class HomeController {
 
     private void openCoursePortal(String courseCode) {
         try {
-            // 1. Load the Vertical Portal FXML
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/course_details_general.fxml"));
+            // 1. Load the persistent MainLayout
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
             Parent root = loader.load();
 
-            // 2. Pass the Course Code (CSE 108) to the controller
-            CourseDetailsController controller = loader.getController();
-            controller.setCourseData(courseCode);
+            // 2. Pass the course context to MainController
+            MainController controller = loader.getController();
+            // Default to "theory" — can be extended later to read type from DB
+            controller.setCourseContext(courseCode, "theory");
 
             // 3. Switch Scenes
-            // Since we are currently in a standalone page, we just swap the whole Scene
             Stage stage = (Stage) courseCardContainer.getScene().getWindow();
-
-            // This keeps the window size EXACTLY the same
             stage.getScene().setRoot(root);
 
         } catch (IOException e) {
