@@ -33,7 +33,6 @@ public class MainController {
 
     private String courseName = "";
     private String courseType = "theory"; // "theory" or "sessional"
-    private String currentSection = "";
     private Button activeButton;
 
     // Common sidebar items for both theory and sessional
@@ -63,7 +62,6 @@ public class MainController {
     public void initialize() {
         // Default to theory sidebar; will be reconfigured when setCourseContext is called
         buildSidebar();
-        updateBreadcrumb(null);
     }
 
     /**
@@ -185,7 +183,6 @@ public class MainController {
      * Each segment acts like a button that navigates to that level.
      */
     private void updateBreadcrumb(String section) {
-        this.currentSection = section;
         breadcrumbBar.getChildren().clear();
 
         // Segment 1: "Dashboard" — always present, clickable → goes back to home
