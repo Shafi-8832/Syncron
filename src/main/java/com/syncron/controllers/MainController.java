@@ -31,6 +31,7 @@ public class MainController {
 
     private String courseName = "";
     private String courseType = "theory"; // "theory" or "sessional"
+    private Button activeButton;
 
     // Common sidebar items for both theory and sessional
     private static final String[] COMMON_BUTTONS = {"Common"};
@@ -70,7 +71,11 @@ public class MainController {
         this.courseName = courseName;
         this.courseType = courseType != null ? courseType.toLowerCase() : "theory";
         buildSidebar();
-        // Load the first sidebar item (Common) by default
+        // Load the first sidebar item (Common) by default and mark it active
+        if (!sidebarButtonContainer.getChildren().isEmpty()) {
+            Button firstButton = (Button) sidebarButtonContainer.getChildren().get(0);
+            setActiveButton(firstButton);
+        }
         loadContentView("common.fxml");
         updateBreadcrumb("Common");
     }
@@ -104,12 +109,24 @@ public class MainController {
         button.setOnAction(event -> {
             String fxmlPath = getFxmlPathForButton(label);
             if (fxmlPath != null) {
+                setActiveButton(button);
                 loadContentView(fxmlPath);
                 updateBreadcrumb(label);
             }
         });
 
         return button;
+    }
+
+    /**
+     * Highlights the active sidebar button and removes highlight from the previous one.
+     */
+    private void setActiveButton(Button button) {
+        if (activeButton != null) {
+            activeButton.getStyleClass().remove("nav-btn-active");
+        }
+        button.getStyleClass().add("nav-btn-active");
+        activeButton = button;
     }
 
     /**
