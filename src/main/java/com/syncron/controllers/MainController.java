@@ -23,14 +23,17 @@ import java.io.IOException;
 public class MainController {
 
     @FXML private BorderPane mainBorderPane;
-    @FXML private Label breadcrumbLabel;
     @FXML private HBox breadcrumbBar;
     @FXML private VBox sidebar;
     @FXML private VBox sidebarButtonContainer;
     @FXML private StackPane contentArea;
+    @FXML private HBox courseHeaderBox;
+    @FXML private Label courseHeaderLabel;
+    @FXML private Label courseTypeFlair;
 
     private String courseName = "";
     private String courseType = "theory"; // "theory" or "sessional"
+    private String currentSection = "";
     private Button activeButton;
 
     // Common sidebar items for both theory and sessional
@@ -60,6 +63,7 @@ public class MainController {
     public void initialize() {
         // Default to theory sidebar; will be reconfigured when setCourseContext is called
         buildSidebar();
+        updateBreadcrumb(null);
     }
 
     /**
@@ -71,6 +75,7 @@ public class MainController {
         this.courseName = courseName;
         this.courseType = courseType != null ? courseType.toLowerCase() : "theory";
         buildSidebar();
+        updateCourseHeader();
         // Load the first sidebar item (Common) by default and mark it active
         if (!sidebarButtonContainer.getChildren().isEmpty()) {
             Button firstButton = (Button) sidebarButtonContainer.getChildren().get(0);
@@ -78,6 +83,31 @@ public class MainController {
         }
         loadContentView("common.fxml");
         updateBreadcrumb("Common");
+    }
+
+    /**
+     * Updates the persistent course header box with course code/name and type flair.
+     */
+    private void updateCourseHeader() {
+        if (courseName != null && !courseName.isEmpty()) {
+            courseHeaderLabel.setText(courseName);
+            courseHeaderBox.setVisible(true);
+            courseHeaderBox.setManaged(true);
+
+            // Style the flair based on course type
+            if ("sessional".equals(courseType)) {
+                courseTypeFlair.setText("Sessional");
+                courseTypeFlair.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 3 10; "
+                        + "-fx-background-radius: 5; -fx-background-color: #9B59B6; -fx-text-fill: white;");
+            } else {
+                courseTypeFlair.setText("Theory");
+                courseTypeFlair.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 3 10; "
+                        + "-fx-background-radius: 5; -fx-background-color: #3498DB; -fx-text-fill: white;");
+            }
+        } else {
+            courseHeaderBox.setVisible(false);
+            courseHeaderBox.setManaged(false);
+        }
     }
 
     /**
@@ -131,7 +161,7 @@ public class MainController {
 
     /**
      * Loads an FXML view into the center content area of the BorderPane.
-     * Only replaces the center node — the sidebar and breadcrumb remain persistent.
+     * Only replaces the center node — the sidebar, breadcrumb, and course header remain persistent.
      *
      * @param fxmlPath the FXML file name (relative to /com/syncron/views/)
      */
@@ -151,16 +181,68 @@ public class MainController {
     }
 
     /**
-     * Updates the breadcrumb label to reflect the current navigation path.
+     * Updates the breadcrumb bar with interactive, clickable segments.
+     * Each segment acts like a button that navigates to that level.
      */
-    private void updateBreadcrumb(String currentSection) {
-        String path;
+    private void updateBreadcrumb(String section) {
+        this.currentSection = section;
+        breadcrumbBar.getChildren().clear();
+
+        // Segment 1: "Dashboard" — always present, clickable → goes back to home
+        breadcrumbBar.getChildren().add(createBreadcrumbSegment("Dashboard", this::handleBackToHome));
+
         if (courseName != null && !courseName.isEmpty()) {
-            path = "Dashboard / My Courses / " + courseName + " / " + currentSection;
-        } else {
-            path = "Dashboard / " + currentSection;
+            // Separator
+            breadcrumbBar.getChildren().add(createBreadcrumbSeparator());
+
+            // Segment 2: "My Courses" — clickable → goes back to home
+            breadcrumbBar.getChildren().add(createBreadcrumbSegment("My Courses", this::handleBackToHome));
+
+            // Separator
+            breadcrumbBar.getChildren().add(createBreadcrumbSeparator());
+
+            // Segment 3: Course Name — clickable → reloads Common view
+            breadcrumbBar.getChildren().add(createBreadcrumbSegment(courseName, () -> {
+                loadContentView("common.fxml");
+                updateBreadcrumb("Common");
+                // Highlight the Common button
+                if (!sidebarButtonContainer.getChildren().isEmpty()) {
+                    Button firstButton = (Button) sidebarButtonContainer.getChildren().get(0);
+                    setActiveButton(firstButton);
+                }
+            }));
+
+            if (section != null && !section.isEmpty()) {
+                // Separator
+                breadcrumbBar.getChildren().add(createBreadcrumbSeparator());
+
+                // Segment 4: Current section — non-clickable (current page)
+                Label sectionLabel = new Label(section);
+                sectionLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #2C3E50; -fx-font-weight: bold;");
+                breadcrumbBar.getChildren().add(sectionLabel);
+            }
         }
-        breadcrumbLabel.setText(path);
+    }
+
+    /**
+     * Creates a clickable breadcrumb segment label.
+     */
+    private Label createBreadcrumbSegment(String text, Runnable onClick) {
+        Label label = new Label(text);
+        label.setStyle("-fx-font-size: 14px; -fx-text-fill: #3498DB; -fx-cursor: hand;");
+        label.setOnMouseEntered(e -> label.setStyle("-fx-font-size: 14px; -fx-text-fill: #2980B9; -fx-cursor: hand; -fx-underline: true;"));
+        label.setOnMouseExited(e -> label.setStyle("-fx-font-size: 14px; -fx-text-fill: #3498DB; -fx-cursor: hand;"));
+        label.setOnMouseClicked(e -> onClick.run());
+        return label;
+    }
+
+    /**
+     * Creates a breadcrumb separator (" / ").
+     */
+    private Label createBreadcrumbSeparator() {
+        Label sep = new Label(" / ");
+        sep.setStyle("-fx-font-size: 14px; -fx-text-fill: #BDC3C7;");
+        return sep;
     }
 
     /**
