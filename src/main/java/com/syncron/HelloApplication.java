@@ -27,7 +27,7 @@ public class HelloApplication extends Application {
             scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
         }
 
-        stage.setTitle("Syncron");
+        stage.setTitle("Cortex");
         stage.setScene(scene);
         stage.show();
     }
