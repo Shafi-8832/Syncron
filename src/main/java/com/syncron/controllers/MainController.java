@@ -27,13 +27,13 @@ public class MainController {
     @FXML private VBox sidebar;
     @FXML private VBox sidebarButtonContainer;
     @FXML private StackPane contentArea;
-    @FXML private HBox courseHeaderBox;
+    @FXML private VBox courseHeaderBox;
     @FXML private Label courseHeaderLabel;
     @FXML private Label courseTypeFlair;
     @FXML private Label creditsFlair;
-    @FXML private HBox flairContainer;
 
-    private String courseName = "";
+    private String courseCode = "";
+    private String courseTitle = "";
     private String courseType = "theory"; // "theory" or "sessional"
     private String courseCredits = "3.0"; // default credits
     private Button activeButton;
@@ -69,21 +69,33 @@ public class MainController {
 
     /**
      * Configure the layout for a specific course.
-     * @param courseName the display name of the course (e.g., "CSE 108")
+     * @param courseCode the course code (e.g., "CSE 108")
      * @param courseType "theory" or "sessional"
      */
-    public void setCourseContext(String courseName, String courseType) {
-        setCourseContext(courseName, courseType, "3.0");
+    public void setCourseContext(String courseCode, String courseType) {
+        setCourseContext(courseCode, "", courseType, "3.0");
     }
 
     /**
-     * Configure the layout for a specific course with credits.
-     * @param courseName the display name of the course (e.g., "CSE 108")
+     * Configure the layout for a specific course with title.
+     * @param courseCode the course code (e.g., "CSE 108")
+     * @param courseTitle the course title (e.g., "Object Oriented Programming")
+     * @param courseType "theory" or "sessional"
+     */
+    public void setCourseContext(String courseCode, String courseTitle, String courseType) {
+        setCourseContext(courseCode, courseTitle, courseType, "3.0");
+    }
+
+    /**
+     * Configure the layout for a specific course with title and credits.
+     * @param courseCode the course code (e.g., "CSE 108")
+     * @param courseTitle the course title (e.g., "Object Oriented Programming")
      * @param courseType "theory" or "sessional"
      * @param credits the credit value (e.g., "1.5")
      */
-    public void setCourseContext(String courseName, String courseType, String credits) {
-        this.courseName = courseName;
+    public void setCourseContext(String courseCode, String courseTitle, String courseType, String credits) {
+        this.courseCode = courseCode != null ? courseCode : "";
+        this.courseTitle = courseTitle != null ? courseTitle : "";
         this.courseType = courseType != null ? courseType.toLowerCase() : "theory";
         this.courseCredits = credits != null ? credits : "3.0";
         buildSidebar();
@@ -98,18 +110,23 @@ public class MainController {
     }
 
     /**
-     * Updates the persistent course header box with course code/name and ghost-style flairs.
+     * Updates the persistent course header box with "[Code] : [Title]" and pill-style flairs.
      */
     private void updateCourseHeader() {
-        if (courseName != null && !courseName.isEmpty()) {
-            courseHeaderLabel.setText(courseName);
+        if (courseCode != null && !courseCode.isEmpty()) {
+            // Build heading: "CSE 108 : Object Oriented Programming"
+            String heading = courseCode;
+            if (courseTitle != null && !courseTitle.isEmpty()) {
+                heading += " : " + courseTitle;
+            }
+            courseHeaderLabel.setText(heading);
             courseHeaderBox.setVisible(true);
             courseHeaderBox.setManaged(true);
 
-            // Ghost flair for course type
+            // Pill flair for course type
             courseTypeFlair.setText("sessional".equals(courseType) ? "Sessional" : "Theory");
 
-            // Ghost flair for credits
+            // Pill flair for credits
             creditsFlair.setText(courseCredits + " Credits");
         } else {
             courseHeaderBox.setVisible(false);
@@ -197,7 +214,7 @@ public class MainController {
         // Segment 1: "Dashboard" — always present, clickable → goes back to home
         breadcrumbBar.getChildren().add(createBreadcrumbSegment("Dashboard", this::handleBackToHome));
 
-        if (courseName != null && !courseName.isEmpty()) {
+        if (courseCode != null && !courseCode.isEmpty()) {
             // Separator
             breadcrumbBar.getChildren().add(createBreadcrumbSeparator());
 
@@ -207,8 +224,8 @@ public class MainController {
             // Separator
             breadcrumbBar.getChildren().add(createBreadcrumbSeparator());
 
-            // Segment 3: Course Name — clickable → reloads Common view
-            breadcrumbBar.getChildren().add(createBreadcrumbSegment(courseName, () -> {
+            // Segment 3: Course Code — clickable → reloads Common view
+            breadcrumbBar.getChildren().add(createBreadcrumbSegment(courseCode, () -> {
                 loadContentView("common.fxml");
                 updateBreadcrumb("Common");
                 // Highlight the Common button

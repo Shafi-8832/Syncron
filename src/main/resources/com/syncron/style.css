@@ -38,16 +38,16 @@
     -fx-border-width: 0 0 1 0;
 }
 
-/* Ghost Flair */
-.ghost-flair {
+/* Pill Flair (Outline/Capsule Style) */
+.pill-flair {
     -fx-background-color: transparent;
-    -fx-border-color: #78909C;
+    -fx-border-color: #1A237E;
     -fx-border-width: 1;
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
-    -fx-text-fill: #78909C;
+    -fx-border-radius: 100;
+    -fx-background-radius: 100;
+    -fx-text-fill: #1565C0;
     -fx-font-size: 11px;
-    -fx-padding: 2 8;
+    -fx-padding: 2 10;
 }
 
 /* Stats Cards */

@@ -81,14 +81,14 @@ public class HomeController {
             card.getChildren().addAll(infoBox, spacer, arrowLabel);
 
             // --- THE CLICK ACTION (Connects to Yesterday's Work) ---
-            card.setOnMouseClicked(event -> openCoursePortal(course.getCourseCode()));
+            card.setOnMouseClicked(event -> openCoursePortal(course.getCourseCode(), course.getCourseTitle()));
 
             // Add card to the screen
             courseCardContainer.getChildren().add(card);
         }
     }
 
-    private void openCoursePortal(String courseCode) {
+    private void openCoursePortal(String courseCode, String courseTitle) {
         try {
             // 1. Load the persistent MainLayout
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
@@ -97,7 +97,7 @@ public class HomeController {
             // 2. Pass the course context to MainController
             MainController controller = loader.getController();
             // Default to "theory" — can be extended later to read type from DB
-            controller.setCourseContext(courseCode, "theory");
+            controller.setCourseContext(courseCode, courseTitle, "theory");
 
             // 3. Switch Scenes
             Stage stage = (Stage) courseCardContainer.getScene().getWindow();

@@ -6,7 +6,6 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
@@ -42,16 +41,17 @@
     <center>
         <VBox style="-fx-background-color: #F4F7FB;">
             <!-- Persistent Course Header Box -->
-            <HBox fx:id="courseHeaderBox" alignment="TOP_LEFT" spacing="10"
+            <VBox fx:id="courseHeaderBox" spacing="5"
                   style="-fx-background-color: white; -fx-padding: 15 20; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;">
-                <Label fx:id="courseHeaderLabel" text=""
-                       style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
-                <Region HBox.hgrow="ALWAYS"/>
-                <HBox fx:id="flairContainer" alignment="TOP_RIGHT" spacing="8">
-                    <Label fx:id="courseTypeFlair" text="" styleClass="ghost-flair"/>
-                    <Label fx:id="creditsFlair" text="" styleClass="ghost-flair"/>
+                <!-- Row 1: Course title + Type flair aligned to top -->
+                <HBox alignment="TOP_LEFT" spacing="10">
+                    <Label fx:id="courseHeaderLabel" text=""
+                           style="-fx-font-size: 32px; -fx-font-weight: 700; -fx-text-fill: #2C3E50;"/>
+                    <Label fx:id="courseTypeFlair" text="" styleClass="pill-flair"/>
                 </HBox>
-            </HBox>
+                <!-- Row 2: Credits flair below the course name -->
+                <Label fx:id="creditsFlair" text="" styleClass="pill-flair"/>
+            </VBox>
             <!-- Dynamic Content Area -->
             <StackPane fx:id="contentArea" style="-fx-background-color: #F4F7FB;" VBox.vgrow="ALWAYS">
                 <!-- Content views will be loaded here dynamically -->
