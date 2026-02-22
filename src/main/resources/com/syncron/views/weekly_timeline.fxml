@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      spacing="15" style="-fx-padding: 30; -fx-background-color: #F4F7FC;">
+    <Label text="Weekly Timeline" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+    <Label text="Week-by-week course timeline will appear here."
+           style="-fx-text-fill: #7F8C8D; -fx-font-size: 14px;" wrapText="true"/>
+</VBox>

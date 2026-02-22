@@ -1,7 +1,13 @@
-.root { -fx-font-family: 'Segoe UI', sans-serif; -fx-background-color: #F4F7FC; }
+/* Montserrat Font */
+@font-face {
+    font-family: 'Montserrat';
+    src: url("fonts/Montserrat-Regular.ttf");
+}
+
+.root { -fx-font-family: 'Montserrat', sans-serif; -fx-background-color: #F4F7FB; }
 
 /* Sidebar */
-.sidebar { -fx-background-color: #2C3E50; -fx-padding: 20; }
+.sidebar { -fx-background-color: #40747d; -fx-padding: 20; }
 
 /* Buttons */
 .nav-btn {
@@ -12,7 +18,37 @@
     -fx-cursor: hand;
     -fx-padding: 10 15;
 }
-.nav-btn:hover { -fx-background-color: #34495E; }
+.nav-btn:hover { -fx-background-color: #356369; }
+
+/* Active Nav Button */
+.nav-btn-active {
+    -fx-background-color: #356369;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-alignment: BASELINE_LEFT;
+    -fx-cursor: hand;
+    -fx-padding: 10 15;
+}
+
+/* Breadcrumb Bar */
+.breadcrumb-bar {
+    -fx-background-color: white;
+    -fx-padding: 12 20;
+    -fx-border-color: #ECF0F1;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* Pill Flair (Outline/Capsule Style) */
+.pill-flair {
+    -fx-background-color: transparent;
+    -fx-border-color: #1A237E;
+    -fx-border-width: 1;
+    -fx-border-radius: 100;
+    -fx-background-radius: 100;
+    -fx-text-fill: #1565C0;
+    -fx-font-size: 11px;
+    -fx-padding: 2 10;
+}
 
 /* Stats Cards */
 .card {

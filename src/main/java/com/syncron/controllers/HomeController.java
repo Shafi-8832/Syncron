@@ -81,28 +81,26 @@ public class HomeController {
             card.getChildren().addAll(infoBox, spacer, arrowLabel);
 
             // --- THE CLICK ACTION (Connects to Yesterday's Work) ---
-            card.setOnMouseClicked(event -> openCoursePortal(course.getCourseCode()));
+            card.setOnMouseClicked(event -> openCoursePortal(course.getCourseCode(), course.getCourseTitle()));
 
             // Add card to the screen
             courseCardContainer.getChildren().add(card);
         }
     }
 
-    private void openCoursePortal(String courseCode) {
+    private void openCoursePortal(String courseCode, String courseTitle) {
         try {
-            // 1. Load the Vertical Portal FXML
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/course_details_general.fxml"));
+            // 1. Load the persistent MainLayout
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
             Parent root = loader.load();
 
-            // 2. Pass the Course Code (CSE 108) to the controller
-            CourseDetailsController controller = loader.getController();
-            controller.setCourseData(courseCode);
+            // 2. Pass the course context to MainController
+            MainController controller = loader.getController();
+            // Default to "theory" — can be extended later to read type from DB
+            controller.setCourseContext(courseCode, courseTitle, "theory");
 
             // 3. Switch Scenes
-            // Since we are currently in a standalone page, we just swap the whole Scene
             Stage stage = (Stage) courseCardContainer.getScene().getWindow();
-
-            // This keeps the window size EXACTLY the same
             stage.getScene().setRoot(root);
 
         } catch (IOException e) {
