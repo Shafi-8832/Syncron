@@ -1,7 +1,12 @@
-.root { -fx-font-family: 'Segoe UI', sans-serif; -fx-background-color: #F4F7FC; }
+/* Montserrat Font */
+@font-face {
+    src: url("fonts/Montserrat-Regular.ttf");
+}
+
+.root { -fx-font-family: 'Montserrat', sans-serif; -fx-background-color: #F4F7FB; }
 
 /* Sidebar */
-.sidebar { -fx-background-color: #2C3E50; -fx-padding: 20; }
+.sidebar { -fx-background-color: #40747d; -fx-padding: 20; }
 
 /* Buttons */
 .nav-btn {
@@ -12,11 +17,11 @@
     -fx-cursor: hand;
     -fx-padding: 10 15;
 }
-.nav-btn:hover { -fx-background-color: #34495E; }
+.nav-btn:hover { -fx-background-color: #356369; }
 
 /* Active Nav Button */
 .nav-btn-active {
-    -fx-background-color: #34495E;
+    -fx-background-color: #356369;
     -fx-text-fill: white;
     -fx-font-size: 14px;
     -fx-alignment: BASELINE_LEFT;
@@ -30,6 +35,18 @@
     -fx-padding: 12 20;
     -fx-border-color: #ECF0F1;
     -fx-border-width: 0 0 1 0;
+}
+
+/* Ghost Flair */
+.ghost-flair {
+    -fx-background-color: transparent;
+    -fx-border-color: #78909C;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-text-fill: #78909C;
+    -fx-font-size: 11px;
+    -fx-padding: 2 8;
 }
 
 /* Stats Cards */

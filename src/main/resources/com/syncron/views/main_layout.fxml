@@ -6,6 +6,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
@@ -27,7 +28,7 @@
     <left>
         <VBox fx:id="sidebar" spacing="5" styleClass="sidebar" prefWidth="200">
             <Label text="NAVIGATION" textFill="white"
-                   style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-padding: 0 0 20 0;"/>
+                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 0 0 20 0;"/>
             <VBox fx:id="sidebarButtonContainer" spacing="5">
                 <!-- Buttons will be populated dynamically by MainController -->
             </VBox>
@@ -39,17 +40,20 @@
 
     <!-- CENTER: Persistent Course Header + Dynamic Content Area -->
     <center>
-        <VBox style="-fx-background-color: #F4F7FC;">
+        <VBox style="-fx-background-color: #F4F7FB;">
             <!-- Persistent Course Header Box -->
-            <HBox fx:id="courseHeaderBox" alignment="CENTER_LEFT" spacing="10"
+            <HBox fx:id="courseHeaderBox" alignment="TOP_LEFT" spacing="10"
                   style="-fx-background-color: white; -fx-padding: 15 20; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;">
                 <Label fx:id="courseHeaderLabel" text=""
-                       style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
-                <Label fx:id="courseTypeFlair" text=""
-                       style="-fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 3 10; -fx-background-radius: 5;"/>
+                       style="-fx-font-size: 32px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <HBox fx:id="flairContainer" alignment="TOP_RIGHT" spacing="8">
+                    <Label fx:id="courseTypeFlair" text="" styleClass="ghost-flair"/>
+                    <Label fx:id="creditsFlair" text="" styleClass="ghost-flair"/>
+                </HBox>
             </HBox>
             <!-- Dynamic Content Area -->
-            <StackPane fx:id="contentArea" style="-fx-background-color: #F4F7FC;" VBox.vgrow="ALWAYS">
+            <StackPane fx:id="contentArea" style="-fx-background-color: #F4F7FB;" VBox.vgrow="ALWAYS">
                 <!-- Content views will be loaded here dynamically -->
             </StackPane>
         </VBox>

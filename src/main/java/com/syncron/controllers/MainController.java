@@ -30,9 +30,12 @@ public class MainController {
     @FXML private HBox courseHeaderBox;
     @FXML private Label courseHeaderLabel;
     @FXML private Label courseTypeFlair;
+    @FXML private Label creditsFlair;
+    @FXML private HBox flairContainer;
 
     private String courseName = "";
     private String courseType = "theory"; // "theory" or "sessional"
+    private String courseCredits = "3.0"; // default credits
     private Button activeButton;
 
     // Common sidebar items for both theory and sessional
@@ -70,8 +73,19 @@ public class MainController {
      * @param courseType "theory" or "sessional"
      */
     public void setCourseContext(String courseName, String courseType) {
+        setCourseContext(courseName, courseType, "3.0");
+    }
+
+    /**
+     * Configure the layout for a specific course with credits.
+     * @param courseName the display name of the course (e.g., "CSE 108")
+     * @param courseType "theory" or "sessional"
+     * @param credits the credit value (e.g., "1.5")
+     */
+    public void setCourseContext(String courseName, String courseType, String credits) {
         this.courseName = courseName;
         this.courseType = courseType != null ? courseType.toLowerCase() : "theory";
+        this.courseCredits = credits != null ? credits : "3.0";
         buildSidebar();
         updateCourseHeader();
         // Load the first sidebar item (Common) by default and mark it active
@@ -84,7 +98,7 @@ public class MainController {
     }
 
     /**
-     * Updates the persistent course header box with course code/name and type flair.
+     * Updates the persistent course header box with course code/name and ghost-style flairs.
      */
     private void updateCourseHeader() {
         if (courseName != null && !courseName.isEmpty()) {
@@ -92,16 +106,11 @@ public class MainController {
             courseHeaderBox.setVisible(true);
             courseHeaderBox.setManaged(true);
 
-            // Style the flair based on course type
-            if ("sessional".equals(courseType)) {
-                courseTypeFlair.setText("Sessional");
-                courseTypeFlair.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 3 10; "
-                        + "-fx-background-radius: 5; -fx-background-color: #9B59B6; -fx-text-fill: white;");
-            } else {
-                courseTypeFlair.setText("Theory");
-                courseTypeFlair.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 3 10; "
-                        + "-fx-background-radius: 5; -fx-background-color: #3498DB; -fx-text-fill: white;");
-            }
+            // Ghost flair for course type
+            courseTypeFlair.setText("sessional".equals(courseType) ? "Sessional" : "Theory");
+
+            // Ghost flair for credits
+            creditsFlair.setText(courseCredits + " Credits");
         } else {
             courseHeaderBox.setVisible(false);
             courseHeaderBox.setManaged(false);
