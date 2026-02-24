@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.syncron.controllers.MainController"
+            fx:id="mainBorderPane"
+            stylesheets="@../style.css"
+            prefHeight="600.0" prefWidth="900.0">
+
+    <!-- TOP: Interactive Breadcrumb Bar -->
+    <top>
+        <HBox fx:id="breadcrumbBar" alignment="CENTER_LEFT" spacing="5"
+              style="-fx-background-color: white; -fx-padding: 12 20; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;">
+            <!-- Breadcrumb segments will be populated dynamically by MainController -->
+        </HBox>
+    </top>
+
+    <!-- LEFT: Sidebar -->
+    <left>
+        <VBox fx:id="sidebar" spacing="5" styleClass="sidebar" prefWidth="200">
+            <Label text="NAVIGATION" textFill="white"
+                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 0 0 20 0;"/>
+            <VBox fx:id="sidebarButtonContainer" spacing="5">
+                <!-- Buttons will be populated dynamically by MainController -->
+            </VBox>
+            <Pane VBox.vgrow="ALWAYS"/>
+            <Button text="← Back to Home" styleClass="nav-btn" maxWidth="Infinity"
+                    onAction="#handleBackToHome"/>
+        </VBox>
+    </left>
+
+    <!-- CENTER: Persistent Course Header + Dynamic Content Area -->
+    <center>
+        <VBox style="-fx-background-color: #F4F7FB;">
+            <!-- Persistent Course Header Box -->
+            <VBox fx:id="courseHeaderBox" spacing="5"
+                  style="-fx-background-color: white; -fx-padding: 15 20; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;">
+                <!-- Row 1: Course title + Type flair aligned to top -->
+                <HBox alignment="TOP_LEFT" spacing="10">
+                    <Label fx:id="courseHeaderLabel" text=""
+                           style="-fx-font-size: 32px; -fx-font-weight: 700; -fx-text-fill: #2C3E50;"/>
+                    <Label fx:id="courseTypeFlair" text="" styleClass="pill-flair"/>
+                </HBox>
+                <!-- Row 2: Credits flair below the course name -->
+                <Label fx:id="creditsFlair" text="" styleClass="pill-flair"/>
+            </VBox>
+            <!-- Dynamic Content Area -->
+            <StackPane fx:id="contentArea" style="-fx-background-color: #F4F7FB;" VBox.vgrow="ALWAYS">
+                <!-- Content views will be loaded here dynamically -->
+            </StackPane>
+        </VBox>
+    </center>
+
+</BorderPane>
