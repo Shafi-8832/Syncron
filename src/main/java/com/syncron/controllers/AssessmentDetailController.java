@@ -57,7 +57,11 @@ public class AssessmentDetailController {
      * @param status The status of the assessment (e.g., "PAST_DEADLINE").
      */
     public void initializeView(String role, String status) {
-        if (role.equals("TEACHER")) {
+        if (role == null || status == null) {
+            throw new IllegalArgumentException("Role and status must not be null.");
+        }
+
+        if ("TEACHER".equals(role)) {
             // Show Teacher Action Area and Evaluation Area
             teacherActionArea.setVisible(true);
             teacherActionArea.setManaged(true);
@@ -67,7 +71,7 @@ public class AssessmentDetailController {
             // Hide Student Action Area
             studentActionArea.setVisible(false);
             studentActionArea.setManaged(false);
-        } else if (role.equals("STUDENT")) {
+        } else if ("STUDENT".equals(role)) {
             // Hide Teacher Action and Evaluation areas
             teacherActionArea.setVisible(false);
             teacherActionArea.setManaged(false);
@@ -79,11 +83,13 @@ public class AssessmentDetailController {
             studentActionArea.setManaged(true);
 
             // If past deadline, disable submission buttons
-            if (status.equals("PAST_DEADLINE")) {
+            if ("PAST_DEADLINE".equals(status)) {
                 uploadSubmissionButton.setDisable(true);
                 editSubmissionButton.setDisable(true);
                 removeSubmissionButton.setDisable(true);
             }
+        } else {
+            throw new IllegalArgumentException("Unrecognized role: " + role);
         }
     }
 
