@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.syncron.controllers.AssessmentDetailController"
+      spacing="20" style="-fx-padding: 30; -fx-background-color: #FFFFFF;">
+
+    <!-- Header Section -->
+    <VBox fx:id="headerSection" spacing="8">
+        <Label fx:id="titleLabel" text="Offline 1"
+               style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+        <Label fx:id="durationLabel" text="Duration: --"
+               style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
+        <Label fx:id="timeLabel" text="Time: --"
+               style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
+        <Label fx:id="roomLabel" text="Room: --"
+               style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
+        <Separator style="-fx-padding: 5 0 5 0;"/>
+        <Label text="Syllabus / Questions"
+               style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+        <TextArea fx:id="syllabusArea" prefHeight="100" prefWidth="600" editable="false"
+                  promptText="No syllabus or questions available."
+                  style="-fx-border-color: #DCDDE1; -fx-border-radius: 5; -fx-background-radius: 5;"/>
+    </VBox>
+
+    <Separator/>
+
+    <!-- Teacher Action Area -->
+    <HBox fx:id="teacherActionArea" spacing="15" alignment="CENTER_LEFT"
+          style="-fx-padding: 10; -fx-background-color: #F4F6F8; -fx-background-radius: 8; -fx-border-color: #DCDDE1; -fx-border-radius: 8;">
+        <Label text="Teacher Actions"
+               style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+        <Button fx:id="editButton" text="Edit"
+                style="-fx-background-color: #3498DB; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 20; -fx-background-radius: 5;"/>
+        <Button fx:id="deleteButton" text="Delete"
+                style="-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 20; -fx-background-radius: 5;"/>
+    </HBox>
+
+    <!-- Student Action Area -->
+    <VBox fx:id="studentActionArea" spacing="10"
+          style="-fx-padding: 10; -fx-background-color: #F4F6F8; -fx-background-radius: 8; -fx-border-color: #DCDDE1; -fx-border-radius: 8;">
+        <Label text="Submission Actions"
+               style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+        <HBox spacing="15" alignment="CENTER_LEFT">
+            <Button fx:id="uploadSubmissionButton" text="Upload Submission"
+                    style="-fx-background-color: #2ECC71; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 20; -fx-background-radius: 5;"/>
+            <Button fx:id="editSubmissionButton" text="Edit Submission"
+                    style="-fx-background-color: #F39C12; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 20; -fx-background-radius: 5;"/>
+            <Button fx:id="removeSubmissionButton" text="Remove Submission"
+                    style="-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 20; -fx-background-radius: 5;"/>
+        </HBox>
+    </VBox>
+
+    <!-- Teacher Evaluation Area -->
+    <VBox fx:id="teacherEvaluationArea" spacing="10"
+          style="-fx-padding: 10; -fx-background-color: #F4F6F8; -fx-background-radius: 8; -fx-border-color: #DCDDE1; -fx-border-radius: 8;">
+        <Label text="Evaluation"
+               style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+        <Label fx:id="submissionCountLabel" text="Submissions: 0 / 0"
+               style="-fx-font-size: 14px; -fx-text-fill: #2C3E50;"/>
+        <TableView fx:id="submissionsTable" prefHeight="200" prefWidth="600"
+                   style="-fx-border-color: #DCDDE1; -fx-border-radius: 5;">
+            <columns>
+                <TableColumn fx:id="colWho" text="Who" prefWidth="150"/>
+                <TableColumn fx:id="colWhen" text="When" prefWidth="150"/>
+                <TableColumn fx:id="colFile" text="File" prefWidth="150"/>
+                <TableColumn fx:id="colGraded" text="Graded" prefWidth="100"/>
+            </columns>
+        </TableView>
+    </VBox>
+
+</VBox>
