@@ -58,3 +58,23 @@
 }
 .card-title { -fx-font-size: 14px; -fx-text-fill: #7F8C8D; }
 .card-number { -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2C3E50; }
+
+/* Weekly Timeline - Dark-themed TitledPane styling */
+.timeline-pane > .title {
+    -fx-background-color: #2A2A3D;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #3C3C55;
+    -fx-border-width: 1;
+    -fx-padding: 10 16;
+}
+.timeline-pane > .title > .arrow-button .arrow {
+    -fx-background-color: #90A4AE;
+}
+.timeline-pane > .content {
+    -fx-background-color: #23233A;
+    -fx-border-color: #3C3C55;
+    -fx-border-width: 0 1 1 1;
+    -fx-border-radius: 0 0 8 8;
+    -fx-background-radius: 0 0 8 8;
+}
