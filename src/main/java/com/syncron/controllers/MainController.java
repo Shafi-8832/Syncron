@@ -66,7 +66,7 @@ public class MainController {
 
         // step 1 : turn on the engine
         // hand over the empty StackPane to the NavigationManager
-        NavigationManager.initialize(contentArea);
+        NavigationManager.initialize(contentArea, this);
 
         // Default to theory sidebar; will be reconfigured when setCourseContext is called
         buildSidebar();
@@ -208,7 +208,7 @@ public class MainController {
      * Updates the breadcrumb bar with interactive, clickable segments.
      * Each segment acts like a button that navigates to that level.
      */
-    private void updateBreadcrumb(String section) {
+    public void updateBreadcrumb(String section) {
         breadcrumbBar.getChildren().clear();
 
         // Segment 1: "Dashboard" — always present, clickable → goes back to home
@@ -236,13 +236,28 @@ public class MainController {
             }));
 
             if (section != null && !section.isEmpty()) {
-                // Separator
-                breadcrumbBar.getChildren().add(createBreadcrumbSeparator());
+                String[] pathSegments = section.split(" / ");
 
-                // Segment 4: Current section — non-clickable (current page)
-                Label sectionLabel = new Label(section);
-                sectionLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #2C3E50; -fx-font-weight: bold;");
-                breadcrumbBar.getChildren().add(sectionLabel);
+                for (int i=0; i<pathSegments.length; i++) {
+                    breadcrumbBar.getChildren().add(createBreadcrumbSeparator());
+
+                    String currentWord = pathSegments[i];
+
+                    if (i == pathSegments.length - 1) {
+                        Label currentLabel = new Label(currentWord);
+                        currentLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #2C3E50; -fx-font-weight: bold;");
+                        breadcrumbBar.getChildren().add(currentLabel);
+                    }
+                    else {
+                        breadcrumbBar.getChildren().add(createBreadcrumbSegment(currentWord, () -> {
+                            String fxmlPath = getFxmlPathForButton(currentWord);
+                            if (fxmlPath != null) {
+                                NavigationManager.switchScreen(fxmlPath);
+                                updateBreadcrumb(currentWord);
+                            }
+                        }));
+                    }
+                }
             }
         }
     }

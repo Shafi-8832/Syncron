@@ -265,6 +265,8 @@ public class WeeklyTimelineController {
             /* Navigation to be implemented with database integration */
             AssessmentDetailController detailPage = NavigationManager.switchScreen("assessment_detail.fxml");
 
+            NavigationManager.updateGlobalBreadcrumb("Weekly Timeline / " + text);
+
             if (detailPage != null) {
                 detailPage.initializeView("TEACHER", "ACTIVE");
             }

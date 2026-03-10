@@ -1,5 +1,6 @@
 package com.syncron.utils;
 
+import com.syncron.controllers.MainController;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.layout.StackPane;
@@ -14,14 +15,16 @@ import java.io.IOException;
 public class NavigationManager {
 
     private static StackPane contentArea;
+    private static MainController mainController;
 
     /**
      * Sets the reference to the main content area used for navigation.
      *
      * @param contentArea the StackPane that will hold the active view
      */
-    public static void initialize(StackPane contentArea) {
+    public static void initialize(StackPane contentArea, MainController mainController) {
         NavigationManager.contentArea = contentArea;
+        NavigationManager.mainController = mainController;
     }
 
     /**
@@ -44,6 +47,12 @@ public class NavigationManager {
         } catch (IOException e) {
             e.printStackTrace();
             return null;
+        }
+    }
+
+    public static void updateGlobalBreadcrumb(String sectionName) {
+        if (mainController != null) {
+            mainController.updateBreadcrumb(sectionName);
         }
     }
 }
