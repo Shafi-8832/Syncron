@@ -73,6 +73,22 @@ public class DatabaseHandler {
                 ");";
 
 
+        // 3. Assessments (Single Table Inheritance for CT, Assignment, Offline, Online, Quiz)
+        String sqlAssessments = "CREATE TABLE IF NOT EXISTS assessments (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "course_code TEXT, " +
+                "week_number INTEGER, " +
+                "assessment_type TEXT, " +
+                "title TEXT, " +
+                "date_time TEXT, " +
+                "room TEXT, " +
+                "duration TEXT, " +
+                "total_marks INTEGER, " +
+                "syllabus TEXT, " +
+                "submission_link TEXT, " +
+                "FOREIGN KEY(course_code) REFERENCES courses(code)" +
+                ");";
+
         try (Connection conn = connect();
              Statement stmt = conn.createStatement()) {
 
@@ -83,6 +99,7 @@ public class DatabaseHandler {
             // Execute new tables
             stmt.execute(sqlSections);
             stmt.execute(sqlModules);
+            stmt.execute(sqlAssessments);
 
             System.out.println("Database initialized: All Tables created.");
 
