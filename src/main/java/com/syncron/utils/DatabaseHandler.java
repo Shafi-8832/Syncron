@@ -388,4 +388,21 @@ public class DatabaseHandler {
         return urgentList;
     }
 
+    public static void addSampleAssessments() {
+        String sql = "INSERT INTO assessments (course_code, week_number, assessment_type, title, date_time, room, duration, total_marks, syllabus, submission_link) VALUES " +
+                "('CSE 108', 4, 'CT', 'CT 1: Intro to OOP', '2026-02-10 10:00 AM', 'CSE-301', '50 mins', 20, 'Classes, Objects, and Inheritance', NULL), " +
+                "('CSE 108', 5, 'Offline', 'Offline 1: JavaFX App', '2026-02-17 11:59 PM', NULL, NULL, NULL, NULL, 'upload_link_here'), " +
+                "('CSE 108', 7, 'Online', 'Online 1: MCQ', '2026-03-02 08:00 PM', 'Moodle', '20 mins', NULL, NULL, NULL);";
+
+        try (Connection conn = connect();
+             Statement stmt = conn.createStatement()) {
+
+            stmt.execute(sql);
+            System.out.println("Sample assessments securely injected into the database!");
+
+        } catch (SQLException e) {
+            System.out.println("Error adding sample assessments: " + e.getMessage());
+        }
+    }
+
 }
