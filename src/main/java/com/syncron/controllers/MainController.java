@@ -1,8 +1,8 @@
 package com.syncron.controllers;
 
+import com.syncron.utils.NavigationManager;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -63,8 +63,26 @@ public class MainController {
 
     @FXML
     public void initialize() {
+
+        // step 1 : turn on the engine
+        // hand over the empty StackPane to the NavigationManager
+        NavigationManager.initialize(contentArea);
+
         // Default to theory sidebar; will be reconfigured when setCourseContext is called
         buildSidebar();
+
+        // step 2 : set the default screen so that when the app opens, we don't se a blank white space
+        NavigationManager.switchScreen("common.fxml");
+
+        // step 3 : test button
+        Button timelineBtn = new Button("Weekly Timeline");
+        timelineBtn.setStyle("-fx-text-fill: white; -fx-background-color: transparent; -fx-font-size: 14px;"); // Quick inline style for testing
+
+        // THE MAGIC LINE: Tell the button to use the router!
+        timelineBtn.setOnAction(e -> NavigationManager.switchScreen("weekly_timeline.fxml"));
+
+        // Add the button to the sidebar
+        sidebarButtonContainer.getChildren().add(timelineBtn);
     }
 
     /**
@@ -105,7 +123,7 @@ public class MainController {
             Button firstButton = (Button) sidebarButtonContainer.getChildren().get(0);
             setActiveButton(firstButton);
         }
-        loadContentView("common.fxml");
+        NavigationManager.switchScreen("common.fxml");
         updateBreadcrumb("Common");
     }
 
@@ -164,7 +182,8 @@ public class MainController {
             String fxmlPath = getFxmlPathForButton(label);
             if (fxmlPath != null) {
                 setActiveButton(button);
-                loadContentView(fxmlPath);
+                // use the global engine
+                NavigationManager.switchScreen(fxmlPath);
                 updateBreadcrumb(label);
             }
         });
@@ -183,26 +202,7 @@ public class MainController {
         activeButton = button;
     }
 
-    /**
-     * Loads an FXML view into the center content area of the BorderPane.
-     * Only replaces the center node — the sidebar, breadcrumb, and course header remain persistent.
-     *
-     * @param fxmlPath the FXML file name (relative to /com/syncron/views/)
-     */
-    public void loadContentView(String fxmlPath) {
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/syncron/views/" + fxmlPath));
-            Node view = loader.load();
-            contentArea.getChildren().setAll(view);
-        } catch (IOException e) {
-            // Show error message in the content area
-            Label errorLabel = new Label("Could not load view: " + fxmlPath);
-            errorLabel.setStyle("-fx-text-fill: #E74C3C; -fx-font-size: 14px;");
-            contentArea.getChildren().setAll(errorLabel);
-            e.printStackTrace();
-        }
-    }
+    // deleted loadContentView()
 
     /**
      * Updates the breadcrumb bar with interactive, clickable segments.
@@ -226,7 +226,7 @@ public class MainController {
 
             // Segment 3: Course Code — clickable → reloads Common view
             breadcrumbBar.getChildren().add(createBreadcrumbSegment(courseCode, () -> {
-                loadContentView("common.fxml");
+                NavigationManager.switchScreen("common.fxml");
                 updateBreadcrumb("Common");
                 // Highlight the Common button
                 if (!sidebarButtonContainer.getChildren().isEmpty()) {

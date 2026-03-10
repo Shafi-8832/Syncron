@@ -30,7 +30,7 @@ public class NavigationManager {
      *
      * @param fxmlFileName the FXML file name (e.g. "home.fxml")
      */
-    public static void switchScreen(String fxmlFileName) {
+    public static <T> T switchScreen(String fxmlFileName) {
         if (contentArea == null) {
             throw new IllegalStateException("NavigationManager is not initialized. Call initialize() first.");
         }
@@ -39,8 +39,11 @@ public class NavigationManager {
                     NavigationManager.class.getResource("/com/syncron/views/" + fxmlFileName));
             Parent view = loader.load();
             contentArea.getChildren().setAll(view);
+
+            return loader.getController();
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
         }
     }
 }

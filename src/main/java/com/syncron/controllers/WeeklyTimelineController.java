@@ -1,5 +1,6 @@
 package com.syncron.controllers;
 
+import com.syncron.utils.NavigationManager;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -260,7 +261,14 @@ public class WeeklyTimelineController {
                 button.setStyle(buildButtonStyle("derive(" + bgColor + ", 20%)", "white")));
         button.setOnMouseExited(e ->
                 button.setStyle(buildButtonStyle(bgColor, textColor)));
-        button.setOnAction(e -> { /* Navigation to be implemented with database integration */ });
+        button.setOnAction(e -> {
+            /* Navigation to be implemented with database integration */
+            AssessmentDetailController detailPage = NavigationManager.switchScreen("assessment_detail.fxml");
+
+            if (detailPage != null) {
+                detailPage.initializeView("TEACHER", "ACTIVE");
+            }
+        });
         return button;
     }
 }
