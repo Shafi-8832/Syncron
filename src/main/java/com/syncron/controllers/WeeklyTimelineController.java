@@ -237,37 +237,30 @@ public class WeeklyTimelineController {
     }
 
     /**
+     * Builds a common button style string with the given background and text colors.
+     */
+    private String buildButtonStyle(String bgColor, String textColor) {
+        return "-fx-background-color: " + bgColor + ";"
+                + " -fx-text-fill: " + textColor + ";"
+                + " -fx-font-size: 12px;"
+                + " -fx-padding: 6 16;"
+                + " -fx-background-radius: 6;"
+                + " -fx-border-radius: 6;"
+                + " -fx-cursor: hand;";
+    }
+
+    /**
      * Creates a styled Button that acts as an assessment link.
+     * Click handling will be connected to navigation logic in a future update.
      */
     private Button createAssessmentButton(String text, String bgColor, String textColor) {
         Button button = new Button(text);
-        button.setStyle(
-                "-fx-background-color: " + bgColor + ";"
-                        + " -fx-text-fill: " + textColor + ";"
-                        + " -fx-font-size: 12px;"
-                        + " -fx-padding: 6 16;"
-                        + " -fx-background-radius: 6;"
-                        + " -fx-border-radius: 6;"
-                        + " -fx-cursor: hand;"
-        );
-        button.setOnMouseEntered(e -> button.setStyle(
-                "-fx-background-color: derive(" + bgColor + ", 20%);"
-                        + " -fx-text-fill: white;"
-                        + " -fx-font-size: 12px;"
-                        + " -fx-padding: 6 16;"
-                        + " -fx-background-radius: 6;"
-                        + " -fx-border-radius: 6;"
-                        + " -fx-cursor: hand;"
-        ));
-        button.setOnMouseExited(e -> button.setStyle(
-                "-fx-background-color: " + bgColor + ";"
-                        + " -fx-text-fill: " + textColor + ";"
-                        + " -fx-font-size: 12px;"
-                        + " -fx-padding: 6 16;"
-                        + " -fx-background-radius: 6;"
-                        + " -fx-border-radius: 6;"
-                        + " -fx-cursor: hand;"
-        ));
+        button.setStyle(buildButtonStyle(bgColor, textColor));
+        button.setOnMouseEntered(e ->
+                button.setStyle(buildButtonStyle("derive(" + bgColor + ", 20%)", "white")));
+        button.setOnMouseExited(e ->
+                button.setStyle(buildButtonStyle(bgColor, textColor)));
+        button.setOnAction(e -> { /* Navigation to be implemented with database integration */ });
         return button;
     }
 }
