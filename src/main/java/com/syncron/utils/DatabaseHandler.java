@@ -5,6 +5,12 @@ import javafx.collections.ObservableList;
 
 import com.syncron.models.Section;
 import com.syncron.models.Module;
+import com.syncron.models.Assessment;
+import com.syncron.models.CT;
+import com.syncron.models.Assignment;
+import com.syncron.models.Offline;
+import com.syncron.models.Online;
+import com.syncron.models.Quiz;
 
 import javax.naming.spi.ResolveResult;
 import java.sql.*;
@@ -299,6 +305,57 @@ public class DatabaseHandler {
         }
 
         return moduleList;
+    }
+
+    public static List<Assessment> getAssessmentsForCourse(String courseCode) {
+        List<Assessment> assessmentList = new ArrayList<>();
+
+        String sql = "SELECT * FROM assessments WHERE course_code = ? ORDER BY week_number ASC";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, courseCode);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                int id = rs.getInt("id");
+                String code = rs.getString("course_code");
+                int weekNumber = rs.getInt("week_number");
+                String title = rs.getString("title");
+                String dateTime = rs.getString("date_time");
+                String room = rs.getString("room");
+                String assessmentType = rs.getString("assessment_type");
+
+                switch (assessmentType) {
+                    case "CT":
+                        String syllabus = rs.getString("syllabus");
+                        int totalMarks = rs.getInt("total_marks");
+                        assessmentList.add(new CT(id, code, weekNumber, title, dateTime, room, syllabus, totalMarks));
+                        break;
+                    case "Assignment":
+                        String assignmentLink = rs.getString("submission_link");
+                        assessmentList.add(new Assignment(id, code, weekNumber, title, dateTime, room, assignmentLink));
+                        break;
+                    case "Offline":
+                        String offlineLink = rs.getString("submission_link");
+                        assessmentList.add(new Offline(id, code, weekNumber, title, dateTime, room, offlineLink));
+                        break;
+                    case "Online":
+                        String onlineDuration = rs.getString("duration");
+                        assessmentList.add(new Online(id, code, weekNumber, title, dateTime, room, onlineDuration));
+                        break;
+                    case "Quiz":
+                        String quizDuration = rs.getString("duration");
+                        assessmentList.add(new Quiz(id, code, weekNumber, title, dateTime, room, quizDuration));
+                        break;
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Error fetching assessments: " + e.getMessage());
+        }
+
+        return assessmentList;
     }
 
     public static List<Module> getUpcomingDeadlines() throws SQLException {
