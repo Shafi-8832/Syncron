@@ -98,7 +98,7 @@ public class WeeklyTimelineController {
         pane.setGraphic(createHeaderGraphic(weeklyAssessments, weekTitle));
 
         // --- Content ---
-        pane.setContent(createWeekContent(weeklyAssessments));
+        pane.setContent(createWeekContent(weekIndex, weeklyAssessments));
 
         // --- Styling ---
         pane.getStyleClass().add("timeline-pane");
@@ -189,20 +189,25 @@ public class WeeklyTimelineController {
      * Creates the expandable content VBox for a week.
      * Contains time/date info, a resources section, and assessment buttons.
      */
-    private VBox createWeekContent(List<Assessment> weeklyAssessments) {
+    private VBox createWeekContent(int weekIndex, List<Assessment> weeklyAssessments) {
         VBox content = new VBox(12);
         content.setPadding(new Insets(16, 20, 16, 20));
         content.setStyle("-fx-background-color: #23233A;");
 
+        // --- THE RESTORED TIME AND DATE ---
+        // Rebuilding the dates using your original SEMESTER_START variable
+        java.time.LocalDate weekStart = java.time.LocalDate.of(2026, 1, 15).plusWeeks(weekIndex);
+        java.time.format.DateTimeFormatter fullFormatter = java.time.format.DateTimeFormatter.ofPattern("EEEE, MMM d, yyyy");
+
+        Label timeLabel = new Label("Time and Date: " + weekStart.format(fullFormatter)
+                + "    Room: CSE-" + (301 + weekIndex));
+        timeLabel.setStyle("-fx-text-fill: #B0BEC5; -fx-font-size: 13px;");
+        timeLabel.setWrapText(true);
+
         // --- Resources Section ---
         VBox resourcesSection = new VBox(6);
         Label resourcesHeader = new Label("Resources");
-        resourcesHeader.setStyle(
-                "-fx-text-fill: #ECEFF1;"
-                        + " -fx-font-size: 14px;"
-                        + " -fx-font-weight: bold;"
-                        + " -fx-padding: 8 0 2 0;"
-        );
+        resourcesHeader.setStyle("-fx-text-fill: #ECEFF1; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 8 0 2 0;");
         Label resourceDesc = new Label("Lecture slides, notes, and reference materials.");
         resourceDesc.setStyle("-fx-text-fill: #90A4AE; -fx-font-size: 12px;");
         resourceDesc.setWrapText(true);
@@ -211,18 +216,13 @@ public class WeeklyTimelineController {
         // --- Assessment Links ---
         VBox assessmentSection = new VBox(8);
         Label assessmentHeader = new Label("Assessments");
-        assessmentHeader.setStyle(
-                "-fx-text-fill: #ECEFF1;"
-                        + " -fx-font-size: 14px;"
-                        + " -fx-font-weight: bold;"
-                        + " -fx-padding: 8 0 2 0;"
-        );
+        assessmentHeader.setStyle("-fx-text-fill: #ECEFF1; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 8 0 2 0;");
         assessmentSection.getChildren().add(assessmentHeader);
 
         HBox linksBox = new HBox(10);
         linksBox.setAlignment(Pos.CENTER_LEFT);
 
-        for (Assessment assessment : weeklyAssessments) {
+        for (com.syncron.models.Assessment assessment : weeklyAssessments) {
             String type = assessment.getAssessmentType();
             String[] colors = FLAIR_DEFS.get(type);
             String bgColor = colors != null ? colors[0] : "#37474F";
@@ -232,10 +232,10 @@ public class WeeklyTimelineController {
         }
         assessmentSection.getChildren().add(linksBox);
 
-        content.getChildren().addAll(resourcesSection, assessmentSection);
+        // --- ADD ALL THREE PIECES TO THE SCREEN ---
+        content.getChildren().addAll(timeLabel, resourcesSection, assessmentSection);
         return content;
     }
-
     /**
      * Builds a common button style string with the given background and text colors.
      */
