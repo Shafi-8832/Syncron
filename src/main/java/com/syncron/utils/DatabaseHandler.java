@@ -36,32 +36,46 @@ public class DatabaseHandler {
     // Run this method ONCE to create your tables
     public static void initializeDB() {
 
-        String sqlStudent = "CREATE TABLE IF NOT EXISTS students ("
+        // --- RBAC CORE TABLES ---
+
+        String sqlUsers = "CREATE TABLE IF NOT EXISTS users ("
                 + "id TEXT PRIMARY KEY, "
-                + "name TEXT NOT NULL, "
-                + "password TEXT NOT NULL);";
+                + "name TEXT, "
+                + "password TEXT, "
+                + "role TEXT);";
 
+        String sqlSemesters = "CREATE TABLE IF NOT EXISTS semesters ("
+                + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + "name TEXT, "
+                + "is_active INTEGER DEFAULT 1);";
 
-        String sqlCourse = "CREATE TABLE IF NOT EXISTS courses ("
-                + "code TEXT PRIMARY KEY, " // e.g., 'CSE 108' (Must be unique)
-                + "title TEXT NOT NULL);";  // e.g., 'Object Oriented Programming'
+        String sqlCourses = "CREATE TABLE IF NOT EXISTS courses ("
+                + "code TEXT PRIMARY KEY, "
+                + "title TEXT, "
+                + "course_type TEXT, "
+                + "semester_id INTEGER, "
+                + "FOREIGN KEY(semester_id) REFERENCES semesters(id));";
 
+        String sqlCourseTeachers = "CREATE TABLE IF NOT EXISTS course_teachers ("
+                + "teacher_id TEXT, "
+                + "course_code TEXT, "
+                + "PRIMARY KEY (teacher_id, course_code));";
 
-        // This remembers which student is taking which course.
-        String sqlEnrollment = "CREATE TABLE IF NOT EXISTS enrollments ("
-                + "studentId TEXT, "
-                + "courseCode TEXT, "
-                + "PRIMARY KEY (studentId, courseCode));";
+        String sqlEnrollmentRequests = "CREATE TABLE IF NOT EXISTS enrollment_requests ("
+                + "student_id TEXT, "
+                + "course_code TEXT, "
+                + "status TEXT DEFAULT 'PENDING', "
+                + "PRIMARY KEY (student_id, course_code));";
 
-        // --- NEW TABLES FOR VERTICAL PORTAL ---
+        // --- EXISTING TABLES ---
 
         // 1. Sections (The "Weeks")
         String sqlSections = "CREATE TABLE IF NOT EXISTS course_sections (" +
                 "section_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                "course_code TEXT, " +     // Links to courses(code)
-                "title TEXT, " +           // e.g. "Week 1"
+                "course_code TEXT, " +
+                "title TEXT, " +
                 "week_number INTEGER, " +
-                "flair_type TEXT, " +      // 'project', 'exam'
+                "flair_type TEXT, " +
                 "FOREIGN KEY(course_code) REFERENCES courses(code)" +
                 ");";
 
@@ -69,7 +83,7 @@ public class DatabaseHandler {
         String sqlModules = "CREATE TABLE IF NOT EXISTS course_modules (" +
                 "module_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "section_id INTEGER, " +
-                "module_type TEXT, " +     // 'resource', 'offline'
+                "module_type TEXT, " +
                 "title TEXT, " +
                 "description TEXT, " +
                 "file_link TEXT, " +
@@ -77,7 +91,6 @@ public class DatabaseHandler {
                 "due_date TEXT, " +
                 "FOREIGN KEY(section_id) REFERENCES course_sections(section_id)" +
                 ");";
-
 
         // 3. Assessments (Single Table Inheritance for CT, Assignment, Offline, Online, Quiz)
         String sqlAssessments = "CREATE TABLE IF NOT EXISTS assessments (" +
@@ -92,17 +105,19 @@ public class DatabaseHandler {
                 "total_marks INTEGER, " +
                 "syllabus TEXT, " +
                 "submission_link TEXT, " +
+                "author_name TEXT, " +
                 "FOREIGN KEY(course_code) REFERENCES courses(code)" +
                 ");";
 
         try (Connection conn = connect();
              Statement stmt = conn.createStatement()) {
 
-            stmt.execute(sqlStudent);
-            stmt.execute(sqlCourse);
-            stmt.execute(sqlEnrollment);
+            stmt.execute(sqlUsers);
+            stmt.execute(sqlSemesters);
+            stmt.execute(sqlCourses);
+            stmt.execute(sqlCourseTeachers);
+            stmt.execute(sqlEnrollmentRequests);
 
-            // Execute new tables
             stmt.execute(sqlSections);
             stmt.execute(sqlModules);
             stmt.execute(sqlAssessments);
