@@ -1,6 +1,7 @@
 package com.syncron.utils;
 
 import com.syncron.models.Course;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
 import com.syncron.models.Section;
@@ -157,13 +158,13 @@ public class DatabaseHandler {
     public static ObservableList<Course> getAllCourses() {
 
         // 1. Create an empty list to hold the courses
-        javafx.collections.ObservableList<com.syncron.models.Course> courseList = javafx.collections.FXCollections.observableArrayList();
+        ObservableList<Course> courseList = FXCollections.observableArrayList();
 
         String sql = "SELECT * FROM courses"; // The question we ask the DB
 
         try (Connection conn = connect();
              Statement stmt = conn.createStatement();
-             java.sql.ResultSet rs = stmt.executeQuery(sql)) { // executeQuery is for READING data
+             ResultSet rs = stmt.executeQuery(sql)) { // executeQuery is for READING data
 
             // 2. The Loop: "While there is a next row..."
             while (rs.next()) {
@@ -172,7 +173,7 @@ public class DatabaseHandler {
                 String title = rs.getString("title");
 
                 // 4. Create a Course object and add it to the list
-                courseList.add(new com.syncron.models.Course(code, title));
+                courseList.add(new Course(code, title));
             }
 
         } catch (SQLException e) {
@@ -183,7 +184,7 @@ public class DatabaseHandler {
     }
 
     public static List<Section> getSectionsForCourse(String courseCode) {
-        List<com.syncron.models.Section> sectionList = new ArrayList<>();
+        List<Section> sectionList = new ArrayList<>();
 
         // SQL : get all weeks, 0, 1, 2, ...
         String sql = "SELECT * FROM course_sections WHERE course_code = ? ORDER BY  week_number ASC";
@@ -331,4 +332,50 @@ public class DatabaseHandler {
         return urgentList;
     }
 
+    /**
+     * Authenticates a user and returns their RBAC role.
+     * @param id The Student ID, Teacher ID, or Admin ID
+     * @param inputPassword The password typed into the UI
+     * @return The user's role (e.g., "ADMIN", "TEACHER", "STUDENT"), or null if login fails.
+     */
+    public static String authenticateUser(String id, String inputPassword) {
+        String sqlCheck = "SELECT password, role FROM users WHERE id = ?";
+
+        try (Connection conn = connect();
+            PreparedStatement pstmt = conn.prepareStatement(sqlCheck)) {
+
+            pstmt.setString(1, id);
+
+            // 4. execute the query and receive java's spreadsheet object ResultSet
+            try (ResultSet rs = pstmt.executeQuery()) {
+
+                // 5. Does this user exist? Move to the first row of data.
+                if (rs.next()) { // step down to the first row from header row
+                    // Grab the real password and role from database row
+                    String dbPassword = rs.getString("password");
+                    String dbRole = rs.getString("role");
+
+                    // 6. verification
+                    if (dbPassword.equals(inputPassword)) {
+                        System.out.println("Login successful for user " + id);
+                        return dbRole;
+                    }
+                    else {
+                        System.out.println("Login failed: Incorrect password for user: " + id);
+                        return null;
+                    }
+                }
+                else {
+                    System.out.println("Login failed: ID not found.");
+                    return null; // User with this ID doesn't exist at all.
+                }
+
+            }
+        } catch (SQLException e) {
+            System.out.println("Database error during authentication: " + e.getMessage());
+            return null; // Connection failed or Something else crashed.
+        }
+
+
+    }
 }
