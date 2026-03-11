@@ -78,7 +78,8 @@ public class LoginController {
             }
         }
         else {
-
+            // FAILURE: The Bouncer says no.
+            errorLabel.setText("Invalid ID or Password!");
         }
     }
 
