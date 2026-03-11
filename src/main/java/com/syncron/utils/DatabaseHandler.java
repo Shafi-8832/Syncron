@@ -41,6 +41,7 @@ public class DatabaseHandler {
         String sqlUsers = "CREATE TABLE IF NOT EXISTS users ("
                 + "id TEXT PRIMARY KEY, "
                 + "name TEXT, "
+                + "email TEXT UNIQUE, "
                 + "password TEXT, "
                 + "role TEXT);";
 
@@ -129,96 +130,23 @@ public class DatabaseHandler {
         }
     }
 
-    // --- NEW METHOD: The "Ghost Teacher" Data ---
-    public static void addGhostTeacherData() {
-        String sqlSection = "INSERT INTO course_sections (course_code, title, week_number, flair_type) VALUES (?, ?, ?, ?)";
-        String sqlModule  = "INSERT INTO course_modules (section_id, module_type, title, description, due_date) VALUES (?, ?, ?, ?, ?)";
+    public static void injectDefaultAdmin() {
+        String sqlAdmin = "INSERT OR IGNORE INTO Users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = connect();
-             PreparedStatement psSection = conn.prepareStatement(sqlSection, Statement.RETURN_GENERATED_KEYS);
-             PreparedStatement psModule = conn.prepareStatement(sqlModule)) {
+             PreparedStatement pstmt = conn.prepareStatement(sqlAdmin)) {
 
-            // ==========================================
-            // 1. CREATE "GENERAL RESOURCES" (Week 0)
-            // ==========================================
-            psSection.setString(1, "CSE 108");
-            psSection.setString(2, "General Resources");
-            psSection.setInt(3, 0);
-            psSection.setString(4, "none");
-            psSection.executeUpdate();
+            pstmt.setString(1, "Admin");
+            pstmt.setString(2, "IICT Admin");
+            pstmt.setString(3, "admin@iict.buet.ac.bd");
+            pstmt.setString(4, "admin69");
+            pstmt.setString(5, "ADMIN");
 
-            int commonSectionId = psSection.getGeneratedKeys().getInt(1);
-
-            // Add Item 1: Syllabus (Resource)
-            psModule.setInt(1, commonSectionId);
-            psModule.setString(2, "resource");
-            psModule.setString(3, "Course Syllabus.pdf");
-            psModule.setString(4, "Mark distribution inside.");
-            psModule.executeUpdate();
-
-            // Add Item 2: Teacher Contact Info (Resource)
-            psModule.setInt(1, commonSectionId);
-            psModule.setString(2, "resource");
-            psModule.setString(3, "Faculty Office Hours.txt");
-            psModule.setString(4, "Room 305");
-            psModule.executeUpdate();
-
-            // ==========================================
-            // 2. CREATE "HELL WEEK" (Week 12)
-            // ==========================================
-            psSection.setString(1, "CSE 108");
-            psSection.setString(2, "Week 12: Final Project");
-            psSection.setInt(3, 12);
-            psSection.setString(4, "project"); // The Red Flair!
-            psSection.executeUpdate();
-
-            int projectSectionId = psSection.getGeneratedKeys().getInt(1);
-
-            // Add Item 1: Project Guidelines (Resource)
-            psModule.setInt(1, projectSectionId);
-            psModule.setString(2, "resource");
-            psModule.setString(3, "Project_Guidelines_v2.pdf");
-            psModule.setString(4, "Read this before starting.");
-            psModule.executeUpdate();
-
-            // Add Item 2: Phase 1 Code Submission (Offline)
-            psModule.setInt(1, projectSectionId);
-            psModule.setString(2, "offline");
-            psModule.setString(3, "Submit Phase 1 (JavaFX)");
-            psModule.setString(4, "Upload .zip only.");
-            psModule.executeUpdate();
-
-            // Add Item 3: Phase 2 Database Submission (Offline)
-            psModule.setInt(1, projectSectionId);
-            psModule.setString(2, "offline");
-            psModule.setString(3, "Submit Phase 2 (SQLite DB)");
-            psModule.setString(4, "Upload your .db file.");
-            psModule.executeUpdate();
-
-            System.out.println("Ghost Teacher data added! (Packed with content)");
-
-        } catch (SQLException e) {
-            System.out.println("Ghost Data Error: " + e.getMessage());
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) System.out.println("default admin has been successfully entered into the database");
+            else System.out.println("Admin already exists. Skipped creation.");
         }
-    }
-
-
-    // A helper method to put fake data in so we can test the app
-    public static void addSampleData() {
-        String sql1 = "INSERT OR IGNORE INTO courses(code, title) VALUES('CSE 108', 'Object Oriented Programming');";
-        String sql2 = "INSERT OR IGNORE INTO courses(code, title) VALUES('CSE 105', 'Data Structures');";
-        String sql3 = "INSERT OR IGNORE INTO courses(code, title) VALUES('HUM 103', 'Economics');";
-
-        try (Connection conn = connect();
-             Statement stmt = conn.createStatement()) {
-
-            stmt.execute(sql1);
-            stmt.execute(sql2);
-            stmt.execute(sql3);
-
-            System.out.println("Sample courses added.");
-
-        } catch (SQLException e) {
+        catch (SQLException e) {
             System.out.println(e.getMessage());
         }
     }
@@ -401,23 +329,6 @@ public class DatabaseHandler {
             System.out.println(e.getMessage());
         }
         return urgentList;
-    }
-
-    public static void addSampleAssessments() {
-        String sql = "INSERT INTO assessments (course_code, week_number, assessment_type, title, date_time, room, duration, total_marks, syllabus, submission_link) VALUES " +
-                "('CSE 108', 4, 'CT', 'CT 1: Intro to OOP', '2026-02-10 10:00 AM', 'CSE-301', '50 mins', 20, 'Classes, Objects, and Inheritance', NULL), " +
-                "('CSE 108', 5, 'Offline', 'Offline 1: JavaFX App', '2026-02-17 11:59 PM', NULL, NULL, NULL, NULL, 'upload_link_here'), " +
-                "('CSE 108', 7, 'Online', 'Online 1: MCQ', '2026-03-02 08:00 PM', 'Moodle', '20 mins', NULL, NULL, NULL);";
-
-        try (Connection conn = connect();
-             Statement stmt = conn.createStatement()) {
-
-            stmt.execute(sql);
-            System.out.println("Sample assessments securely injected into the database!");
-
-        } catch (SQLException e) {
-            System.out.println("Error adding sample assessments: " + e.getMessage());
-        }
     }
 
 }

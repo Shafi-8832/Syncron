@@ -5,7 +5,7 @@ public class Student extends User {
     private double cgpa;
 
     public Student(String id, String name, String email, String password, boolean isCR) {
-        super(id, name, email, password); // Passes data to the User (Parent) class
+        super(id, name, email, password, "STUDENT"); // Passes data to the User (Parent) class
         this.isCR = isCR;
         this.cgpa = 0.0; // Default starts at 0
     }
