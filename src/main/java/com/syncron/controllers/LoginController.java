@@ -114,7 +114,6 @@ public class LoginController {
         errorLabel.setText("Forget Password feature coming soon!");
         errorLabel.setStyle("-fx-text-fill: #3498DB;"); // Make it blue instead of red for info
     }
-    }
 
     /**
      * Placeholder for future functionality
