@@ -81,7 +81,7 @@ public class WeeklyTimelineController {
             int weekNum = i + 1;
             List<Assessment> weeklyAssessments = assessmentsByWeek.getOrDefault(weekNum, new ArrayList<>());
 
-            TitledPane pane = createWeekPane(weeklyAssessments, weekTitle);
+            TitledPane pane = createWeekPane(i, weeklyAssessments, weekTitle);
             timelineContainer.getChildren().add(pane);
         }
     }
@@ -89,7 +89,7 @@ public class WeeklyTimelineController {
     /**
      * Creates a single TitledPane for a week with header graphic and expandable content.
      */
-    private TitledPane createWeekPane(List<Assessment> weeklyAssessments, String weekTitle) {
+    private TitledPane createWeekPane(int weekIndex, List<Assessment> weeklyAssessments, String weekTitle) {
         TitledPane pane = new TitledPane();
         pane.setExpanded(false);
         pane.setAnimated(true);
