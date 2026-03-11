@@ -9,6 +9,13 @@ import javafx.scene.control.TextArea;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
+import com.syncron.models.Assessment;
+import com.syncron.models.CT;
+import com.syncron.models.Offline;
+import com.syncron.models.Online;
+import com.syncron.models.Assignment;
+import com.syncron.models.Quiz;
+
 public class AssessmentDetailController {
 
     // --- Header Section ---
@@ -108,6 +115,40 @@ public class AssessmentDetailController {
         timeLabel.setText(time);
         roomLabel.setText(room);
         syllabusArea.setText(syllabus);
+    }
+
+    /**
+     * Unpacks the database POJO and populates the UI dynamically based on the assessment type.
+     */
+    public void setAssessmentData(Assessment assessment) {
+        if (assessment == null) return;
+
+        // 1. Set the shared parent data
+        titleLabel.setText(assessment.getTitle());
+        timeLabel.setText(assessment.getDateTime() != null ? "Time: " + assessment.getDateTime() : "Time: TBA");
+        roomLabel.setText(assessment.getRoom() != null ? "Room: " + assessment.getRoom() : "Room: TBA");
+
+        // 2. Use Polymorphism to extract child-specific data!
+        if (assessment instanceof CT ct) {
+            syllabusArea.setText("Syllabus:\n" + ct.getSyllabus());
+            durationLabel.setText("Total Marks: " + ct.getTotalMarks());
+
+        } else if (assessment instanceof Offline offline) {
+            syllabusArea.setText("Submission Link:\n" + offline.getSubmissionLink());
+            durationLabel.setText("Type: Take-home Offline");
+
+        } else if (assessment instanceof Online online) {
+            syllabusArea.setText("This is an online assessment. Be ready at the scheduled time.");
+            durationLabel.setText("Duration: " + online.getDuration());
+
+        } else if (assessment instanceof Quiz quiz) {
+            syllabusArea.setText("Pop quiz/short assessment.");
+            durationLabel.setText("Duration: " + quiz.getDuration());
+
+        } else if (assessment instanceof Assignment assignment) {
+            syllabusArea.setText("Submission Link:\n" + assignment.getSubmissionLink());
+            durationLabel.setText("Type: Long-term Assignment");
+        }
     }
 
     /**

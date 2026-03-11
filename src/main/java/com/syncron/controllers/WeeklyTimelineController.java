@@ -268,6 +268,7 @@ public class WeeklyTimelineController {
 
             if (detailPage != null) {
                 detailPage.initializeView("TEACHER", "ACTIVE");
+                detailPage.setAssessmentData(assessment);
             }
         });
         return button;
