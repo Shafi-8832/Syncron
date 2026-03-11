@@ -1,5 +1,7 @@
 package com.syncron.controllers;
 
+import com.syncron.models.Assessment;
+import com.syncron.utils.DatabaseHandler;
 import com.syncron.utils.NavigationManager;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -14,11 +16,15 @@ import javafx.scene.layout.VBox;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Controller for the Weekly Timeline view.
  * Dynamically generates 14 TitledPane components representing course weeks.
- * No database connections — uses placeholder data for layout demonstration.
+ * Fetches live assessment data from the database via DatabaseHandler.
  */
 public class WeeklyTimelineController {
 
@@ -28,33 +34,21 @@ public class WeeklyTimelineController {
     private static final int TOTAL_WEEKS = 14;
     private static final LocalDate SEMESTER_START = LocalDate.of(2026, 1, 15);
 
-    // Flair definitions: label, background color, text color
-    private static final String[][] FLAIR_DEFS = {
-            {"Online",  "#1B5E20", "#A5D6A7"},
-            {"Offline", "#E65100", "#FFCC80"},
-            {"CT",      "#0D47A1", "#90CAF9"}
-    };
+    // Flair definitions: assessmentType -> {background color, text color}
+    private static final Map<String, String[]> FLAIR_DEFS = new LinkedHashMap<>();
+    static {
+        FLAIR_DEFS.put("Online",     new String[]{"#1B5E20", "#A5D6A7"});
+        FLAIR_DEFS.put("Offline",    new String[]{"#E65100", "#FFCC80"});
+        FLAIR_DEFS.put("CT",         new String[]{"#0D47A1", "#90CAF9"});
+        FLAIR_DEFS.put("Assignment", new String[]{"#4A148C", "#CE93D8"});
+        FLAIR_DEFS.put("Quiz",       new String[]{"#BF360C", "#FFAB91"});
+    }
 
-    // Flair assignments per week (indices into FLAIR_DEFS)
-    private static final int[][] WEEK_FLAIRS = {
-            {0},       // Week 1: Online
-            {0, 1},    // Week 2: Online, Offline
-            {0},       // Week 3: Online
-            {0, 2},    // Week 4: Online, CT
-            {0, 1},    // Week 5: Online, Offline
-            {0},       // Week 6: Online
-            {0, 1, 2}, // Week 7: Online, Offline, CT
-            {0},       // Week 8: Online
-            {0, 1},    // Week 9: Online, Offline
-            {0},       // Week 10: Online
-            {0, 2},    // Week 11: Online, CT
-            {0, 1},    // Week 12: Online, Offline
-            {0},       // Week 13: Online
-            {0, 1, 2}  // Week 14: Online, Offline, CT
-    };
+    private List<Assessment> allAssessments;
 
     @FXML
     public void initialize() {
+        allAssessments = DatabaseHandler.getAssessmentsForCourse("CSE 108");
         generateTimeline();
     }
 
@@ -71,6 +65,12 @@ public class WeeklyTimelineController {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d");
 
+        // Pre-group assessments by week number for O(n) lookup
+        Map<Integer, List<Assessment>> assessmentsByWeek = new LinkedHashMap<>();
+        for (Assessment a : allAssessments) {
+            assessmentsByWeek.computeIfAbsent(a.getWeekNumber(), k -> new ArrayList<>()).add(a);
+        }
+
         for (int i = 0; i < TOTAL_WEEKS; i++) {
             LocalDate weekStart = SEMESTER_START.plusWeeks(i);
             LocalDate weekEnd = weekStart.plusDays(6);
@@ -78,7 +78,10 @@ public class WeeklyTimelineController {
             String weekTitle = "Week " + (i + 1) + ": "
                     + weekStart.format(formatter) + " - " + weekEnd.format(formatter);
 
-            TitledPane pane = createWeekPane(i, weekTitle);
+            int weekNum = i + 1;
+            List<Assessment> weeklyAssessments = assessmentsByWeek.getOrDefault(weekNum, new ArrayList<>());
+
+            TitledPane pane = createWeekPane(i, weeklyAssessments, weekTitle);
             timelineContainer.getChildren().add(pane);
         }
     }
@@ -86,16 +89,16 @@ public class WeeklyTimelineController {
     /**
      * Creates a single TitledPane for a week with header graphic and expandable content.
      */
-    private TitledPane createWeekPane(int weekIndex, String weekTitle) {
+    private TitledPane createWeekPane(int weekIndex, List<Assessment> weeklyAssessments, String weekTitle) {
         TitledPane pane = new TitledPane();
         pane.setExpanded(false);
         pane.setAnimated(true);
 
         // --- Header Graphic ---
-        pane.setGraphic(createHeaderGraphic(weekIndex, weekTitle));
+        pane.setGraphic(createHeaderGraphic(weeklyAssessments, weekTitle));
 
         // --- Content ---
-        pane.setContent(createWeekContent(weekIndex));
+        pane.setContent(createWeekContent(weekIndex, weeklyAssessments));
 
         // --- Styling ---
         pane.getStyleClass().add("timeline-pane");
@@ -121,9 +124,9 @@ public class WeeklyTimelineController {
 
     /**
      * Creates the header graphic HBox for a TitledPane.
-     * Contains a week title label and flair labels.
+     * Contains a week title label and flair labels derived from assessments.
      */
-    private HBox createHeaderGraphic(int weekIndex, String weekTitle) {
+    private HBox createHeaderGraphic(List<Assessment> weeklyAssessments, String weekTitle) {
         HBox header = new HBox(12);
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(4, 8, 4, 0));
@@ -145,10 +148,19 @@ public class WeeklyTimelineController {
         HBox flairsBox = new HBox(6);
         flairsBox.setAlignment(Pos.CENTER_RIGHT);
 
-        int[] flairIndices = WEEK_FLAIRS[weekIndex];
-        for (int idx : flairIndices) {
-            flairsBox.getChildren().add(createFlairLabel(
-                    FLAIR_DEFS[idx][0], FLAIR_DEFS[idx][1], FLAIR_DEFS[idx][2]));
+        // Collect unique assessment types in order
+        LinkedHashMap<String, String[]> seenTypes = new LinkedHashMap<>();
+        for (Assessment a : weeklyAssessments) {
+            String type = a.getAssessmentType();
+            if (!seenTypes.containsKey(type)) {
+                String[] colors = FLAIR_DEFS.get(type);
+                if (colors != null) {
+                    seenTypes.put(type, colors);
+                }
+            }
+        }
+        for (Map.Entry<String, String[]> entry : seenTypes.entrySet()) {
+            flairsBox.getChildren().add(createFlairLabel(entry.getKey(), entry.getValue()[0], entry.getValue()[1]));
         }
 
         header.getChildren().addAll(titleLabel, spacer, flairsBox);
@@ -175,36 +187,28 @@ public class WeeklyTimelineController {
 
     /**
      * Creates the expandable content VBox for a week.
-     * Contains time/date info, a resources section, and assessment links.
+     * Contains time/date info, a resources section, and assessment buttons.
      */
-    private VBox createWeekContent(int weekIndex) {
+    private VBox createWeekContent(int weekIndex, List<Assessment> weeklyAssessments) {
         VBox content = new VBox(12);
         content.setPadding(new Insets(16, 20, 16, 20));
         content.setStyle("-fx-background-color: #23233A;");
 
-        int weekNum = weekIndex + 1;
-        LocalDate weekStart = SEMESTER_START.plusWeeks(weekIndex);
-        DateTimeFormatter fullFormatter = DateTimeFormatter.ofPattern("EEEE, MMM d, yyyy");
+        // --- THE RESTORED TIME AND DATE ---
+        // Rebuilding the dates using your original SEMESTER_START variable
+        java.time.LocalDate weekStart = java.time.LocalDate.of(2026, 1, 15).plusWeeks(weekIndex);
+        java.time.format.DateTimeFormatter fullFormatter = java.time.format.DateTimeFormatter.ofPattern("EEEE, MMM d, yyyy");
 
-        // --- Time and Date / Room ---
         Label timeLabel = new Label("Time and Date: " + weekStart.format(fullFormatter)
                 + "    Room: CSE-" + (301 + weekIndex));
-        timeLabel.setStyle(
-                "-fx-text-fill: #B0BEC5;"
-                        + " -fx-font-size: 13px;"
-        );
+        timeLabel.setStyle("-fx-text-fill: #B0BEC5; -fx-font-size: 13px;");
         timeLabel.setWrapText(true);
 
         // --- Resources Section ---
         VBox resourcesSection = new VBox(6);
         Label resourcesHeader = new Label("Resources");
-        resourcesHeader.setStyle(
-                "-fx-text-fill: #ECEFF1;"
-                        + " -fx-font-size: 14px;"
-                        + " -fx-font-weight: bold;"
-                        + " -fx-padding: 8 0 2 0;"
-        );
-        Label resourceDesc = new Label("Lecture slides, notes, and reference materials for Week " + weekNum + ".");
+        resourcesHeader.setStyle("-fx-text-fill: #ECEFF1; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 8 0 2 0;");
+        Label resourceDesc = new Label("Lecture slides, notes, and reference materials.");
         resourceDesc.setStyle("-fx-text-fill: #90A4AE; -fx-font-size: 12px;");
         resourceDesc.setWrapText(true);
         resourcesSection.getChildren().addAll(resourcesHeader, resourceDesc);
@@ -212,31 +216,26 @@ public class WeeklyTimelineController {
         // --- Assessment Links ---
         VBox assessmentSection = new VBox(8);
         Label assessmentHeader = new Label("Assessments");
-        assessmentHeader.setStyle(
-                "-fx-text-fill: #ECEFF1;"
-                        + " -fx-font-size: 14px;"
-                        + " -fx-font-weight: bold;"
-                        + " -fx-padding: 8 0 2 0;"
-        );
+        assessmentHeader.setStyle("-fx-text-fill: #ECEFF1; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 8 0 2 0;");
         assessmentSection.getChildren().add(assessmentHeader);
 
         HBox linksBox = new HBox(10);
         linksBox.setAlignment(Pos.CENTER_LEFT);
 
-        int[] flairIndices = WEEK_FLAIRS[weekIndex];
-        for (int idx : flairIndices) {
-            String type = FLAIR_DEFS[idx][0];
-            String bgColor = FLAIR_DEFS[idx][1];
-            String textColor = FLAIR_DEFS[idx][2];
-            Button link = createAssessmentButton("Go to " + type + " " + weekNum, bgColor, textColor);
+        for (com.syncron.models.Assessment assessment : weeklyAssessments) {
+            String type = assessment.getAssessmentType();
+            String[] colors = FLAIR_DEFS.get(type);
+            String bgColor = colors != null ? colors[0] : "#37474F";
+            String textColor = colors != null ? colors[1] : "#ECEFF1";
+            Button link = createAssessmentButton(assessment, bgColor, textColor);
             linksBox.getChildren().add(link);
         }
         assessmentSection.getChildren().add(linksBox);
 
+        // --- ADD ALL THREE PIECES TO THE SCREEN ---
         content.getChildren().addAll(timeLabel, resourcesSection, assessmentSection);
         return content;
     }
-
     /**
      * Builds a common button style string with the given background and text colors.
      */
@@ -252,9 +251,10 @@ public class WeeklyTimelineController {
 
     /**
      * Creates a styled Button that acts as an assessment link.
-     * Click handling will be connected to navigation logic in a future update.
+     * Accepts an Assessment object and navigates to the detail view on click.
      */
-    private Button createAssessmentButton(String text, String bgColor, String textColor) {
+    private Button createAssessmentButton(Assessment assessment, String bgColor, String textColor) {
+        String text = assessment.getTitle();
         Button button = new Button(text);
         button.setStyle(buildButtonStyle(bgColor, textColor));
         button.setOnMouseEntered(e ->
@@ -262,10 +262,9 @@ public class WeeklyTimelineController {
         button.setOnMouseExited(e ->
                 button.setStyle(buildButtonStyle(bgColor, textColor)));
         button.setOnAction(e -> {
-            /* Navigation to be implemented with database integration */
             AssessmentDetailController detailPage = NavigationManager.switchScreen("assessment_detail.fxml");
 
-            NavigationManager.updateGlobalBreadcrumb("Weekly Timeline / " + text);
+            NavigationManager.updateGlobalBreadcrumb("Weekly Timeline / " + assessment.getTitle());
 
             if (detailPage != null) {
                 detailPage.initializeView("TEACHER", "ACTIVE");
