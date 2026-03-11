@@ -17,7 +17,7 @@ public class HelloApplication extends Application {
         DatabaseHandler.injectDefaultAdmin();
 
         // 2. Load the NEW Dashboard
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("views/home.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("views/login.fxml"));
 
         // 3. Create Scene
         Scene scene = new Scene(fxmlLoader.load(), 1280, 720);
