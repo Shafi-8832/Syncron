@@ -1,5 +1,6 @@
 package com.syncron.controllers;
 
+import com.syncron.utils.DatabaseHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -53,6 +54,9 @@ public class AdminController {
     private void handleManageCourses() {
         log("CMD: Accessing Course Database... (UI Module pending)");
         // Later: Swap the center screen to the Course Creation form
+        // NOW
+        String result = DatabaseHandler.injectLevel1Term2();
+        log(result);
     }
 
     @FXML

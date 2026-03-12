@@ -22,11 +22,11 @@
             <Label text="root@kernel:~#" styleClass="sidebar-logo" />
 
             <!-- Navigation -->
-            <Button text="Dashboard" styleClass="sidebar-button" />
-            <Button text="Manage Users" styleClass="sidebar-button" />
-            <Button text="Manage Courses" styleClass="sidebar-button" />
-            <Button text="Manage Semesters" styleClass="sidebar-button" />
-            <Button text="System Disconnect" styleClass="sidebar-button" />
+            <Button text="Dashboard" onAction="#handleDashboard" styleClass="nav-button"/>
+            <Button text="Manage Users" onAction="#handleManageUsers" styleClass="nav-button"/>
+            <Button text="Manage Courses" onAction="#handleManageCourses" styleClass="nav-button"/>
+            <Button text="Manage Semesters" onAction="#handleManageSemesters" styleClass="nav-button"/>
+            <Button text="System Disconnect" onAction="#handleLogout" styleClass="nav-button"/>
 
         </VBox>
     </left>

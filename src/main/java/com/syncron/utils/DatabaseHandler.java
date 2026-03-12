@@ -378,4 +378,49 @@ public class DatabaseHandler {
 
 
     }
+
+
+    public static String injectLevel1Term2() {
+        String sqlSemester = "INSERT INTO semesters (name, is_active) VALUES ('Level 1 Term 2', 1)";
+        String sqlCourse = "INSERT INTO courses (code, title, course_type, semester_id) VALUES (?, ?, 'THEORY', ?)";
+        String sqlUsers = "INSERT OR IGNORE INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)";
+
+        try (Connection conn = connect();
+             PreparedStatement psSem = conn.prepareStatement(sqlSemester, Statement.RETURN_GENERATED_KEYS);
+             PreparedStatement psCourse = conn.prepareStatement(sqlCourse);
+             PreparedStatement psUser = conn.prepareStatement(sqlUsers)) {
+
+            // 1. Create Level 1 Term 2
+            psSem.executeUpdate();
+            ResultSet rs = psSem.getGeneratedKeys();
+            int semesterId = rs.next() ? rs.getInt(1) : 1;
+
+            // 2. Inject Courses
+            String[][] courses = {
+                    {"CSE 105", "Data Structures and Algorithms"},
+                    {"CSE 107", "Object-Oriented Programming"},
+                    {"ME 174", "Mechanical Drawing"}
+            };
+
+            for (String[] course : courses) {
+                psCourse.setString(1, course[0]);
+                psCourse.setString(2, course[1]);
+                psCourse.setInt(3, semesterId);
+                psCourse.executeUpdate();
+            }
+
+            // 3. Create Test Student & Teacher
+            psUser.setString(1, "student"); psUser.setString(2, "Test Student"); psUser.setString(3, "student@buet.ac.bd"); psUser.setString(4, "1234"); psUser.setString(5, "STUDENT");
+            psUser.executeUpdate();
+
+            psUser.setString(1, "teacher"); psUser.setString(2, "Test Teacher"); psUser.setString(3, "teacher@buet.ac.bd"); psUser.setString(4, "1234"); psUser.setString(5, "TEACHER");
+            psUser.executeUpdate();
+
+            return "SUCCESS: Level 1 Term 2 initialized. Courses (CSE 105, CSE 107, ME 174) and test users created.";
+
+        } catch (SQLException e) {
+            return "ERR: Injection failed - " + e.getMessage();
+        }
+    }
+
 }
