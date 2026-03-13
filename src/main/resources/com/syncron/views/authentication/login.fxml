@@ -14,9 +14,9 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.syncron.controllers.LoginController"
+            fx:controller="com.syncron.controllers.authentication.LoginController"
             styleClass="login-root"
-            stylesheets="@../styles/login.css">
+            stylesheets="@../../styles/login.css">
 
     <!-- ==================== CENTER: Login Form ==================== -->
     <center>
@@ -76,7 +76,7 @@
     <!-- ==================== BOTTOM: Footer ==================== -->
     <bottom>
         <VBox styleClass="login-footer">
-            <Label text="Kernel in collaboration with Dept of CSE, BUET"
+            <Label text="Kernel's collaboration with Department of Computer Science and Engineering, BUET"
                    styleClass="footer-text" />
             <Label text="Built with JavaFX &amp; Maven"
                    styleClass="footer-text" />

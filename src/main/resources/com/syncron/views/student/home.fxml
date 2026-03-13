@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 
-<ScrollPane fitToWidth="true" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.syncron.controllers.HomeController">
+<ScrollPane fitToWidth="true" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.syncron.controllers.student.HomeController">
     <content>
         <VBox spacing="25.0" style="-fx-background-color: #F4F6F8;">
             <padding>
@@ -21,8 +21,8 @@
 
                 <HBox alignment="CENTER_LEFT" spacing="15.0">
                     <children>
-                        <Label text="Cortex" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;" />
-                        <Circle radius="3.0" fill="#7F8C8D" />
+                        <Label text="Kernel" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;" />
+                        <Circle radius="3.0" fill="#22538d"/>
                         <Label text="CSE - BUET" style="-fx-font-size: 16px; -fx-text-fill: #7F8C8D;" />
 
                         <Region HBox.hgrow="ALWAYS" /> <Button text="🔔" style="-fx-background-color: white; -fx-background-radius: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 3, 0, 0, 1);" />
@@ -47,7 +47,7 @@
                         </HBox>
 
                         <HBox spacing="20.0" style="-fx-padding: 10 0 0 0;">
-                            <Label text="📅 Term Final: 12 Oct 2025" style="-fx-text-fill: #7F8C8D; -fx-font-size: 13px;" />
+                            <Label text="📅 Term Final: 25 April 2026" style="-fx-text-fill: #7F8C8D; -fx-font-size: 13px;" />
                             <Label text="⏳ Days Remaining: 45" style="-fx-text-fill: #E74C3C; -fx-font-weight: bold; -fx-font-size: 13px;" />
                         </HBox>
                     </children>

@@ -1,4 +1,4 @@
-package com.syncron.controllers;
+package com.syncron.controllers.shared;
 
 import com.syncron.models.Assessment;
 import com.syncron.utils.DatabaseHandler;

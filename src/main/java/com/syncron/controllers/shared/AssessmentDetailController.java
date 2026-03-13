@@ -1,4 +1,4 @@
-package com.syncron.controllers;
+package com.syncron.controllers.shared;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;

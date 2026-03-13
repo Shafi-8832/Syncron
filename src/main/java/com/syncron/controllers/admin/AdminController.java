@@ -1,4 +1,4 @@
-package com.syncron.controllers;
+package com.syncron.controllers.admin;
 
 import com.syncron.utils.DatabaseHandler;
 import javafx.fxml.FXML;
@@ -70,7 +70,7 @@ public class AdminController {
         log("Disconnecting secure session...");
         try {
             // Load the login screen
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/login.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/authentication/login.fxml"));
             Parent root = loader.load();
 
             // Grab the current window using the terminalLog node

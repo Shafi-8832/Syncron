@@ -1,4 +1,4 @@
-package com.syncron.controllers;
+package com.syncron.controllers.student;
 
 import com.syncron.utils.NavigationManager;
 import javafx.fxml.FXML;
@@ -290,7 +290,7 @@ public class MainController {
     private void handleBackToHome() {
         try {
             FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/syncron/views/home.fxml"));
+                    getClass().getResource("/com/syncron/views/student/home.fxml"));
             Parent root = loader.load();
 
             Stage stage = (Stage) mainBorderPane.getScene().getWindow();

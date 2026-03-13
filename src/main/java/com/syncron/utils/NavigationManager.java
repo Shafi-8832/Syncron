@@ -1,6 +1,6 @@
 package com.syncron.utils;
 
-import com.syncron.controllers.MainController;
+import com.syncron.controllers.student.MainController;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.layout.StackPane;
@@ -38,8 +38,8 @@ public class NavigationManager {
             throw new IllegalStateException("NavigationManager is not initialized. Call initialize() first.");
         }
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    NavigationManager.class.getResource("/com/syncron/views/" + fxmlFileName));
+            FXMLLoader loader = new FXMLLoader(                               // THIS RIGHT BELOW needs a fix
+                    NavigationManager.class.getResource("/com/syncron/views/shared/" + fxmlFileName));
             Parent view = loader.load();
             contentArea.getChildren().setAll(view);
 

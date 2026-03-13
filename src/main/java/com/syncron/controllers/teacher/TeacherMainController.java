@@ -1,4 +1,4 @@
-package com.syncron.controllers;
+package com.syncron.controllers.teacher;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -22,7 +22,7 @@ public class TeacherMainController {
     @FXML
     public void initialize() {
         // Load the Teacher Home page into the content area by default
-        loadContent("/com/syncron/views/teacher_home.fxml");
+        loadContent("/com/syncron/views/teacher/teacher_home.fxml");
     }
 
     /**

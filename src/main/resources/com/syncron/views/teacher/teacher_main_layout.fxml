@@ -9,10 +9,10 @@
 <?import javafx.scene.shape.Circle?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.syncron.controllers.TeacherMainController"
+            fx:controller="com.syncron.controllers.teacher.TeacherMainController"
             fx:id="rootPane"
             styleClass="kernel-root"
-            stylesheets="@../styles/kernel_warm.css"
+            stylesheets="@../../styles/kernel_warm.css"
             prefHeight="700.0" prefWidth="1000.0">
 
     <!-- TOP: Permanent Header Bar -->

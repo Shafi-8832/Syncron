@@ -10,9 +10,9 @@
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.syncron.controllers.MainController"
+            fx:controller="com.syncron.controllers.student.MainController"
             fx:id="mainBorderPane"
-            stylesheets="@../style.css"
+            stylesheets="@../../style.css"
             prefHeight="600.0" prefWidth="900.0">
 
     <!-- TOP: Interactive Breadcrumb Bar -->

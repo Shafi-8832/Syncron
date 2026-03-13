@@ -17,10 +17,19 @@ module com.syncron {
     exports com.syncron;
 
     // Allow JavaFX to "see" your Controllers (Login, Dashboard)
-    exports com.syncron.controllers;
-    opens com.syncron.controllers to javafx.fxml;
+
 
     // Allow access to your Database Utils
     exports com.syncron.utils;
     opens com.syncron.models to javafx.base;
+    exports com.syncron.controllers.authentication;
+    opens com.syncron.controllers.authentication to javafx.fxml;
+    exports com.syncron.controllers.admin;
+    opens com.syncron.controllers.admin to javafx.fxml;
+    exports com.syncron.controllers.student;
+    opens com.syncron.controllers.student to javafx.fxml;
+    exports com.syncron.controllers.teacher;
+    opens com.syncron.controllers.teacher to javafx.fxml;
+    exports com.syncron.controllers.shared;
+    opens com.syncron.controllers.shared to javafx.fxml;
 }

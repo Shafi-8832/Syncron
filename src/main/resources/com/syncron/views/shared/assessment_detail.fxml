@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.syncron.controllers.AssessmentDetailController"
+      fx:controller="com.syncron.controllers.shared.AssessmentDetailController"
       spacing="20" style="-fx-padding: 30; -fx-background-color: #FFFFFF;">
 
     <!-- Header Section -->

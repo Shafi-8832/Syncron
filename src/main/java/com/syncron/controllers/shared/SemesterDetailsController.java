@@ -1,4 +1,4 @@
-package com.syncron.controllers;
+package com.syncron.controllers.shared;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -9,6 +9,8 @@ import javafx.stage.Stage;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
+
+// This class is for the semester details you see in a student dashboard
 public class SemesterDetailsController {
 
     @FXML private Button backBtn;
@@ -18,7 +20,7 @@ public class SemesterDetailsController {
     public void initialize() {
         // --- MOCK DATA (replace this with DatabaseHandler later) ---
         LocalDate today = LocalDate.now();
-        LocalDate examDate = LocalDate.of(2026, 10, 12); // Oct 12, 2025
+        LocalDate examDate = LocalDate.of(2026, 4, 25); // April 25, 2026
 
         // Calculate the difference
         long daysBetween = ChronoUnit.DAYS.between(today, examDate);
@@ -32,7 +34,7 @@ public class SemesterDetailsController {
         // --- BACK BUTTON LOGIC ---
         backBtn.setOnAction(e -> {
             try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/home.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/student/home.fxml"));
                 Parent root = loader.load();
                 Stage stage = (Stage) backBtn.getScene().getWindow();
                 stage.getScene().setRoot(root);

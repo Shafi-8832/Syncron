@@ -1,14 +1,12 @@
-package com.syncron.controllers;
+package com.syncron.controllers.shared;
 
 import com.syncron.utils.DatabaseHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -30,7 +28,7 @@ public class CourseDetailsController {
         // The Back Action : Re-load the course fxml page
         backButton.setOnAction(event -> {
             try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/home.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/student/home.fxml"));
                 Parent dashboardView = loader.load();
 
                 Stage stage = (Stage) contentContainer.getScene().getWindow();

@@ -17,7 +17,7 @@ public class HelloApplication extends Application {
         DatabaseHandler.injectDefaultAdmin();
 
         // 2. Load the NEW Dashboard
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("views/login.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("/com/syncron/views/authentication/login.fxml"));
 
         // 3. Create Scene
         Scene scene = new Scene(fxmlLoader.load(), 1280, 720);
@@ -27,7 +27,7 @@ public class HelloApplication extends Application {
             scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
         }
 
-        stage.setTitle("Cortex");
+        stage.setTitle("Kernel");
         stage.setScene(scene);
         stage.show();
     }

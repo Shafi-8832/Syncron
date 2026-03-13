@@ -9,9 +9,9 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.syncron.controllers.AdminController"
+            fx:controller="com.syncron.controllers.admin.AdminController"
             styleClass="admin-root"
-            stylesheets="@../styles/admin.css"
+            stylesheets="@../../styles/admin.css"
             prefWidth="1000" prefHeight="700">
 
     <!-- ==================== LEFT: Sidebar ==================== -->

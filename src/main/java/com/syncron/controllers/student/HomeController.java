@@ -1,4 +1,4 @@
-package com.syncron.controllers;
+package com.syncron.controllers.student;
 
 import com.syncron.models.Course;
 import com.syncron.models.Module;
@@ -7,7 +7,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
@@ -91,7 +90,7 @@ public class HomeController {
     private void openCoursePortal(String courseCode, String courseTitle) {
         try {
             // 1. Load the persistent MainLayout
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/student/main_layout.fxml"));
             Parent root = loader.load();
 
             // 2. Pass the course context to MainController
@@ -111,7 +110,7 @@ public class HomeController {
     // 3. The Navigation Down here
     private void openSemesterDetails() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/semester_details.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/shared/semester_details.fxml"));
             Parent root = loader.load();
 
             Stage stage = (Stage) courseCardContainer.getScene().getWindow();

@@ -1,14 +1,12 @@
-package com.syncron.controllers;
+package com.syncron.controllers.shared;
 
 import com.syncron.models.Course;
 import com.syncron.utils.DatabaseHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.BorderPane;
-import javafx.stage.Stage;
 
 public class CoursesController {
 

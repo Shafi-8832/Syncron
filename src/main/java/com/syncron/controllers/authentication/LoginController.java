@@ -1,4 +1,4 @@
-package com.syncron.controllers;
+package com.syncron.controllers.authentication;
 
 import com.syncron.utils.DatabaseHandler;
 import javafx.fxml.FXML;
@@ -52,13 +52,13 @@ public class LoginController {
 
                 switch (userRole) {
                     case "ADMIN":
-                        targetFxml = "/com/syncron/views/admin_dashboard.fxml"; // We will build this next!
+                        targetFxml = "/com/syncron/views/admin/admin_dashboard.fxml"; // We will build this next!
                         break;
                     case "TEACHER":
-                        targetFxml = "/com/syncron/views/teacher_main_layout.fxml";
+                        targetFxml = "/com/syncron/views/teacher/teacher_main_layout.fxml";
                         break;
                     case "STUDENT":
-                        targetFxml = "/com/syncron/views/home.fxml"; // Your existing student view
+                        targetFxml = "/com/syncron/views/student/home.fxml"; // Your existing student view
                         break;
                     default:
                         errorLabel.setText("System Error: Unknown Role.");
