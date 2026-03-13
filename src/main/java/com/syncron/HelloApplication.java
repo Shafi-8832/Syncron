@@ -13,20 +13,21 @@ public class HelloApplication extends Application {
     public void start(Stage stage) throws IOException {
         // 1. Initialize Database
         DatabaseHandler.initializeDB();
-        DatabaseHandler.addSampleData();
+
+        DatabaseHandler.injectDefaultAdmin();
 
         // 2. Load the NEW Dashboard
-        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("views/login.fxml"));
+        FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("/com/syncron/views/authentication/login.fxml"));
 
-
-        Scene scene = new Scene(fxmlLoader.load(), 400, 500);
+        // 3. Create Scene
+        Scene scene = new Scene(fxmlLoader.load(), 1280, 720);
 
         // 4. Load CSS (Wrap in try-catch or check null to avoid crashes if file is missing)
         if (getClass().getResource("style.css") != null) {
             scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
         }
 
-        stage.setTitle("Syncron");
+        stage.setTitle("Kernel");
         stage.setScene(scene);
         stage.show();
     }

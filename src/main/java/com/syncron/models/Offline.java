@@ -1,10 +1,10 @@
 package com.syncron.models;
 
-public class Assignment extends Assessment {
+public class Offline extends Assessment {
     private String submissionLink;
 
-    public Assignment(int id, String courseCode, int weekNumber, String title, String dateTime, String room, String submissionLink) {
-        super(id, courseCode, weekNumber, title, dateTime, room, "Assignment");
+    public Offline(int id, String courseCode, int weekNumber, String title, String dateTime, String room, String submissionLink) {
+        super(id, courseCode, weekNumber, title, dateTime, room, "Offline");
         this.submissionLink = submissionLink;
     }
 

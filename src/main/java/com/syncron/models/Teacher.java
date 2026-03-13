@@ -4,7 +4,7 @@ public class Teacher extends User {
     private String designation; // e.g., "Lecturer", "Professor"
 
     public Teacher(String id, String name, String email, String password, String designation) {
-        super(id, name, email, password);
+        super(id, name, email, password, "TEACHER");
         this.designation = designation;
     }
 

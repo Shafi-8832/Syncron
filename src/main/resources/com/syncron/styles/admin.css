@@ -1,0 +1,114 @@
+/* ============================================================
+   admin.css — Hacker / Terminal Aesthetic for Admin Dashboard
+   ============================================================ */
+
+/* --- Root --- */
+.admin-root {
+    -fx-background-color: #0a0a0a;
+}
+
+/* --- Sidebar --- */
+.sidebar {
+    -fx-background-color: #111111;
+    -fx-padding: 20 15;
+    -fx-spacing: 10;
+}
+
+.sidebar-logo {
+    -fx-text-fill: #00ff00;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 20 0;
+}
+
+.sidebar-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #00ff00;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 13px;
+    -fx-border-color: #00ff00;
+    -fx-border-width: 1;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+    -fx-max-width: 1.7976931348623157E308;
+}
+
+.sidebar-button:hover {
+    -fx-background-color: #00ff00;
+    -fx-text-fill: #000000;
+}
+
+.sidebar-button:pressed {
+    -fx-background-color: #00cc00;
+    -fx-text-fill: #000000;
+}
+
+/* --- Main Console --- */
+.main-console {
+    -fx-background-color: #0a0a0a;
+    -fx-padding: 25;
+    -fx-spacing: 20;
+}
+
+/* --- Console Header --- */
+.console-header {
+    -fx-text-fill: #00ffff;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 5 0;
+}
+
+/* --- Stat Cards Row --- */
+.stat-cards-row {
+    -fx-spacing: 15;
+}
+
+/* --- Stat Card --- */
+.stat-card {
+    -fx-background-color: #111111;
+    -fx-border-color: #00ff00;
+    -fx-border-width: 1;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+    -fx-padding: 20;
+    -fx-spacing: 8;
+    -fx-pref-width: 200;
+}
+
+.stat-card-title {
+    -fx-text-fill: #00ffff;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 12px;
+}
+
+.stat-card-value {
+    -fx-text-fill: #00ff00;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+/* --- Terminal Log --- */
+.terminal-log {
+    -fx-control-inner-background: #000000;
+    -fx-text-fill: #00ff00;
+    -fx-font-family: "Consolas", "Courier New", monospace;
+    -fx-font-size: 13px;
+    -fx-border-color: #00ff00;
+    -fx-border-width: 1;
+    -fx-border-radius: 0;
+    -fx-background-radius: 0;
+}
+
+.terminal-log:focused {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.terminal-log .content {
+    -fx-background-color: #000000;
+}

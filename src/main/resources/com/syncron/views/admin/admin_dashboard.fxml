@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.syncron.controllers.admin.AdminController"
+            styleClass="admin-root"
+            stylesheets="@../../styles/admin.css"
+            prefWidth="1000" prefHeight="700">
+
+    <!-- ==================== LEFT: Sidebar ==================== -->
+    <left>
+        <VBox styleClass="sidebar" prefWidth="220">
+
+            <!-- Logo -->
+            <Label text="root@kernel:~#" styleClass="sidebar-logo" />
+
+            <!-- Navigation -->
+            <Button text="Dashboard" onAction="#handleDashboard" styleClass="nav-button"/>
+            <Button text="Manage Users" onAction="#handleManageUsers" styleClass="nav-button"/>
+            <Button text="Manage Courses" onAction="#handleManageCourses" styleClass="nav-button"/>
+            <Button text="Manage Semesters" onAction="#handleManageSemesters" styleClass="nav-button"/>
+            <Button text="System Disconnect" onAction="#handleLogout" styleClass="nav-button"/>
+
+        </VBox>
+    </left>
+
+    <!-- ==================== CENTER: Main Console ==================== -->
+    <center>
+        <VBox styleClass="main-console">
+
+            <!-- Header -->
+            <Label text="SYSTEM OVERVIEW" styleClass="console-header" />
+
+            <!-- Stat Cards Row -->
+            <HBox styleClass="stat-cards-row">
+
+                <VBox styleClass="stat-card">
+                    <Label text="Active Students" styleClass="stat-card-title" />
+                    <Label text="128" styleClass="stat-card-value" />
+                </VBox>
+
+                <VBox styleClass="stat-card">
+                    <Label text="Active Teachers" styleClass="stat-card-title" />
+                    <Label text="24" styleClass="stat-card-value" />
+                </VBox>
+
+                <VBox styleClass="stat-card">
+                    <Label text="Running Courses" styleClass="stat-card-title" />
+                    <Label text="36" styleClass="stat-card-value" />
+                </VBox>
+
+            </HBox>
+
+            <!-- Terminal Log -->
+            <TextArea fx:id="terminalLog"
+                      styleClass="terminal-log"
+                      editable="false"
+                      wrapText="true"
+                      text="[SYS] Kernel booted successfully...&#10;[SYS] Loading modules...&#10;[AUTH] Admin session initialized.&#10;[DB] Connection pool ready. Active connections: 5&#10;[NET] Listening on port 8080...&#10;[SYS] All systems nominal. Awaiting commands."
+                      VBox.vgrow="ALWAYS" />
+
+        </VBox>
+    </center>
+
+</BorderPane>

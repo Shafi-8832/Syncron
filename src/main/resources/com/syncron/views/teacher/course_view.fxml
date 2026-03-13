@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      stylesheets="@../../styles/kernel_warm.css">
+
+    <!-- Left Sidebar (Navigation) -->
+    <VBox prefWidth="200.0" spacing="5" styleClass="kernel-course-sidebar">
+        <padding>
+            <Insets top="10.0"/>
+        </padding>
+        <Label text="Common" styleClass="kernel-sidebar-nav-item-active"/>
+        <Label text="CT and Assignments" styleClass="kernel-sidebar-nav-item"/>
+        <Label text="Weekly Timeline" styleClass="kernel-sidebar-nav-item"/>
+        <Label text="Grades" styleClass="kernel-sidebar-nav-item"/>
+        <Label text="Participants" styleClass="kernel-sidebar-nav-item"/>
+    </VBox>
+
+    <!-- Main Content Area (Right Side) -->
+    <VBox HBox.hgrow="ALWAYS" spacing="20" styleClass="kernel-course-main">
+
+        <!-- Breadcrumb -->
+        <Label text="Dashboard / My Courses / CSE 105 / Common" styleClass="kernel-breadcrumb"/>
+
+        <!-- Title Area -->
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Label text="CSE 105 : Data Structures and Algorithms" styleClass="kernel-course-view-title"/>
+            <Label text="3.0 Credits" styleClass="kernel-tag"/>
+            <Label text="Theory" styleClass="kernel-tag"/>
+        </HBox>
+
+        <!-- Content Section -->
+        <VBox spacing="10">
+            <Label text="Common Resources" styleClass="kernel-sub-header"/>
+            <Label text="Shared course materials and resources will appear here."
+                   styleClass="kernel-placeholder-text" wrapText="true"/>
+        </VBox>
+
+        <!-- Spacer -->
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <!-- Action Button -->
+        <HBox>
+            <Button text="+ Add Resource / Assignment" styleClass="kernel-btn"/>
+        </HBox>
+
+    </VBox>
+
+</HBox>

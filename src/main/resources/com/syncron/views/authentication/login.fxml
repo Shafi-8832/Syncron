@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.syncron.controllers.authentication.LoginController"
+            styleClass="login-root"
+            stylesheets="@../../styles/login.css">
+
+    <!-- ==================== CENTER: Login Form ==================== -->
+    <center>
+        <VBox styleClass="login-form-container" alignment="CENTER">
+
+            <!-- Header -->
+            <Label text="KERNEL LOGIN" styleClass="login-title" />
+            <Label text="Provide necessary credentials to access the system."
+                   styleClass="login-subtitle" />
+
+            <!-- ID Field -->
+            <TextField fx:id="idField"
+                       promptText="Enter your ID"
+                       styleClass="login-input" />
+
+            <!-- Password Field (with show/hide toggle) -->
+            <StackPane styleClass="password-stack">
+                <PasswordField fx:id="passwordField"
+                               promptText="Enter your password"
+                               styleClass="login-input" />
+                <TextField fx:id="visiblePasswordField"
+                           promptText="Enter your password"
+                           visible="false"
+                           managed="false"
+                           styleClass="login-input" />
+            </StackPane>
+
+            <!-- Show Password + Forget Password Row -->
+            <HBox styleClass="password-options-row">
+                <CheckBox fx:id="showPasswordCheck"
+                          text="Show Password"
+                          onAction="#handleShowPassword"
+                          styleClass="show-password-check" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Hyperlink text="Forget password?"
+                           onAction="#handleForgetPassword"
+                           styleClass="forget-password-link" />
+            </HBox>
+
+            <!-- Error Label -->
+            <Label fx:id="errorLabel"
+                   styleClass="error-label" />
+
+            <!-- Login Button -->
+            <Button text="Login"
+                    onAction="#handleLoginClick"
+                    styleClass="login-button" />
+
+            <!-- Go Back Button -->
+            <Button text="Go Back"
+                    onAction="#handleGoBack"
+                    styleClass="go-back-button" />
+
+        </VBox>
+    </center>
+
+    <!-- ==================== BOTTOM: Footer ==================== -->
+    <bottom>
+        <VBox styleClass="login-footer">
+            <Label text="Kernel's collaboration with Department of Computer Science and Engineering, BUET"
+                   styleClass="footer-text" />
+            <Label text="Built with JavaFX &amp; Maven"
+                   styleClass="footer-text" />
+            <Label text="© 2026 Kernel"
+                   styleClass="footer-copyright" />
+        </VBox>
+    </bottom>
+
+</BorderPane>

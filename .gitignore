@@ -37,3 +37,5 @@ target/
 syncron.db
 *.sqlite
 *.db
+.mvn/wrapper/maven-wrapper.jar
+syncron_uploads/

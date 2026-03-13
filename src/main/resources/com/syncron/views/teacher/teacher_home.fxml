@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" styleClass="kernel-scroll" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.syncron.controllers.teacher.TeacherHomeController">
+    <content>
+        <VBox spacing="25.0" style="-fx-background-color: #FAF6F1;">
+            <padding>
+                <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+            </padding>
+
+            <!-- Welcome Message -->
+            <Label style="-fx-padding: 10 0 5 0;" styleClass="kernel-welcome" text="Welcome Back, Professor!" />
+
+            <!-- Main Content: Sidebar + Courses -->
+            <HBox spacing="25.0">
+
+                <!-- Left Sidebar: Pinned Items -->
+                <VBox prefWidth="240.0" spacing="20.0">
+                    <!-- Pinned Items -->
+                    <VBox spacing="10" styleClass="kernel-pinned-box">
+                        <Label styleClass="kernel-pinned-title" text="📌 Pinned Items" />
+                        <Label styleClass="kernel-pinned-link" text="• Academic Calendar" />
+                        <Label styleClass="kernel-pinned-link" text="• Exam Routine" />
+                    </VBox>
+
+                    <!-- Quick Stats -->
+                    <VBox spacing="10" styleClass="kernel-pinned-box">
+                        <Label styleClass="kernel-pinned-title" text="📊 Quick Stats" />
+                        <Label style="-fx-text-fill: #4A2C1A; -fx-font-size: 13px;" text="Active Courses: 3" />
+                        <Label style="-fx-text-fill: #A0522D; -fx-font-size: 13px;" text="Pending Reviews: 5" />
+                    </VBox>
+                </VBox>
+
+                <!-- Right: Course Overview -->
+                <VBox spacing="15.0" HBox.hgrow="ALWAYS">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label styleClass="kernel-section-header" text="Course Overview" />
+                        <Region HBox.hgrow="ALWAYS" />
+                        <TextField promptText="Search courses..." style="-fx-background-radius: 15; -fx-background-color: #FFFCF8; -fx-border-color: #E0D5C7; -fx-border-radius: 15;" />
+                    </HBox>
+
+                    <!-- Course Cards Container (populated by controller) -->
+                    <VBox fx:id="courseCardContainer" spacing="15.0">
+
+                        <!-- Static Example Cards -->
+
+                        <!-- Card: CSE 105 -->
+                        <HBox spacing="10" styleClass="kernel-course-card">
+                            <VBox>
+                                <Label styleClass="kernel-course-code" text="CSE 105" />
+                                <Label styleClass="kernel-course-title" text="Discrete Mathematics" />
+                            </VBox>
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label style="-fx-alignment: CENTER;" styleClass="kernel-course-arrow" text="➜" />
+                        </HBox>
+
+                        <!-- Card: CSE 107 -->
+                        <HBox spacing="10" styleClass="kernel-course-card">
+                            <VBox>
+                                <Label styleClass="kernel-course-code" text="CSE 107" />
+                                <Label styleClass="kernel-course-title" text="Object Oriented Programming" />
+                            </VBox>
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label style="-fx-alignment: CENTER;" styleClass="kernel-course-arrow" text="➜" />
+                        </HBox>
+
+                    </VBox>
+                </VBox>
+
+            </HBox>
+
+        </VBox>
+    </content>
+</ScrollPane>
