@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 
-public class HomeController {
+public class StudentHomeController {
 
     @FXML private ProgressBar semesterProgressBar;
     @FXML private VBox courseCardContainer;
@@ -93,8 +93,8 @@ public class HomeController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/student/main_layout.fxml"));
             Parent root = loader.load();
 
-            // 2. Pass the course context to MainController
-            MainController controller = loader.getController();
+            // 2. Pass the course context to StudentMainController
+            StudentMainController controller = loader.getController();
             // Default to "theory" — can be extended later to read type from DB
             controller.setCourseContext(courseCode, courseTitle, "theory");
 

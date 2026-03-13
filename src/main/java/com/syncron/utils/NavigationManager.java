@@ -1,6 +1,6 @@
 package com.syncron.utils;
 
-import com.syncron.controllers.student.MainController;
+import com.syncron.controllers.student.StudentMainController;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.layout.StackPane;
@@ -15,14 +15,14 @@ import java.io.IOException;
 public class NavigationManager {
 
     private static StackPane contentArea;
-    private static MainController mainController;
+    private static StudentMainController mainController;
 
     /**
      * Sets the reference to the main content area used for navigation.
      *
      * @param contentArea the StackPane that will hold the active view
      */
-    public static void initialize(StackPane contentArea, MainController mainController) {
+    public static void initialize(StackPane contentArea, StudentMainController mainController) {
         NavigationManager.contentArea = contentArea;
         NavigationManager.mainController = mainController;
     }

@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.syncron.controllers.student.MainController"
+            fx:controller="com.syncron.controllers.student.StudentMainController"
             fx:id="mainBorderPane"
             stylesheets="@../../style.css"
             prefHeight="600.0" prefWidth="900.0">
@@ -19,7 +19,7 @@
     <top>
         <HBox fx:id="breadcrumbBar" alignment="CENTER_LEFT" spacing="5"
               style="-fx-background-color: white; -fx-padding: 12 20; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;">
-            <!-- Breadcrumb segments will be populated dynamically by MainController -->
+            <!-- Breadcrumb segments will be populated dynamically by StudentMainController -->
         </HBox>
     </top>
 
@@ -29,7 +29,7 @@
             <Label text="NAVIGATION" textFill="white"
                    style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 0 0 20 0;"/>
             <VBox fx:id="sidebarButtonContainer" spacing="5">
-                <!-- Buttons will be populated dynamically by MainController -->
+                <!-- Buttons will be populated dynamically by StudentMainController -->
             </VBox>
             <Pane VBox.vgrow="ALWAYS"/>
             <Button text="← Back to Home" styleClass="nav-btn" maxWidth="Infinity"

@@ -20,7 +20,7 @@ import java.io.IOException;
  * Supports switching sidebar buttons based on course type (Theory vs Sessional).
  * Decoupled so a Teacher object can later be passed to content views.
  */
-public class MainController {
+public class StudentMainController {
 
     @FXML private BorderPane mainBorderPane;
     @FXML private HBox breadcrumbBar;
