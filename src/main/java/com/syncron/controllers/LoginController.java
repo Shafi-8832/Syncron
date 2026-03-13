@@ -28,13 +28,13 @@ public class LoginController {
             // 2. SUCCESS! Load the dashboard
             try {
                 // Grab the Dashboard FXML
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/dashboard.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/shared/main_layout.fxml"));
                 Parent root = loader.load();
 
                 // Get the current window (Stage) from the login button/text field
                 Stage stage = (Stage) idField.getScene().getWindow();
 
-                // Swap the scene to the Dashboard
+                // Swap the scene to the shared main layout (SPA shell)
                 stage.setScene(new Scene(root, 900, 600));
                 stage.centerOnScreen();
 
