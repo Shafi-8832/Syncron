@@ -1,0 +1,218 @@
+/* ============================================================
+   kernel_warm.css — Warm, Earthy Academic Aesthetic for Kernel
+   Cream backgrounds, Deep Brown/Rust accents, Serif typography
+   ============================================================ */
+
+/* --- Root --- */
+.kernel-root {
+    -fx-background-color: #FAF6F1;
+    -fx-font-family: 'Georgia', 'Times New Roman', serif;
+}
+
+/* --- Top Header Bar --- */
+.kernel-header {
+    -fx-background-color: #FFFCF8;
+    -fx-border-color: #E0D5C7;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 12 24;
+}
+
+.kernel-logo {
+    -fx-font-family: 'Georgia', 'Times New Roman', serif;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4A2C1A;
+}
+
+.kernel-logo-sub {
+    -fx-font-size: 15px;
+    -fx-text-fill: #8C7A6B;
+}
+
+.kernel-notification-btn {
+    -fx-background-color: #FAF6F1;
+    -fx-background-radius: 20;
+    -fx-font-size: 16px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(74,44,26,0.08), 3, 0, 0, 1);
+}
+
+.kernel-notification-btn:hover {
+    -fx-background-color: #F0E8DE;
+}
+
+.kernel-profile-box {
+    -fx-background-color: #FFFCF8;
+    -fx-padding: 5 15;
+    -fx-background-radius: 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(74,44,26,0.08), 3, 0, 0, 1);
+}
+
+.kernel-profile-name {
+    -fx-font-family: 'Georgia', 'Times New Roman', serif;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4A2C1A;
+    -fx-font-size: 13px;
+}
+
+/* --- Content Area --- */
+.kernel-content {
+    -fx-background-color: #FAF6F1;
+}
+
+/* --- Welcome Section --- */
+.kernel-welcome {
+    -fx-font-family: 'Georgia', 'Times New Roman', serif;
+    -fx-font-size: 26px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4A2C1A;
+}
+
+/* --- Section Headers --- */
+.kernel-section-header {
+    -fx-font-family: 'Georgia', 'Times New Roman', serif;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4A2C1A;
+}
+
+/* --- Pinned Items Sidebar --- */
+.kernel-pinned-box {
+    -fx-background-color: #FFFCF8;
+    -fx-background-radius: 10;
+    -fx-padding: 18;
+    -fx-effect: dropshadow(three-pass-box, rgba(74,44,26,0.06), 6, 0, 0, 3);
+}
+
+.kernel-pinned-title {
+    -fx-font-family: 'Georgia', 'Times New Roman', serif;
+    -fx-font-weight: bold;
+    -fx-text-fill: #8C7A6B;
+    -fx-font-size: 13px;
+}
+
+.kernel-pinned-link {
+    -fx-text-fill: #A0522D;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+}
+
+.kernel-pinned-link:hover {
+    -fx-underline: true;
+}
+
+/* --- Course Cards --- */
+.kernel-course-card {
+    -fx-background-color: #FFFCF8;
+    -fx-background-radius: 10;
+    -fx-padding: 18;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(74,44,26,0.06), 6, 0, 0, 3);
+}
+
+.kernel-course-card:hover {
+    -fx-background-color: #F5EDE3;
+}
+
+.kernel-course-code {
+    -fx-font-family: 'Georgia', 'Times New Roman', serif;
+    -fx-font-weight: bold;
+    -fx-font-size: 16px;
+    -fx-text-fill: #4A2C1A;
+}
+
+.kernel-course-title {
+    -fx-text-fill: #8C7A6B;
+    -fx-font-size: 13px;
+}
+
+.kernel-course-arrow {
+    -fx-text-fill: #C4A882;
+    -fx-font-size: 18px;
+}
+
+/* --- Buttons (Rust/Burnt Orange Accent) --- */
+.kernel-btn {
+    -fx-background-color: #A0522D;
+    -fx-text-fill: #FFFCF8;
+    -fx-font-family: 'Georgia', 'Times New Roman', serif;
+    -fx-font-size: 13px;
+    -fx-background-radius: 6;
+    -fx-padding: 8 20;
+    -fx-cursor: hand;
+}
+
+.kernel-btn:hover {
+    -fx-background-color: #8B4513;
+}
+
+.kernel-btn-outline {
+    -fx-background-color: transparent;
+    -fx-text-fill: #A0522D;
+    -fx-border-color: #A0522D;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-font-size: 13px;
+    -fx-padding: 8 20;
+    -fx-cursor: hand;
+}
+
+.kernel-btn-outline:hover {
+    -fx-background-color: #A0522D;
+    -fx-text-fill: #FFFCF8;
+}
+
+/* --- Semester Card --- */
+.kernel-semester-card {
+    -fx-background-color: #FFFCF8;
+    -fx-background-radius: 12;
+    -fx-padding: 25;
+    -fx-effect: dropshadow(three-pass-box, rgba(74,44,26,0.06), 10, 0, 0, 5);
+}
+
+.kernel-semester-title {
+    -fx-font-family: 'Georgia', 'Times New Roman', serif;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4A2C1A;
+}
+
+.kernel-semester-pill {
+    -fx-background-color: #F5EDE3;
+    -fx-text-fill: #A0522D;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-padding: 3 8;
+    -fx-background-radius: 5;
+}
+
+.kernel-progress-bar .track {
+    -fx-background-color: #E0D5C7;
+    -fx-background-radius: 5;
+}
+
+.kernel-progress-bar .bar {
+    -fx-background-color: #A0522D;
+    -fx-background-radius: 5;
+}
+
+.kernel-muted-text {
+    -fx-text-fill: #8C7A6B;
+    -fx-font-size: 12px;
+}
+
+.kernel-accent-text {
+    -fx-text-fill: #A0522D;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+}
+
+/* --- ScrollPane transparent background --- */
+.kernel-scroll .viewport {
+    -fx-background-color: transparent;
+}
+
+.kernel-scroll {
+    -fx-background-color: transparent;
+}
