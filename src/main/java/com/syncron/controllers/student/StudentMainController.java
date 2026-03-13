@@ -22,7 +22,7 @@ import java.io.IOException;
  */
 public class StudentMainController {
 
-    @FXML private BorderPane mainBorderPane;
+    @FXML private BorderPane mainRootPane;
     @FXML private HBox breadcrumbBar;
     @FXML private VBox sidebar;
     @FXML private VBox sidebarButtonContainer;
@@ -293,7 +293,7 @@ public class StudentMainController {
                     getClass().getResource("/com/syncron/views/student/home.fxml"));
             Parent root = loader.load();
 
-            Stage stage = (Stage) mainBorderPane.getScene().getWindow();
+            Stage stage = (Stage) mainRootPane.getScene().getWindow();
             stage.getScene().setRoot(root);
         } catch (IOException e) {
             e.printStackTrace();

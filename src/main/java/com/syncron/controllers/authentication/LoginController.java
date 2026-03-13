@@ -55,7 +55,7 @@ public class LoginController {
                         targetFxml = "/com/syncron/views/admin/admin_dashboard.fxml"; // We will build this next!
                         break;
                     case "TEACHER":
-                        targetFxml = "/com/syncron/views/teacher/teacher_main_layout.fxml";
+                        targetFxml = "/com/syncron/views/shared/main_layout.fxml";
                         break;
                     case "STUDENT":
                         targetFxml = "/com/syncron/views/student/home.fxml"; // Your existing student view

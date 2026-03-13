@@ -90,7 +90,7 @@ public class StudentHomeController {
     private void openCoursePortal(String courseCode, String courseTitle) {
         try {
             // 1. Load the persistent MainLayout
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/student/main_layout.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/shared/main_layout.fxml"));
             Parent root = loader.load();
 
             // 2. Pass the course context to StudentMainController
