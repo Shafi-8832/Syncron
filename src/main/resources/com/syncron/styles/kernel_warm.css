@@ -208,6 +208,73 @@
     -fx-font-size: 13px;
 }
 
+/* --- Course View Sidebar --- */
+.kernel-course-sidebar {
+    -fx-background-color: #4A6B6C;
+    -fx-padding: 20;
+}
+
+.kernel-sidebar-nav-item {
+    -fx-text-fill: #C8D8D8;
+    -fx-font-family: 'Georgia', 'Times New Roman', serif;
+    -fx-font-size: 14px;
+    -fx-padding: 10 15;
+    -fx-cursor: hand;
+}
+
+.kernel-sidebar-nav-item:hover {
+    -fx-text-fill: #FFFFFF;
+}
+
+.kernel-sidebar-nav-item-active {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-family: 'Georgia', 'Times New Roman', serif;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 15;
+    -fx-background-color: rgba(255, 255, 255, 0.12);
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+/* --- Course View Main Content --- */
+.kernel-course-main {
+    -fx-background-color: #F9F8F6;
+    -fx-padding: 25 30;
+}
+
+.kernel-breadcrumb {
+    -fx-text-fill: #8C7A6B;
+    -fx-font-size: 12px;
+}
+
+.kernel-course-view-title {
+    -fx-font-family: 'Georgia', 'Times New Roman', serif;
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4A2C1A;
+}
+
+.kernel-tag {
+    -fx-background-color: #F5EDE3;
+    -fx-text-fill: #8C7A6B;
+    -fx-font-size: 11px;
+    -fx-padding: 3 10;
+    -fx-background-radius: 10;
+}
+
+.kernel-sub-header {
+    -fx-font-family: 'Georgia', 'Times New Roman', serif;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #4A2C1A;
+}
+
+.kernel-placeholder-text {
+    -fx-text-fill: #8C7A6B;
+    -fx-font-size: 13px;
+}
+
 /* --- ScrollPane transparent background --- */
 .kernel-scroll .viewport {
     -fx-background-color: transparent;
