@@ -48,6 +48,7 @@ public class LoginController {
         if (userRole != null) {
             // Routing
             try {
+                SessionManager.setCurrentUserRole(userRole);
                 String targetFxml = "";
 
                 switch (userRole) {
