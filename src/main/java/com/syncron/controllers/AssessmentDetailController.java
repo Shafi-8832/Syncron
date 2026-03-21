@@ -2,14 +2,18 @@ package com.syncron.controllers;
 
 import com.syncron.models.User;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.web.HTMLEditor;
+import javafx.stage.FileChooser;
+
+import java.io.File;
 
 import com.syncron.models.Assessment;
 import com.syncron.models.CT;
@@ -27,7 +31,10 @@ public class AssessmentDetailController {
     @FXML private TextField durationField;
     @FXML private TextField timeField;
     @FXML private TextField roomField;
-    @FXML private TextArea syllabusArea;
+    @FXML private HTMLEditor syllabusEditor;
+    @FXML private HBox uploadControlsBox;
+    @FXML private Button uploadFileBtn;
+    @FXML private Button addLinkBtn;
     @FXML private DateTimePickerComponent dateTimePickerController;
     @FXML private Button saveDetailsBtn;
 
@@ -72,6 +79,9 @@ public class AssessmentDetailController {
             durationField.setEditable(false);
             timeField.setEditable(false);
             roomField.setEditable(false);
+            syllabusEditor.setDisable(true);
+            uploadControlsBox.setVisible(false);
+            uploadControlsBox.setManaged(false);
             saveDetailsBtn.setVisible(false);
             saveDetailsBtn.setManaged(false);
         }
@@ -135,7 +145,7 @@ public class AssessmentDetailController {
         durationField.setText(duration);
         timeField.setText(time);
         roomField.setText(room);
-        syllabusArea.setText(syllabus);
+        syllabusEditor.setHtmlText(syllabus);
     }
 
     /**
@@ -151,23 +161,23 @@ public class AssessmentDetailController {
 
         // 2. Use Polymorphism to extract child-specific data!
         if (assessment instanceof CT ct) {
-            syllabusArea.setText("Syllabus:\n" + ct.getSyllabus());
+            syllabusEditor.setHtmlText("Syllabus:<br>" + toHtmlSafeText(ct.getSyllabus()));
             durationField.setText(String.valueOf(ct.getTotalMarks()));
 
         } else if (assessment instanceof Offline offline) {
-            syllabusArea.setText("Submission Link:\n" + offline.getSubmissionLink());
+            syllabusEditor.setHtmlText("Submission Link:<br>" + toHtmlSafeText(offline.getSubmissionLink()));
             durationField.setText("Take-home Offline");
 
         } else if (assessment instanceof Online online) {
-            syllabusArea.setText("This is an online assessment. Be ready at the scheduled time.");
+            syllabusEditor.setHtmlText("This is an online assessment. Be ready at the scheduled time.");
             durationField.setText(online.getDuration());
 
         } else if (assessment instanceof Quiz quiz) {
-            syllabusArea.setText("Pop quiz/short assessment.");
+            syllabusEditor.setHtmlText("Pop quiz/short assessment.");
             durationField.setText(quiz.getDuration());
 
         } else if (assessment instanceof Assignment assignment) {
-            syllabusArea.setText("Submission Link:\n" + assignment.getSubmissionLink());
+            syllabusEditor.setHtmlText("Submission Link:<br>" + toHtmlSafeText(assignment.getSubmissionLink()));
             durationField.setText("Long-term Assignment");
         }
     }
@@ -184,6 +194,48 @@ public class AssessmentDetailController {
 
     @FXML
     private void handleSaveDetails() {
+        String htmlText = syllabusEditor.getHtmlText();
+        String plainSyllabus = htmlText == null ? "" : htmlText
+                .replaceAll("(?is)<[^>]*>", "")
+                .replace("&nbsp;", " ")
+                .trim();
+        if (titleField.getText().trim().isEmpty()
+                || durationField.getText().trim().isEmpty()
+                || roomField.getText().trim().isEmpty()
+                || plainSyllabus.isEmpty()) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setContentText("Please fill in all fields before saving.");
+            alert.showAndWait();
+            return;
+        }
         System.out.println("Details saved to database");
+    }
+
+    @FXML
+    private void handleFileUpload() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select File");
+        File selectedFile = fileChooser.showOpenDialog(uploadFileBtn.getScene().getWindow());
+        if (selectedFile != null) {
+            System.out.println("Selected file: " + selectedFile.getAbsolutePath());
+        }
+    }
+
+    @FXML
+    private void handleAddLink() {
+        System.out.println("Add link clicked");
+    }
+
+    private String toHtmlSafeText(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;")
+                .replace("\n", "<br>");
     }
 }
