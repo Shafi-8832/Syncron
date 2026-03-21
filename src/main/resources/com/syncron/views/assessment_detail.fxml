@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.web.HTMLEditor?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.syncron.controllers.AssessmentDetailController"
+      spacing="20" style="-fx-padding: 30; -fx-background-color: #FFFFFF; -fx-font-family: 'Times New Roman', serif;">
+
+    <!-- Header Section -->
+    <VBox fx:id="headerSection" spacing="8">
+        <Label text="Title"
+               style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+        <TextField fx:id="titleField" promptText="Enter assessment title"/>
+        <Label fx:id="createdByLabel" text="Created by: --"
+                style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
+        <Label text="Date &amp; Time"
+                style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+        <fx:include fx:id="dateTimePicker" source="datetime_picker.fxml"/>
+        <Label fx:id="titleLabel" text=""
+               style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Duration"
+                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+            <TextField fx:id="durationField" promptText="Enter duration"/>
+        </HBox>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Time"
+                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+            <TextField fx:id="timeField" promptText="Enter time"/>
+        </HBox>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Room"
+                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+            <TextField fx:id="roomField" promptText="Enter room"/>
+        </HBox>
+        <Separator style="-fx-padding: 5 0 5 0;"/>
+        <Label text="Syllabus / Questions"
+               style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+        <HTMLEditor fx:id="syllabusEditor" prefHeight="250" prefWidth="600"/>
+        <HBox fx:id="uploadControlsBox" spacing="10" alignment="CENTER_LEFT">
+            <Button fx:id="uploadFileBtn" text="Upload File" onAction="#handleFileUpload"/>
+            <Button fx:id="addLinkBtn" text="Add Link"/>
+        </HBox>
+    </VBox>
+
+    <Separator/>
+
+    <!-- Teacher Action Area -->
+    <HBox fx:id="teacherActionArea" spacing="15" alignment="CENTER_LEFT"
+          style="-fx-padding: 10; -fx-background-color: #F4F6F8; -fx-background-radius: 8; -fx-border-color: #DCDDE1; -fx-border-radius: 8;">
+        <Label text="Teacher Actions"
+               style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+        <Button fx:id="editButton" text="Edit"
+                style="-fx-background-color: #3498DB; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 20; -fx-background-radius: 5;"/>
+        <Button fx:id="deleteButton" text="Delete"
+                style="-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 20; -fx-background-radius: 5;"/>
+    </HBox>
+
+    <!-- Student Action Area -->
+    <VBox fx:id="studentActionArea" spacing="10"
+          style="-fx-padding: 10; -fx-background-color: #F4F6F8; -fx-background-radius: 8; -fx-border-color: #DCDDE1; -fx-border-radius: 8;">
+        <Label text="Submission Actions"
+               style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+        <HBox spacing="15" alignment="CENTER_LEFT">
+            <Button fx:id="uploadSubmissionButton" text="Upload Submission"
+                    style="-fx-background-color: #2ECC71; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 20; -fx-background-radius: 5;"/>
+            <Button fx:id="editSubmissionButton" text="Edit Submission"
+                    style="-fx-background-color: #F39C12; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 20; -fx-background-radius: 5;"/>
+            <Button fx:id="removeSubmissionButton" text="Remove Submission"
+                    style="-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 20; -fx-background-radius: 5;"/>
+        </HBox>
+    </VBox>
+
+    <!-- Teacher Evaluation Area -->
+    <VBox fx:id="teacherEvaluationArea" spacing="10"
+          style="-fx-padding: 10; -fx-background-color: #F4F6F8; -fx-background-radius: 8; -fx-border-color: #DCDDE1; -fx-border-radius: 8;">
+        <Label text="Evaluation"
+               style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+        <Label fx:id="submissionCountLabel" text="Submissions: 0 / 0"
+               style="-fx-font-size: 14px; -fx-text-fill: #2C3E50;"/>
+        <TableView fx:id="submissionsTable" prefHeight="200" prefWidth="600"
+                   style="-fx-border-color: #DCDDE1; -fx-border-radius: 5;">
+            <columns>
+                <TableColumn fx:id="colWho" text="Who" prefWidth="150"/>
+                <TableColumn fx:id="colWhen" text="When" prefWidth="150"/>
+                <TableColumn fx:id="colFile" text="File" prefWidth="150"/>
+                <TableColumn fx:id="colGraded" text="Graded" prefWidth="100"/>
+            </columns>
+        </TableView>
+    </VBox>
+
+    <Button fx:id="saveDetailsBtn" text="Save Changes" onAction="#handleSaveDetails"
+            style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 20; -fx-background-radius: 5;"/>
+
+</VBox>

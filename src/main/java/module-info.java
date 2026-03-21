@@ -2,6 +2,7 @@ module com.syncron {
     // 1. Core JavaFX
     requires javafx.controls;
     requires javafx.fxml;
+    requires javafx.web;
 
     // 2. Database & SQL (IntelliJ fixed this, but we need the driver too)
     requires java.sql;
