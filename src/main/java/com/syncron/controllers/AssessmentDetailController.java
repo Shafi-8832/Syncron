@@ -6,6 +6,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
@@ -20,10 +21,13 @@ public class AssessmentDetailController {
 
     // --- Header Section ---
     @FXML private Label titleLabel;
+    @FXML private TextField titleField;
+    @FXML private Label creatorLabel;
     @FXML private Label durationLabel;
     @FXML private Label timeLabel;
     @FXML private Label roomLabel;
     @FXML private TextArea syllabusArea;
+    @FXML private DateTimePickerComponent dateTimePickerController;
 
     // --- Teacher Action Area ---
     @FXML private HBox teacherActionArea;
@@ -54,6 +58,8 @@ public class AssessmentDetailController {
         studentActionArea.setManaged(false);
         teacherEvaluationArea.setVisible(false);
         teacherEvaluationArea.setManaged(false);
+
+        titleField.textProperty().addListener((obs, oldValue, newValue) -> titleLabel.setText(newValue));
     }
 
     /**
@@ -110,6 +116,7 @@ public class AssessmentDetailController {
      * @param syllabus The syllabus or questions content.
      */
     public void setHeaderInfo(String title, String duration, String time, String room, String syllabus) {
+        titleField.setText(title);
         titleLabel.setText(title);
         durationLabel.setText(duration);
         timeLabel.setText(time);
@@ -124,6 +131,7 @@ public class AssessmentDetailController {
         if (assessment == null) return;
 
         // 1. Set the shared parent data
+        titleField.setText(assessment.getTitle());
         titleLabel.setText(assessment.getTitle());
         timeLabel.setText(assessment.getDateTime() != null ? "Time: " + assessment.getDateTime() : "Time: TBA");
         roomLabel.setText(assessment.getRoom() != null ? "Room: " + assessment.getRoom() : "Room: TBA");

@@ -6,6 +6,7 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
@@ -15,6 +16,14 @@
 
     <!-- Header Section -->
     <VBox fx:id="headerSection" spacing="8">
+        <Label text="Title"
+               style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+        <TextField fx:id="titleField" promptText="Enter assessment title"/>
+        <Label fx:id="creatorLabel" text="Created by: --"
+               style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
+        <Label text="Time"
+               style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+        <fx:include fx:id="dateTimePicker" source="datetime_picker.fxml"/>
         <Label fx:id="titleLabel" text="Offline 1"
                style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
         <Label fx:id="durationLabel" text="Duration: --"
