@@ -24,7 +24,7 @@
         <Label text="Time"
                style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
         <fx:include fx:id="dateTimePicker" source="datetime_picker.fxml"/>
-        <Label fx:id="titleLabel" text="Offline 1"
+        <Label fx:id="titleLabel" text=""
                style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
         <Label fx:id="durationLabel" text="Duration: --"
                style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
