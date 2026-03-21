@@ -161,11 +161,11 @@ public class AssessmentDetailController {
 
         // 2. Use Polymorphism to extract child-specific data!
         if (assessment instanceof CT ct) {
-            syllabusEditor.setHtmlText("Syllabus:<br>" + (ct.getSyllabus() != null ? ct.getSyllabus() : ""));
+            syllabusEditor.setHtmlText("Syllabus:<br>" + toHtmlSafeText(ct.getSyllabus()));
             durationField.setText(String.valueOf(ct.getTotalMarks()));
 
         } else if (assessment instanceof Offline offline) {
-            syllabusEditor.setHtmlText("Submission Link:<br>" + (offline.getSubmissionLink() != null ? offline.getSubmissionLink() : ""));
+            syllabusEditor.setHtmlText("Submission Link:<br>" + toHtmlSafeText(offline.getSubmissionLink()));
             durationField.setText("Take-home Offline");
 
         } else if (assessment instanceof Online online) {
@@ -177,7 +177,7 @@ public class AssessmentDetailController {
             durationField.setText(quiz.getDuration());
 
         } else if (assessment instanceof Assignment assignment) {
-            syllabusEditor.setHtmlText("Submission Link:<br>" + (assignment.getSubmissionLink() != null ? assignment.getSubmissionLink() : ""));
+            syllabusEditor.setHtmlText("Submission Link:<br>" + toHtmlSafeText(assignment.getSubmissionLink()));
             durationField.setText("Long-term Assignment");
         }
     }
@@ -194,8 +194,8 @@ public class AssessmentDetailController {
 
     @FXML
     private void handleSaveDetails() {
-        String htmlContent = syllabusEditor.getHtmlText() == null ? "" : syllabusEditor.getHtmlText().trim();
-        String plainSyllabus = htmlContent
+        String htmlText = syllabusEditor.getHtmlText();
+        String plainSyllabus = htmlText == null ? "" : htmlText
                 .replaceAll("(?is)<[^>]*>", "")
                 .replace("&nbsp;", " ")
                 .trim();
@@ -219,5 +219,23 @@ public class AssessmentDetailController {
         if (selectedFile != null) {
             System.out.println("Selected file: " + selectedFile.getAbsolutePath());
         }
+    }
+
+    @FXML
+    private void handleAddLink() {
+        System.out.println("Add link clicked");
+    }
+
+    private String toHtmlSafeText(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;")
+                .replace("\"", "&quot;")
+                .replace("'", "&#39;")
+                .replace("\n", "<br>");
     }
 }

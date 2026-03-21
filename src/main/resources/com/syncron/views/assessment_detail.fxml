@@ -47,7 +47,7 @@
         <HTMLEditor fx:id="syllabusEditor" prefHeight="250" prefWidth="600"/>
         <HBox fx:id="uploadControlsBox" spacing="10" alignment="CENTER_LEFT">
             <Button fx:id="uploadFileBtn" text="Upload File" onAction="#handleFileUpload"/>
-            <Button fx:id="addLinkBtn" text="Add Link"/>
+            <Button fx:id="addLinkBtn" text="Add Link" onAction="#handleAddLink"/>
         </HBox>
     </VBox>
 
