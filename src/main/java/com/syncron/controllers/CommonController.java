@@ -11,33 +11,17 @@ public class CommonController {
     private static final String TEACHER_ROLE = "TEACHER";
     private static final String[] DUMMY_TEACHER_NAMES = {"Khaled Mahmud Shahriar", "Dr. Ahmad"};
 
-    @FXML
-    private HBox breadcrumbBox;
+
 
     @FXML
     private VBox teacherResourcesContainer;
 
     @FXML
     public void initialize() {
-        loadBreadcrumbs();
         loadTeacherResources();
     }
 
-    private void loadBreadcrumbs() {
-        breadcrumbBox.getChildren().clear();
-        String[] breadcrumbs = {"Dashboard", "My Courses", "CSE 105", "Common"};
 
-        for (int i = 0; i < breadcrumbs.length; i++) {
-            final String breadcrumbName = breadcrumbs[i];
-            Hyperlink link = new Hyperlink(breadcrumbName);
-            link.setOnAction(event -> System.out.println("Breadcrumb clicked: " + breadcrumbName));
-            breadcrumbBox.getChildren().add(link);
-
-            if (i < breadcrumbs.length - 1) {
-                breadcrumbBox.getChildren().add(new Label("/"));
-            }
-        }
-    }
 
     private void loadTeacherResources() {
         teacherResourcesContainer.getChildren().clear();
@@ -45,11 +29,23 @@ public class CommonController {
         for (String teacherName : DUMMY_TEACHER_NAMES) {
             VBox teacherBox = new VBox(10);
 
-            Hyperlink teacherHeader = new Hyperlink("Resources from " + teacherName);
-            teacherHeader.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+            // --- NEW SPLIT HEADER LOGIC ---
+            HBox headerBox = new HBox();
+            headerBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+            Label prefix = new Label("Resources from ");
+            prefix.setStyle("-fx-font-size: 16px; -fx-text-fill: #2C3E50;");
+
+            Hyperlink nameLink = new Hyperlink(teacherName);
+            nameLink.setStyle("-fx-font-size: 16px; -fx-text-fill: #3498DB; -fx-padding: 0;");
+
+            headerBox.getChildren().addAll(prefix, nameLink);
+            // ------------------------------
+
             Label uploadsLabel = new Label("Uploads: Links/Files");
 
-            teacherBox.getChildren().addAll(teacherHeader, uploadsLabel);
+            // Add the headerBox instead of the old single hyperlink
+            teacherBox.getChildren().addAll(headerBox, uploadsLabel);
 
             if (TEACHER_ROLE.equals(SessionManager.getCurrentUserRole())) {
                 Button addResourcesButton = new Button("Add Resources");
@@ -69,4 +65,5 @@ public class CommonController {
             teacherResourcesContainer.getChildren().add(teacherBox);
         }
     }
+
 }

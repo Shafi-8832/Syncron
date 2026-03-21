@@ -7,7 +7,7 @@
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.syncron.controllers.CommonController"
       spacing="15" style="-fx-padding: 30; -fx-background-color: #F4F7FC;">
-    <HBox fx:id="breadcrumbBox" spacing="5"/>
+
     <Label text="Common Resources" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
     <VBox fx:id="teacherResourcesContainer" spacing="20"/>
 </VBox>
