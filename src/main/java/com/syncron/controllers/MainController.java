@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -21,6 +22,7 @@ import java.io.IOException;
  * Decoupled so a Teacher object can later be passed to content views.
  */
 public class MainController {
+    public static MainController instance;
 
     @FXML private BorderPane mainBorderPane;
     @FXML private HBox breadcrumbBar;
@@ -63,6 +65,7 @@ public class MainController {
 
     @FXML
     public void initialize() {
+        instance = this;
 
         // step 1 : turn on the engine
         // hand over the empty StackPane to the NavigationManager
@@ -281,6 +284,31 @@ public class MainController {
         Label sep = new Label(" / ");
         sep.setStyle("-fx-font-size: 14px; -fx-text-fill: #BDC3C7;");
         return sep;
+    }
+
+    public void setBreadcrumbs(String... pathNodes) {
+        breadcrumbBar.getChildren().clear();
+        if (pathNodes == null || pathNodes.length == 0) {
+            return;
+        }
+
+        for (int i = 0; i < pathNodes.length; i++) {
+            String node = pathNodes[i];
+            boolean isLast = i == pathNodes.length - 1;
+
+            if (isLast) {
+                Label inactiveNode = new Label(node);
+                inactiveNode.setStyle("-fx-text-fill: #7F8C8D; -fx-font-size: 14px;");
+                breadcrumbBar.getChildren().add(inactiveNode);
+            } else {
+                Hyperlink link = new Hyperlink(node);
+                link.setStyle("-fx-font-size: 14px; -fx-text-fill: #3498DB; -fx-padding: 0;");
+                breadcrumbBar.getChildren().add(link);
+
+                Label separator = new Label(" / ");
+                breadcrumbBar.getChildren().add(separator);
+            }
+        }
     }
 
     /**
