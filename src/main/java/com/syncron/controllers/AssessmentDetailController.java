@@ -117,7 +117,6 @@ public class AssessmentDetailController {
      */
     public void setHeaderInfo(String title, String duration, String time, String room, String syllabus) {
         titleField.setText(title);
-        titleLabel.setText(title);
         durationLabel.setText(duration);
         timeLabel.setText(time);
         roomLabel.setText(room);
@@ -132,7 +131,6 @@ public class AssessmentDetailController {
 
         // 1. Set the shared parent data
         titleField.setText(assessment.getTitle());
-        titleLabel.setText(assessment.getTitle());
         timeLabel.setText(assessment.getDateTime() != null ? "Time: " + assessment.getDateTime() : "Time: TBA");
         roomLabel.setText(assessment.getRoom() != null ? "Room: " + assessment.getRoom() : "Room: TBA");
 

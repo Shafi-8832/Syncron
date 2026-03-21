@@ -1,7 +1,7 @@
 package com.syncron.controllers;
 
 public class SessionManager {
-    private static String currentUserRole = "";
+    private static volatile String currentUserRole = "";
 
     private SessionManager() {
     }

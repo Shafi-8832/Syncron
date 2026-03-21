@@ -9,6 +9,7 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 
 public class CTAssignmentsController {
+    private static final String STUDENT_ROLE = "STUDENT";
 
     @FXML
     private Button createAssessmentBtn;
@@ -18,7 +19,7 @@ public class CTAssignmentsController {
 
     @FXML
     public void initialize() {
-        if ("STUDENT".equals(SessionManager.getCurrentUserRole())) {
+        if (STUDENT_ROLE.equals(SessionManager.getCurrentUserRole())) {
             createAssessmentBtn.setVisible(false);
             createAssessmentBtn.setManaged(false);
         }
