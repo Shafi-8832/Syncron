@@ -60,13 +60,11 @@ public class LoginController {
 
                 switch (userRole) {
                     case "ADMIN":
-                        targetFxml = "/com/syncron/views/admin_dashboard.fxml"; // We will build this next!
+                        targetFxml = "/com/syncron/views/admin_dashboard.fxml";
                         break;
                     case "TEACHER":
-                        targetFxml = "/com/syncron/views/teacher_main_layout.fxml";
-                        break;
                     case "STUDENT":
-                        targetFxml = "/com/syncron/views/home.fxml"; // Your existing student view
+                        targetFxml = "/com/syncron/views/home.fxml"; // existing student view
                         break;
                     default:
                         errorLabel.setText("System Error: Unknown Role.");
