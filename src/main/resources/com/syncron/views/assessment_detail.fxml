@@ -21,7 +21,7 @@
         <TextField fx:id="titleField" promptText="Enter assessment title"/>
         <Label fx:id="createdByLabel" text="Created by: --"
                 style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
-        <Label text="Time"
+        <Label text="Date &amp; Time"
                 style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
         <fx:include fx:id="dateTimePicker" source="datetime_picker.fxml"/>
         <Label fx:id="titleLabel" text=""

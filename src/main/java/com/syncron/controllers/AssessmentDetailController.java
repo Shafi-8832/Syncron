@@ -70,6 +70,7 @@ public class AssessmentDetailController {
         if ("STUDENT".equals(SessionManager.getCurrentUserRole())) {
             titleField.setEditable(false);
             durationField.setEditable(false);
+            timeField.setEditable(false);
             roomField.setEditable(false);
             saveDetailsBtn.setVisible(false);
             saveDetailsBtn.setManaged(false);
