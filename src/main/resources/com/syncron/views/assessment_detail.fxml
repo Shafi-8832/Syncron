@@ -5,10 +5,10 @@
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.web.HTMLEditor?>
 
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.syncron.controllers.AssessmentDetailController"
@@ -44,9 +44,11 @@
         <Separator style="-fx-padding: 5 0 5 0;"/>
         <Label text="Syllabus / Questions"
                style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
-        <TextArea fx:id="syllabusArea" prefHeight="100" prefWidth="600" editable="false"
-                  promptText="No syllabus or questions available."
-                  style="-fx-border-color: #DCDDE1; -fx-border-radius: 5; -fx-background-radius: 5;"/>
+        <HTMLEditor fx:id="syllabusEditor" prefHeight="250" prefWidth="600"/>
+        <HBox fx:id="uploadControlsBox" spacing="10" alignment="CENTER_LEFT">
+            <Button fx:id="uploadFileBtn" text="Upload File" onAction="#handleFileUpload"/>
+            <Button fx:id="addLinkBtn" text="Add Link"/>
+        </HBox>
     </VBox>
 
     <Separator/>
