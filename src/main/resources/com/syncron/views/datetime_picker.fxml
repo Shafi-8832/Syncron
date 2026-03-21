@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.layout.HBox?>
+
+<HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.syncron.controllers.DateTimePickerComponent"
+      spacing="10.0"
+      stylesheets="@../styles/kernel_warm.css">
+
+    <DatePicker fx:id="datePicker" promptText="Select Date"/>
+
+    <ComboBox fx:id="hourComboBox" promptText="HH" prefWidth="80.0"/>
+
+    <ComboBox fx:id="minuteComboBox" promptText="MM" prefWidth="80.0"/>
+
+    <ComboBox fx:id="amPmComboBox" promptText="AM/PM" prefWidth="90.0"/>
+
+</HBox>
