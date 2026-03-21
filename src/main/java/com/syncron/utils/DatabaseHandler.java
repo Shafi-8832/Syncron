@@ -379,6 +379,24 @@ public class DatabaseHandler {
 
     }
 
+    public static String getUserNameById(String id) {
+        String sql = "SELECT name FROM users WHERE id = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, id);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getString("name");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Database error while fetching user name: " + e.getMessage());
+        }
+
+        return "";
+    }
+
 
     public static String injectLevel1Term2() {
         String sqlSemester = "INSERT INTO semesters (name, is_active) VALUES ('Level 1 Term 2', 1)";

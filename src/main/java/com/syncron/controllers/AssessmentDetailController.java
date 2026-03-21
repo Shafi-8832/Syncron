@@ -1,5 +1,6 @@
 package com.syncron.controllers;
 
+import com.syncron.models.User;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -22,12 +23,13 @@ public class AssessmentDetailController {
     // --- Header Section ---
     @FXML private Label titleLabel;
     @FXML private TextField titleField;
-    @FXML private Label creatorLabel;
-    @FXML private Label durationLabel;
-    @FXML private Label timeLabel;
-    @FXML private Label roomLabel;
+    @FXML private Label createdByLabel;
+    @FXML private TextField durationField;
+    @FXML private TextField timeField;
+    @FXML private TextField roomField;
     @FXML private TextArea syllabusArea;
     @FXML private DateTimePickerComponent dateTimePickerController;
+    @FXML private Button saveDetailsBtn;
 
     // --- Teacher Action Area ---
     @FXML private HBox teacherActionArea;
@@ -60,6 +62,19 @@ public class AssessmentDetailController {
         teacherEvaluationArea.setManaged(false);
 
         titleField.textProperty().addListener((obs, oldValue, newValue) -> titleLabel.setText(newValue));
+
+        User currentUser = SessionManager.getCurrentUser();
+        String currentUserName = currentUser != null && currentUser.getName() != null ? currentUser.getName() : "--";
+        createdByLabel.setText("Created by: " + currentUserName);
+
+        if ("STUDENT".equals(SessionManager.getCurrentUserRole())) {
+            titleField.setEditable(false);
+            durationField.setEditable(false);
+            timeField.setEditable(false);
+            roomField.setEditable(false);
+            saveDetailsBtn.setVisible(false);
+            saveDetailsBtn.setManaged(false);
+        }
     }
 
     /**
@@ -117,9 +132,9 @@ public class AssessmentDetailController {
      */
     public void setHeaderInfo(String title, String duration, String time, String room, String syllabus) {
         titleField.setText(title);
-        durationLabel.setText(duration);
-        timeLabel.setText(time);
-        roomLabel.setText(room);
+        durationField.setText(duration);
+        timeField.setText(time);
+        roomField.setText(room);
         syllabusArea.setText(syllabus);
     }
 
@@ -131,29 +146,29 @@ public class AssessmentDetailController {
 
         // 1. Set the shared parent data
         titleField.setText(assessment.getTitle());
-        timeLabel.setText(assessment.getDateTime() != null ? "Time: " + assessment.getDateTime() : "Time: TBA");
-        roomLabel.setText(assessment.getRoom() != null ? "Room: " + assessment.getRoom() : "Room: TBA");
+        timeField.setText(assessment.getDateTime() != null ? assessment.getDateTime() : "TBA");
+        roomField.setText(assessment.getRoom() != null ? assessment.getRoom() : "TBA");
 
         // 2. Use Polymorphism to extract child-specific data!
         if (assessment instanceof CT ct) {
             syllabusArea.setText("Syllabus:\n" + ct.getSyllabus());
-            durationLabel.setText("Total Marks: " + ct.getTotalMarks());
+            durationField.setText(String.valueOf(ct.getTotalMarks()));
 
         } else if (assessment instanceof Offline offline) {
             syllabusArea.setText("Submission Link:\n" + offline.getSubmissionLink());
-            durationLabel.setText("Type: Take-home Offline");
+            durationField.setText("Take-home Offline");
 
         } else if (assessment instanceof Online online) {
             syllabusArea.setText("This is an online assessment. Be ready at the scheduled time.");
-            durationLabel.setText("Duration: " + online.getDuration());
+            durationField.setText(online.getDuration());
 
         } else if (assessment instanceof Quiz quiz) {
             syllabusArea.setText("Pop quiz/short assessment.");
-            durationLabel.setText("Duration: " + quiz.getDuration());
+            durationField.setText(quiz.getDuration());
 
         } else if (assessment instanceof Assignment assignment) {
             syllabusArea.setText("Submission Link:\n" + assignment.getSubmissionLink());
-            durationLabel.setText("Type: Long-term Assignment");
+            durationField.setText("Long-term Assignment");
         }
     }
 
@@ -165,5 +180,10 @@ public class AssessmentDetailController {
      */
     public void setSubmissionCount(int submitted, int total) {
         submissionCountLabel.setText("Submissions: " + submitted + " / " + total);
+    }
+
+    @FXML
+    private void handleSaveDetails() {
+        System.out.println("Details saved to database");
     }
 }
