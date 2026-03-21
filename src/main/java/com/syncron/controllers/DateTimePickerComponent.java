@@ -6,8 +6,10 @@ import javafx.scene.control.DatePicker;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 public class DateTimePickerComponent {
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     @FXML
     private DatePicker datePicker;
@@ -47,6 +49,9 @@ public class DateTimePickerComponent {
         amPmComboBox.setValue(hour24 >= 12 ? "PM" : "AM");
     }
 
+    /**
+     * Returns selected date-time in {@code yyyy-MM-dd hh:mm AM/PM} format.
+     */
     public String getDateTimeString() {
         LocalDate selectedDate = datePicker.getValue();
         String selectedHour = hourComboBox.getValue();
@@ -57,6 +62,6 @@ public class DateTimePickerComponent {
             return "";
         }
 
-        return String.format("%s %s:%s %s", selectedDate, selectedHour, selectedMinute, selectedAmPm);
+        return String.format("%s %s:%s %s", selectedDate.format(DATE_FORMATTER), selectedHour, selectedMinute, selectedAmPm);
     }
 }
