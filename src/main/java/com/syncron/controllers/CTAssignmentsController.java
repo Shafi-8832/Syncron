@@ -25,7 +25,9 @@ public class CTAssignmentsController {
         }
 
         createAssessmentBtn.setOnAction(event -> {
-            MainController.instance.setBreadcrumbs("Dashboard", "My Courses", "CSE 105", "CT & Assignments", "New Assessment");
+            if (MainController.instance != null) {
+                MainController.instance.setBreadcrumbs("Dashboard", "My Courses", "CSE 105", "CT & Assignments", "New Assessment");
+            }
             NavigationManager.switchScreen("assessment_detail.fxml");
         });
         loadDefaultAssessments();
@@ -50,7 +52,9 @@ public class CTAssignmentsController {
         box.setPrefSize(170, 90);
         box.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #DCDDE1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-cursor: hand;");
         box.setOnMouseClicked(event -> {
-            MainController.instance.setBreadcrumbs("Dashboard", "My Courses", "CSE 105", "CT & Assignments", title);
+            if (MainController.instance != null) {
+                MainController.instance.setBreadcrumbs("Dashboard", "My Courses", "CSE 105", "CT & Assignments", title);
+            }
             NavigationManager.switchScreen("assessment_detail.fxml");
         });
         return box;
