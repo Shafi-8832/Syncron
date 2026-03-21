@@ -12,26 +12,35 @@
 
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.syncron.controllers.AssessmentDetailController"
-      spacing="20" style="-fx-padding: 30; -fx-background-color: #FFFFFF;">
+      spacing="20" style="-fx-padding: 30; -fx-background-color: #FFFFFF; -fx-font-family: 'Times New Roman', serif;">
 
     <!-- Header Section -->
     <VBox fx:id="headerSection" spacing="8">
         <Label text="Title"
                style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
         <TextField fx:id="titleField" promptText="Enter assessment title"/>
-        <Label fx:id="creatorLabel" text="Created by: --"
-               style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
+        <Label fx:id="createdByLabel" text="Created by: --"
+                style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
         <Label text="Time"
-               style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
         <fx:include fx:id="dateTimePicker" source="datetime_picker.fxml"/>
         <Label fx:id="titleLabel" text=""
                style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
-        <Label fx:id="durationLabel" text="Duration: --"
-               style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
-        <Label fx:id="timeLabel" text="Time: --"
-               style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
-        <Label fx:id="roomLabel" text="Room: --"
-               style="-fx-font-size: 14px; -fx-text-fill: #7F8C8D;"/>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Duration"
+                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+            <TextField fx:id="durationField" promptText="Enter duration"/>
+        </HBox>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Time"
+                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+            <TextField fx:id="timeField" promptText="Enter time"/>
+        </HBox>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="Room"
+                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+            <TextField fx:id="roomField" promptText="Enter room"/>
+        </HBox>
         <Separator style="-fx-padding: 5 0 5 0;"/>
         <Label text="Syllabus / Questions"
                style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
@@ -85,5 +94,8 @@
             </columns>
         </TableView>
     </VBox>
+
+    <Button fx:id="saveDetailsBtn" text="Save Changes" onAction="#handleSaveDetails"
+            style="-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 20; -fx-background-radius: 5;"/>
 
 </VBox>

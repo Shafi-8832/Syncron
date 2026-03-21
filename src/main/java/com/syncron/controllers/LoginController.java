@@ -1,5 +1,6 @@
 package com.syncron.controllers;
 
+import com.syncron.models.User;
 import com.syncron.utils.DatabaseHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -49,6 +50,12 @@ public class LoginController {
             // Routing
             try {
                 SessionManager.setCurrentUserRole(userRole);
+                String userName = DatabaseHandler.getUserNameById(id);
+                User currentUser = new User() {};
+                currentUser.setId(id);
+                currentUser.setName(userName == null || userName.isBlank() ? id : userName);
+                currentUser.setRole(userRole);
+                SessionManager.setCurrentUser(currentUser);
                 String targetFxml = "";
 
                 switch (userRole) {
