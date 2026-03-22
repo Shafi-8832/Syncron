@@ -283,3 +283,52 @@
 .kernel-scroll {
     -fx-background-color: transparent;
 }
+
+
+/* Profile Page Global Background */
+.profile-root {
+    -fx-background-color: #FFF9F5; /* Soft cream */
+}
+
+/* White Profile Cards with subtle shadows */
+.profile-card {
+    -fx-background-color: #FFFFFF;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #E0E0E0;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.03), 10, 0, 0, 4);
+}
+
+/* Orange Outline Buttons (Upload Photo, Change Password) */
+.btn-outline-orange {
+    -fx-background-color: transparent;
+    -fx-border-color: #E67E22;
+    -fx-border-radius: 8;
+    -fx-text-fill: #E67E22;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+.btn-outline-orange:hover {
+    -fx-background-color: #FFF3E0;
+}
+
+/* Orange Badges (Student, L1T2) */
+.badge-orange {
+    -fx-background-color: #E67E22;
+    -fx-background-radius: 15;
+    -fx-text-fill: white;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 3 10 3 10;
+}
+
+/* Gray Outline Badges (C1, C2) */
+.badge-outline-gray {
+    -fx-background-color: transparent;
+    -fx-border-color: #BDBDBD;
+    -fx-border-radius: 15;
+    -fx-text-fill: #757575;
+    -fx-font-size: 11px;
+    -fx-padding: 2 10 2 10;
+}
