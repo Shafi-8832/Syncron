@@ -1,7 +1,7 @@
 package com.syncron.models;
 
 public abstract class User {
-    private String id;
+    public String id;
     private String name;
     private String email;
     private String password;

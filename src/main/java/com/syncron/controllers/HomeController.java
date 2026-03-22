@@ -22,7 +22,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class HomeController {
-
+    @FXML private HBox profileBtn;
     @FXML private ProgressBar semesterProgressBar;
     @FXML private VBox courseCardContainer;
     @FXML private VBox urgentContainer;
@@ -38,6 +38,9 @@ public class HomeController {
         loadCourseCards();
         // 3. Load the urgent deadlines
         loadUrgentDeadlines();
+        if (profileBtn != null) {
+            profileBtn.setOnMouseClicked(e -> openProfile());
+        }
 
         // 2. Add the clicking Event
         if (detailsBtn != null) {
@@ -119,6 +122,22 @@ public class HomeController {
         }
         catch (IOException e) {
          e.printStackTrace();
+        }
+    }
+
+
+    private void openProfile() {
+        try {
+            // Tell the ProfileController to load the logged-in user
+            ProfileController.viewingUser = null;
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/profile.fxml"));
+            Parent root = loader.load();
+
+            Stage stage = (Stage) profileBtn.getScene().getWindow();
+            stage.getScene().setRoot(root);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

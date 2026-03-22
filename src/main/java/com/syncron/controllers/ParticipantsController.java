@@ -3,6 +3,7 @@ package com.syncron.controllers;
 import com.syncron.models.Student;
 import com.syncron.models.User;
 import com.syncron.utils.DatabaseHandler;
+import com.syncron.utils.NavigationManager;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
@@ -87,6 +88,12 @@ public class ParticipantsController {
                 flairBadge.getChildren().add(sectionLabel);
                 card.getChildren().add(flairBadge);
             }
+
+            card.setStyle("-fx-cursor: hand; " + card.getStyle());
+            card.setOnMouseClicked(event -> {
+                ProfileController.viewingUser = user;
+                NavigationManager.switchScreen("profile.fxml");
+            });
 
             participantsGrid.getChildren().add(card);
         }

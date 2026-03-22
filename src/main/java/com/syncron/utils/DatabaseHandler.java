@@ -17,14 +17,25 @@ import com.syncron.models.Teacher;
 import com.syncron.models.User;
 
 import javax.naming.spi.ResolveResult;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 public class DatabaseHandler {
 
     // This creates a file named 'syncron.db' in your project folder
     private static final String DB_URL = "jdbc:sqlite:syncron.db";
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+    private static final int PASSWORD_ITERATIONS = 120000;
+    private static final int PASSWORD_KEY_LENGTH = 256;
+    private static final int PASSWORD_SALT_BYTES = 16;
+    private static final int MIN_PASSWORD_LENGTH = 8;
 
     public static Connection connect() {
         Connection conn = null;
@@ -359,7 +370,10 @@ public class DatabaseHandler {
                     String dbRole = rs.getString("role");
 
                     // 6. verification
-                    if (dbPassword.equals(inputPassword)) {
+                    if (verifyPassword(dbPassword, inputPassword)) {
+                        if (!dbPassword.startsWith("pbkdf2$")) {
+                            migratePasswordHash(id, inputPassword);
+                        }
                         System.out.println("Login successful for user " + id);
                         return dbRole;
                     }
@@ -380,6 +394,103 @@ public class DatabaseHandler {
         }
 
 
+    }
+
+    public static boolean updatePassword(String userId, String currentPass, String newPass) {
+        String selectSql = "SELECT password FROM users WHERE id = ?";
+        String updateSql = "UPDATE users SET password = ? WHERE id = ?";
+
+        if (isBlank(userId) || isBlank(currentPass) || isBlank(newPass) || !isStrongPassword(newPass)) {
+            return false;
+        }
+
+        try (Connection conn = connect();
+             PreparedStatement selectStmt = conn.prepareStatement(selectSql);
+             PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+
+            selectStmt.setString(1, userId);
+            try (ResultSet rs = selectStmt.executeQuery()) {
+                if (!rs.next()) {
+                    return false;
+                }
+
+                String dbPassword = rs.getString("password");
+                if (!verifyPassword(dbPassword, currentPass)) {
+                    return false;
+                }
+            }
+
+            updateStmt.setString(1, hashPassword(newPass));
+            updateStmt.setString(2, userId);
+            return updateStmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.out.println("Error updating password.");
+            return false;
+        }
+    }
+
+    private static boolean isStrongPassword(String password) {
+        return password != null && password.length() >= MIN_PASSWORD_LENGTH;
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.isBlank();
+    }
+
+    private static boolean verifyPassword(String storedPassword, String providedPassword) {
+        if (isBlank(storedPassword) || providedPassword == null) {
+            return false;
+        }
+
+        if (!storedPassword.startsWith("pbkdf2$")) {
+            return storedPassword.equals(providedPassword);
+        }
+
+        String[] parts = storedPassword.split("\\$");
+        if (parts.length != 4) {
+            return false;
+        }
+
+        try {
+            int iterations = Integer.parseInt(parts[1]);
+            byte[] salt = Base64.getDecoder().decode(parts[2]);
+            byte[] expectedHash = Base64.getDecoder().decode(parts[3]);
+            byte[] candidateHash = pbkdf2(providedPassword.toCharArray(), salt, iterations, expectedHash.length * 8);
+            return MessageDigest.isEqual(expectedHash, candidateHash);
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+    private static String hashPassword(String password) {
+        byte[] salt = new byte[PASSWORD_SALT_BYTES];
+        SECURE_RANDOM.nextBytes(salt);
+        byte[] hash = pbkdf2(password.toCharArray(), salt, PASSWORD_ITERATIONS, PASSWORD_KEY_LENGTH);
+        return "pbkdf2$" + PASSWORD_ITERATIONS + "$"
+                + Base64.getEncoder().encodeToString(salt) + "$"
+                + Base64.getEncoder().encodeToString(hash);
+    }
+
+    private static byte[] pbkdf2(char[] password, byte[] salt, int iterations, int keyLength) {
+        try {
+            PBEKeySpec spec = new PBEKeySpec(password, salt, iterations, keyLength);
+            SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            return skf.generateSecret(spec).getEncoded();
+        } catch (Exception e) {
+            throw new IllegalStateException("Password hashing failed.", e);
+        }
+    }
+
+    private static void migratePasswordHash(String userId, String plainPassword) {
+        String sql = "UPDATE users SET password = ? WHERE id = ?";
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, hashPassword(plainPassword));
+            pstmt.setString(2, userId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Password migration failed for user " + userId + ".");
+        }
     }
 
     public static String getUserNameById(String id) {
@@ -444,60 +555,98 @@ public class DatabaseHandler {
         }
     }
 
+//    public static List<User> getCourseParticipants(String courseCode) {
+//        List<User> participants = new ArrayList<>();
+//
+//        String sql = """
+//                SELECT DISTINCT u.id,
+//                                u.name,
+//                                u.email,
+//                                u.password,
+//                                u.role,
+//                                '' AS section
+//                FROM users u
+//                LEFT JOIN enrollment_requests er
+//                       ON er.student_id = u.id
+//                      AND er.course_code = ?
+//                      AND upper(COALESCE(er.status, '')) = 'APPROVED'
+//                LEFT JOIN course_teachers ct
+//                       ON ct.teacher_id = u.id
+//                      AND ct.course_code = ?
+//                WHERE er.student_id IS NOT NULL
+//                   OR ct.teacher_id IS NOT NULL
+//                ORDER BY u.name COLLATE NOCASE ASC
+//                """;
+//
+//        try (Connection conn = connect();
+//             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+//
+//            pstmt.setString(1, courseCode);
+//            pstmt.setString(2, courseCode);
+//
+//            try (ResultSet rs = pstmt.executeQuery()) {
+//                while (rs.next()) {
+//                    String id = rs.getString("id");
+//                    String name = rs.getString("name");
+//                    String email = rs.getString("email");
+//                    String password = rs.getString("password");
+//                    String role = rs.getString("role");
+//                    String normalizedRole = role == null ? "" : role.toUpperCase();
+//
+//                    if ("STUDENT".equals(normalizedRole)) {
+//                        participants.add(new Student(
+//                                id,
+//                                name,
+//                                email,
+//                                password,
+//                                false,
+//                                rs.getString("section")
+//                        ));
+//                    } else if ("TEACHER".equals(normalizedRole)) {
+//                        participants.add(new Teacher(id, name, email, password, "Teacher"));
+//                    }
+//                }
+//            }
+//        } catch (SQLException e) {
+//            System.out.println("Error fetching course participants: " + e.getMessage());
+//        }
+//
+//        return participants;
+//    }
+
     public static List<User> getCourseParticipants(String courseCode) {
         List<User> participants = new ArrayList<>();
 
-        String sql = """
-                SELECT DISTINCT u.id,
-                                u.name,
-                                u.email,
-                                u.password,
-                                u.role,
-                                '' AS section
-                FROM users u
-                LEFT JOIN enrollment_requests er
-                       ON er.student_id = u.id
-                      AND er.course_code = ?
-                      AND upper(COALESCE(er.status, '')) = 'APPROVED'
-                LEFT JOIN course_teachers ct
-                       ON ct.teacher_id = u.id
-                      AND ct.course_code = ?
-                WHERE er.student_id IS NOT NULL
-                   OR ct.teacher_id IS NOT NULL
-                ORDER BY u.name COLLATE NOCASE ASC
-                """;
+        // Fetching everyone for the presentation grid!
+        String sql = "SELECT * FROM users ORDER BY name COLLATE NOCASE ASC";
 
         try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
 
-            pstmt.setString(1, courseCode);
-            pstmt.setString(2, courseCode);
+            while (rs.next()) {
+                String id = rs.getString("id");
+                String name = rs.getString("name");
+                String email = rs.getString("email");
+                String password = rs.getString("password");
+                String role = rs.getString("role");
+                String normalizedRole = role == null ? "" : role.toUpperCase();
 
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    String id = rs.getString("id");
-                    String name = rs.getString("name");
-                    String email = rs.getString("email");
-                    String password = rs.getString("password");
-                    String role = rs.getString("role");
-                    String normalizedRole = role == null ? "" : role.toUpperCase();
-
-                    if ("STUDENT".equals(normalizedRole)) {
-                        participants.add(new Student(
-                                id,
-                                name,
-                                email,
-                                password,
-                                false,
-                                rs.getString("section")
-                        ));
-                    } else if ("TEACHER".equals(normalizedRole)) {
-                        participants.add(new Teacher(id, name, email, password, "Teacher"));
-                    }
+                if ("STUDENT".equals(normalizedRole)) {
+                    participants.add(new Student(
+                            id,
+                            name,
+                            email,
+                            password,
+                            false,
+                            rs.getString("section")
+                    ));
+                } else if ("TEACHER".equals(normalizedRole)) {
+                    participants.add(new Teacher(id, name, email, password, "Teacher"));
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Error fetching course participants: " + e.getMessage());
+            System.out.println("Error fetching participants: " + e.getMessage());
         }
 
         return participants;
