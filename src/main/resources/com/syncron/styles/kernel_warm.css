@@ -455,7 +455,7 @@
 .nav-btn {
     -fx-background-color: transparent;
     -fx-text-fill: #C8D8D8;
-    -fx-font-family: "Inter", "-apple-system", sans-serif;
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "SF Pro Display", sans-serif;
     -fx-font-size: 14px;
     -fx-padding: 12 25 12 25;
     -fx-alignment: center-left;
@@ -468,7 +468,7 @@
 .nav-btn-active {
     -fx-background-color: rgba(255, 255, 255, 0.15); /* The light highlight box */
     -fx-text-fill: #FFFFFF;
-    -fx-font-family: "Inter", "-apple-system", sans-serif;
+    -fx-font-family: "Segoe UI", "Helvetica Neue", "SF Pro Display", sans-serif;
     -fx-font-size: 14px;
     -fx-font-weight: bold;
     -fx-padding: 12 25 12 25;

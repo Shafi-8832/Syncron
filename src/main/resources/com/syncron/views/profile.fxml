@@ -5,158 +5,176 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 
-<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.syncron.controllers.ProfileController"
-            fitToWidth="true"
-            styleClass="profile-root"
-            stylesheets="@../styles/kernel_warm.css">
-    <content>
-        <VBox alignment="TOP_CENTER" spacing="20">
-            <padding>
-                <Insets top="30" right="30" bottom="30" left="30"/>
-            </padding>
+<BorderPane styleClass="kernel-root" stylesheets="@../styles/kernel_warm.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.syncron.controllers.ProfileController">
 
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label text="Dashboard" style="-fx-text-fill: #3498DB; -fx-cursor: hand; -fx-font-weight: bold;" onMouseClicked="#goBackToDashboard"/>
-                <Label text="/" style="-fx-text-fill: #7F8C8D;"/>
-                <Label text="Profile" style="-fx-text-fill: #7F8C8D;"/>
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="15.0" styleClass="kernel-header">
+            <Label text="KERNEL" style="-fx-font-family: 'Georgia', serif; -fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #8A3B2B; -fx-letter-spacing: 1px;" />
+            <Circle radius="3.0" fill="#8C7A6B" />
+            <Label text="CSE - BUET" style="-fx-font-family: 'Segoe UI', sans-serif; -fx-font-size: 14px; -fx-text-fill: #8C7A6B;" />
 
-                <Region HBox.hgrow="ALWAYS" />
+            <Region HBox.hgrow="ALWAYS" />
 
-                <Button text="Log Out" style="-fx-background-color: transparent; -fx-text-fill: #E74C3C; -fx-border-color: #E74C3C; -fx-border-radius: 6; -fx-cursor: hand; -fx-font-weight: bold; -fx-padding: 5 15;" onAction="#handleLogout"/>
+            <Button text="🔔" styleClass="kernel-notification-btn" />
+            <HBox alignment="CENTER" spacing="10" styleClass="kernel-profile-box" style="-fx-cursor: hand;">
+                <Label fx:id="topHeaderNameLabel" text="Profile" style="-fx-font-family: 'Segoe UI', sans-serif; -fx-font-weight: bold; -fx-text-fill: #4A2C1A;" />
+                <Circle radius="12.0" fill="#A0522D" />
             </HBox>
+        </HBox>
+    </top>
 
-            <VBox alignment="TOP_CENTER" spacing="15" styleClass="profile-card">
-                <padding>
-                    <Insets top="25" right="25" bottom="25" left="25"/>
-                </padding>
-
-                <Circle radius="48" styleClass="profile-photo-circle"/>
-
-                <HBox alignment="CENTER" spacing="10">
-                    <Button mnemonicParsing="false" text="Upload Photo" styleClass="btn-outline-orange"/>
-                    <Button mnemonicParsing="false" text="Remove Photo" styleClass="btn-outline-orange"/>
-                </HBox>
-
-                <HBox alignment="CENTER" spacing="12">
-                    <Label fx:id="nameLabel" text="Ahnaf Ahmed Shafi" styleClass="profile-name"/>
-                    <Label fx:id="roleLabel" text="Teacher" styleClass="badge-orange"/>
-                    <Label fx:id="sectionLabel" text="C1" styleClass="badge-outline-gray"/>
-                </HBox>
-
-                <HBox fx:id="teacherInfoContainer" spacing="40" visible="false" managed="false">
-                    <VBox spacing="15" HBox.hgrow="ALWAYS">
-                        <Label fx:id="teacherBioLabel" text="Bio : " style="-fx-text-fill: #7F8C8D;"/>
-                        <Label fx:id="teacherIdLabel" text="Teacher ID : " style="-fx-text-fill: #7F8C8D;"/>
-                        <Label fx:id="teacherResearchLabel" text="Research Interest : " style="-fx-text-fill: #7F8C8D;"/>
-                        <HBox style="-fx-padding: 20 0 0 0;">
-                            <Button mnemonicParsing="false" text="Change Password" styleClass="btn-outline-orange" onAction="#handleShowPasswordForm"/>
-                        </HBox>
-                    </VBox>
-                    <VBox spacing="15" HBox.hgrow="ALWAYS">
-                        <Label fx:id="teacherContactLabel" text="Contact No. : " style="-fx-text-fill: #7F8C8D;"/>
-                        <Label fx:id="teacherGithubLabel" text="Github Link : " style="-fx-text-fill: #7F8C8D;"/>
-                        <Label fx:id="teacherLinkedinLabel" text="LinkedIn Link : " style="-fx-text-fill: #7F8C8D;"/>
-                        <Label fx:id="teacherFbLabel" text="FB Link : " style="-fx-text-fill: #7F8C8D;"/>
-                        <Label fx:id="teacherRoomLabel" text="Room No : " style="-fx-text-fill: #7F8C8D;"/>
-                        <Label fx:id="teacherEmailLabel" text="Email Address : " style="-fx-text-fill: #7F8C8D;"/>
-
-                        <VBox spacing="5" style="-fx-padding: 15 0 0 0; -fx-border-color: #E0E0E0; -fx-border-width: 1 0 0 0; -fx-border-style: solid;">
-                            <Label text="Department of Computer Science &amp; Engineering" style="-fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
-                            <Label text="Bangladesh University of Engineering &amp; Technology" style="-fx-text-fill: #7F8C8D;"/>
-                            <Label text="ECE Building, West Palashi" style="-fx-text-fill: #7F8C8D;"/>
-                            <Label text="Dhaka-1000, Bangladesh" style="-fx-text-fill: #7F8C8D;"/>
-                        </VBox>
-                    </VBox>
-                </HBox>
-
-                <VBox fx:id="studentInfoContainer" spacing="15" visible="false" managed="false" alignment="CENTER_LEFT">
-                    <Label fx:id="studentBioLabel" text="Bio : " style="-fx-text-fill: #2C3E50;"/>
-                    <Label fx:id="studentIdLabel" text="Student ID : " style="-fx-text-fill: #7F8C8D;"/>
-                    <Label fx:id="studentSectionLabel" text="Section : " style="-fx-text-fill: #7F8C8D;"/>
-                    <Label fx:id="studentClassroomLabel" text="Class Room : " style="-fx-text-fill: #7F8C8D;"/>
-
-                    <Region style="-fx-border-color: #E0E0E0; -fx-border-width: 0 0 1 0; -fx-border-style: solid;"/>
-
-                    <Label fx:id="studentEmailLabel" text="Email Address : " style="-fx-text-fill: #7F8C8D;"/>
-                    <Label fx:id="studentGithubLabel" text="GitHub : " style="-fx-text-fill: #7F8C8D;"/>
-                    <Label fx:id="studentLinkedinLabel" text="LinkedIn : " style="-fx-text-fill: #7F8C8D;"/>
-
-                    <HBox style="-fx-padding: 10 0 10 0;">
-                        <Label fx:id="semesterBadgeLabel" text="Semester : Level - I Term - II" style="-fx-background-color: #E67E22; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 6 15; -fx-background-radius: 20;"/>
-                    </HBox>
-                    <HBox>
-                        <Button mnemonicParsing="false" text="Change Password" styleClass="btn-outline-orange" onAction="#handleShowPasswordForm"/>
-                    </HBox>
-                </VBox>
-
-                <VBox fx:id="passwordFormBox" spacing="10" maxWidth="400" visible="false" managed="false" styleClass="profile-card" alignment="CENTER_LEFT">
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;" styleClass="profile-root">
+            <content>
+                <VBox alignment="TOP_CENTER" spacing="20">
                     <padding>
-                        <Insets top="16" right="16" bottom="16" left="16"/>
+                        <Insets top="30" right="30" bottom="30" left="30"/>
                     </padding>
-                    <Label text="Change Password" styleClass="profile-section-title"/>
-                    <PasswordField fx:id="currentPasswordField" promptText="Current Password"/>
-                    <PasswordField fx:id="newPasswordField" promptText="New Password"/>
-                    <PasswordField fx:id="confirmPasswordField" promptText="Confirm Password"/>
-                    <Label fx:id="passwordErrorLabel" textFill="#E74C3C" style="-fx-font-weight: bold;"/>
 
                     <HBox spacing="10" alignment="CENTER_LEFT">
-                        <Button mnemonicParsing="false" text="Save" styleClass="btn-outline-orange" style="-fx-background-color: #E67E22; -fx-text-fill: white;" onAction="#handleChangePassword"/>
-                        <Button mnemonicParsing="false" text="Cancel" styleClass="btn-outline-orange" style="-fx-border-color: transparent; -fx-text-fill: #7F8C8D;" onAction="#handleCancelPasswordChange"/>
-                    </HBox>
-                </VBox>
-            </VBox>
+                        <Label text="Dashboard" style="-fx-text-fill: #3498DB; -fx-cursor: hand; -fx-font-weight: bold;" onMouseClicked="#goBackToDashboard"/>
+                        <Label text="/" style="-fx-text-fill: #7F8C8D;"/>
+                        <Label text="Profile" style="-fx-text-fill: #7F8C8D;"/>
 
-            <VBox fx:id="studentHistoryBox" spacing="10">
-                <Label text="Course Enrollment History" styleClass="profile-section-title"/>
-                <VBox fx:id="studentHistoryContentBox" spacing="20" styleClass="profile-card">
-                    <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                    <Label text="Level - I Term - II" style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2C3E50;"/>
-                    <HBox spacing="40">
-                        <VBox spacing="10" HBox.hgrow="ALWAYS">
-                            <Label text="THEORY" style="-fx-text-fill: #D35400; -fx-font-weight: bold;"/>
-                            <Label text="CSE 201 — Data Structures" style="-fx-text-fill: #2C3E50; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
-                            <Label text="CSE 203 — Discrete Mathematics" style="-fx-text-fill: #2C3E50; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
-                            <Label text="CSE 205 — Electronics I" style="-fx-text-fill: #2C3E50; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
-                            <Label text="MATH 201 — Differential Equations" style="-fx-text-fill: #2C3E50; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
-                            <Label text="PHY 201 — Optics &amp; Waves" style="-fx-text-fill: #2C3E50; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
-                        </VBox>
-                        <VBox spacing="10" HBox.hgrow="ALWAYS">
-                            <Label text="SESSIONAL" style="-fx-text-fill: #D35400; -fx-font-weight: bold;"/>
-                            <Label text="CSE 202 — Data Structures Sessional" style="-fx-text-fill: #7F8C8D; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
-                            <Label text="CSE 204 — Digital Logic Design Sessional" style="-fx-text-fill: #7F8C8D; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
-                            <Label text="CSE 206 — Electronics I Sessional" style="-fx-text-fill: #7F8C8D; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
-                            <Label text="PHY 202 — Physics Sessional" style="-fx-text-fill: #7F8C8D; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
-                        </VBox>
-                    </HBox>
-                </VBox>
-            </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
 
-            <VBox fx:id="teacherAssignedBox" spacing="10">
-                <Label text="Course Assigned" styleClass="profile-section-title"/>
-                <VBox fx:id="teacherAssignedContentBox" spacing="20" styleClass="profile-card">
-                    <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
-                    <Label text="Current Semester" style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2C3E50;"/>
-                    <HBox spacing="40">
-                        <VBox spacing="15" HBox.hgrow="ALWAYS">
-                            <Label text="THEORY" style="-fx-text-fill: #D35400; -fx-font-weight: bold;"/>
-                            <HBox spacing="10" alignment="CENTER_LEFT"><Label text="CSE 201 — Data Structures" style="-fx-text-fill: #E67E22; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/><Label text="L1T2" styleClass="badge-outline-gray"/></HBox>
-                            <HBox spacing="10" alignment="CENTER_LEFT"><Label text="CSE 301 — Computer Architecture" style="-fx-text-fill: #E67E22; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/><Label text="L2T1" styleClass="badge-outline-gray"/></HBox>
-                            <HBox spacing="10" alignment="CENTER_LEFT"><Label text="CSE 401 — Machine Learning" style="-fx-text-fill: #E67E22; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/><Label text="L3T1" styleClass="badge-outline-gray"/></HBox>
-                        </VBox>
-                        <VBox spacing="15" HBox.hgrow="ALWAYS">
-                            <Label text="SESSIONAL" style="-fx-text-fill: #D35400; -fx-font-weight: bold;"/>
-                            <HBox spacing="10" alignment="CENTER_LEFT"><Label text="CSE 202 — Data Structures Sessional" style="-fx-text-fill: #E67E22; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/><Label text="L1T2" styleClass="badge-outline-gray"/></HBox>
-                            <HBox spacing="10" alignment="CENTER_LEFT"><Label text="CSE 302 — Computer Architecture Sessional" style="-fx-text-fill: #E67E22; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/><Label text="L2T1" styleClass="badge-outline-gray"/></HBox>
-                        </VBox>
+                        <Button text="Log Out" style="-fx-background-color: transparent; -fx-text-fill: #E74C3C; -fx-border-color: #E74C3C; -fx-border-radius: 6; -fx-cursor: hand; -fx-font-weight: bold; -fx-padding: 5 15;" onAction="#handleLogout"/>
                     </HBox>
+
+                    <VBox alignment="TOP_CENTER" spacing="15" styleClass="profile-card">
+                        <padding>
+                            <Insets top="25" right="25" bottom="25" left="25"/>
+                        </padding>
+
+                        <Circle radius="48" styleClass="profile-photo-circle"/>
+
+                        <HBox alignment="CENTER" spacing="10">
+                            <Button mnemonicParsing="false" text="Upload Photo" styleClass="btn-outline-orange"/>
+                            <Button mnemonicParsing="false" text="Remove Photo" styleClass="btn-outline-orange"/>
+                        </HBox>
+
+                        <HBox alignment="CENTER" spacing="12">
+                            <Label fx:id="nameLabel" text="Ahnaf Ahmed Shafi" styleClass="profile-name"/>
+                            <Label fx:id="roleLabel" text="Teacher" styleClass="badge-orange"/>
+                            <Label fx:id="sectionLabel" text="C1" styleClass="badge-outline-gray"/>
+                        </HBox>
+
+                        <HBox fx:id="teacherInfoContainer" spacing="40" visible="false" managed="false">
+                            <VBox spacing="15" HBox.hgrow="ALWAYS">
+                                <Label fx:id="teacherBioLabel" text="Bio : " style="-fx-text-fill: #7F8C8D;"/>
+                                <Label fx:id="teacherIdLabel" text="Teacher ID : " style="-fx-text-fill: #7F8C8D;"/>
+                                <Label fx:id="teacherResearchLabel" text="Research Interest : " style="-fx-text-fill: #7F8C8D;"/>
+                                <HBox style="-fx-padding: 20 0 0 0;">
+                                    <Button mnemonicParsing="false" text="Change Password" styleClass="btn-outline-orange" onAction="#handleShowPasswordForm"/>
+                                </HBox>
+                            </VBox>
+                            <VBox spacing="15" HBox.hgrow="ALWAYS">
+                                <Label fx:id="teacherContactLabel" text="Contact No. : " style="-fx-text-fill: #7F8C8D;"/>
+                                <Label fx:id="teacherGithubLabel" text="Github Link : " style="-fx-text-fill: #7F8C8D;"/>
+                                <Label fx:id="teacherLinkedinLabel" text="LinkedIn Link : " style="-fx-text-fill: #7F8C8D;"/>
+                                <Label fx:id="teacherFbLabel" text="FB Link : " style="-fx-text-fill: #7F8C8D;"/>
+                                <Label fx:id="teacherRoomLabel" text="Room No : " style="-fx-text-fill: #7F8C8D;"/>
+                                <Label fx:id="teacherEmailLabel" text="Email Address : " style="-fx-text-fill: #7F8C8D;"/>
+
+                                <VBox spacing="5" style="-fx-padding: 15 0 0 0; -fx-border-color: #E0E0E0; -fx-border-width: 1 0 0 0; -fx-border-style: solid;">
+                                    <Label text="Department of Computer Science &amp; Engineering" style="-fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                                    <Label text="Bangladesh University of Engineering &amp; Technology" style="-fx-text-fill: #7F8C8D;"/>
+                                    <Label text="ECE Building, West Palashi" style="-fx-text-fill: #7F8C8D;"/>
+                                    <Label text="Dhaka-1000, Bangladesh" style="-fx-text-fill: #7F8C8D;"/>
+                                </VBox>
+                            </VBox>
+                        </HBox>
+
+                        <VBox fx:id="studentInfoContainer" spacing="15" visible="false" managed="false" alignment="CENTER_LEFT">
+                            <Label fx:id="studentBioLabel" text="Bio : " style="-fx-text-fill: #2C3E50;"/>
+                            <Label fx:id="studentIdLabel" text="Student ID : " style="-fx-text-fill: #7F8C8D;"/>
+                            <Label fx:id="studentSectionLabel" text="Section : " style="-fx-text-fill: #7F8C8D;"/>
+                            <Label fx:id="studentClassroomLabel" text="Class Room : " style="-fx-text-fill: #7F8C8D;"/>
+
+                            <Region style="-fx-border-color: #E0E0E0; -fx-border-width: 0 0 1 0; -fx-border-style: solid;"/>
+
+                            <Label fx:id="studentEmailLabel" text="Email Address : " style="-fx-text-fill: #7F8C8D;"/>
+                            <Label fx:id="studentGithubLabel" text="GitHub : " style="-fx-text-fill: #7F8C8D;"/>
+                            <Label fx:id="studentLinkedinLabel" text="LinkedIn : " style="-fx-text-fill: #7F8C8D;"/>
+
+                            <HBox style="-fx-padding: 10 0 10 0;">
+                                <Label fx:id="semesterBadgeLabel" text="Semester : Level - I Term - II" style="-fx-background-color: #E67E22; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 6 15; -fx-background-radius: 20;"/>
+                            </HBox>
+                            <HBox>
+                                <Button mnemonicParsing="false" text="Change Password" styleClass="btn-outline-orange" onAction="#handleShowPasswordForm"/>
+                            </HBox>
+                        </VBox>
+
+                        <VBox fx:id="passwordFormBox" spacing="10" maxWidth="400" visible="false" managed="false" styleClass="profile-card" alignment="CENTER_LEFT">
+                            <padding>
+                                <Insets top="16" right="16" bottom="16" left="16"/>
+                            </padding>
+                            <Label text="Change Password" styleClass="profile-section-title"/>
+                            <PasswordField fx:id="currentPasswordField" promptText="Current Password"/>
+                            <PasswordField fx:id="newPasswordField" promptText="New Password"/>
+                            <PasswordField fx:id="confirmPasswordField" promptText="Confirm Password"/>
+                            <Label fx:id="passwordErrorLabel" textFill="#E74C3C" style="-fx-font-weight: bold;"/>
+
+                            <HBox spacing="10" alignment="CENTER_LEFT">
+                                <Button mnemonicParsing="false" text="Save" styleClass="btn-outline-orange" style="-fx-background-color: #E67E22; -fx-text-fill: white;" onAction="#handleChangePassword"/>
+                                <Button mnemonicParsing="false" text="Cancel" styleClass="btn-outline-orange" style="-fx-border-color: transparent; -fx-text-fill: #7F8C8D;" onAction="#handleCancelPasswordChange"/>
+                            </HBox>
+                        </VBox>
+                    </VBox>
+
+                    <VBox fx:id="studentHistoryBox" spacing="10">
+                        <Label text="Course Enrollment History" styleClass="profile-section-title"/>
+                        <VBox fx:id="studentHistoryContentBox" spacing="20" styleClass="profile-card">
+                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                            <Label text="Level - I Term - II" style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2C3E50;"/>
+                            <HBox spacing="40">
+                                <VBox spacing="10" HBox.hgrow="ALWAYS">
+                                    <Label text="THEORY" style="-fx-text-fill: #D35400; -fx-font-weight: bold;"/>
+                                    <Label text="CSE 201 — Data Structures" style="-fx-text-fill: #2C3E50; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
+                                    <Label text="CSE 203 — Discrete Mathematics" style="-fx-text-fill: #2C3E50; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
+                                    <Label text="CSE 205 — Electronics I" style="-fx-text-fill: #2C3E50; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
+                                    <Label text="MATH 201 — Differential Equations" style="-fx-text-fill: #2C3E50; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
+                                    <Label text="PHY 201 — Optics &amp; Waves" style="-fx-text-fill: #2C3E50; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
+                                </VBox>
+                                <VBox spacing="10" HBox.hgrow="ALWAYS">
+                                    <Label text="SESSIONAL" style="-fx-text-fill: #D35400; -fx-font-weight: bold;"/>
+                                    <Label text="CSE 202 — Data Structures Sessional" style="-fx-text-fill: #7F8C8D; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
+                                    <Label text="CSE 204 — Digital Logic Design Sessional" style="-fx-text-fill: #7F8C8D; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
+                                    <Label text="CSE 206 — Electronics I Sessional" style="-fx-text-fill: #7F8C8D; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
+                                    <Label text="PHY 202 — Physics Sessional" style="-fx-text-fill: #7F8C8D; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                    </VBox>
+
+                    <VBox fx:id="teacherAssignedBox" spacing="10">
+                        <Label text="Course Assigned" styleClass="profile-section-title"/>
+                        <VBox fx:id="teacherAssignedContentBox" spacing="20" styleClass="profile-card">
+                            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                            <Label text="Current Semester" style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2C3E50;"/>
+                            <HBox spacing="40">
+                                <VBox spacing="15" HBox.hgrow="ALWAYS">
+                                    <Label text="THEORY" style="-fx-text-fill: #D35400; -fx-font-weight: bold;"/>
+                                    <HBox spacing="10" alignment="CENTER_LEFT"><Label text="CSE 201 — Data Structures" style="-fx-text-fill: #E67E22; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/><Label text="L1T2" styleClass="badge-outline-gray"/></HBox>
+                                    <HBox spacing="10" alignment="CENTER_LEFT"><Label text="CSE 301 — Computer Architecture" style="-fx-text-fill: #E67E22; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/><Label text="L2T1" styleClass="badge-outline-gray"/></HBox>
+                                    <HBox spacing="10" alignment="CENTER_LEFT"><Label text="CSE 401 — Machine Learning" style="-fx-text-fill: #E67E22; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/><Label text="L3T1" styleClass="badge-outline-gray"/></HBox>
+                                </VBox>
+                                <VBox spacing="15" HBox.hgrow="ALWAYS">
+                                    <Label text="SESSIONAL" style="-fx-text-fill: #D35400; -fx-font-weight: bold;"/>
+                                    <HBox spacing="10" alignment="CENTER_LEFT"><Label text="CSE 202 — Data Structures Sessional" style="-fx-text-fill: #E67E22; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/><Label text="L1T2" styleClass="badge-outline-gray"/></HBox>
+                                    <HBox spacing="10" alignment="CENTER_LEFT"><Label text="CSE 302 — Computer Architecture Sessional" style="-fx-text-fill: #E67E22; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/><Label text="L2T1" styleClass="badge-outline-gray"/></HBox>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                    </VBox>
                 </VBox>
-            </VBox>
-        </VBox>
-    </content>
-</ScrollPane>
+            </content>
+        </ScrollPane>
+    </center>
+</BorderPane>

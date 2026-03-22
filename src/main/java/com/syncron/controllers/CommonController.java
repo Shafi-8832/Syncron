@@ -1,5 +1,6 @@
 package com.syncron.controllers;
 
+import com.syncron.models.User;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Hyperlink;
@@ -8,10 +9,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class CommonController {
-    private static final String TEACHER_ROLE = "TEACHER";
-    private static final String[] DUMMY_TEACHER_NAMES = {"Khaled Mahmud Shahriar", "Dr. Ahmad"};
-
-
+    private static final String[] DUMMY_TEACHER_NAMES = {"Khaled Mahmud Shahriar", "Abdur Rafi", "Md. Mahfuzul Islam"};
 
     @FXML
     private VBox teacherResourcesContainer;
@@ -21,10 +19,15 @@ public class CommonController {
         loadTeacherResources();
     }
 
-
-
     private void loadTeacherResources() {
         teacherResourcesContainer.getChildren().clear();
+
+        //  ADDED: Safely verify the current user is a teacher from the Session Manager
+        boolean isTeacher = false;
+        User currentUser = SessionManager.getCurrentUser();
+        if (currentUser != null && "TEACHER".equalsIgnoreCase(currentUser.getRole())) {
+            isTeacher = true;
+        }
 
         for (String teacherName : DUMMY_TEACHER_NAMES) {
             VBox teacherBox = new VBox(10);
@@ -47,7 +50,8 @@ public class CommonController {
             // Add the headerBox instead of the old single hyperlink
             teacherBox.getChildren().addAll(headerBox, uploadsLabel);
 
-            if (TEACHER_ROLE.equals(SessionManager.getCurrentUserRole())) {
+            //  FIX: If the boolean above passed, the button is generated
+            if (isTeacher) {
                 Button addResourcesButton = new Button("Add Resources");
                 addResourcesButton.setOnAction(event -> {
                     if (!addResourcesButton.isDisable()) {
@@ -65,5 +69,4 @@ public class CommonController {
             teacherResourcesContainer.getChildren().add(teacherBox);
         }
     }
-
 }

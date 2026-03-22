@@ -1,7 +1,5 @@
 package com.syncron.controllers;
 
-import com.syncron.models.Student;
-import com.syncron.models.Teacher;
 import com.syncron.models.User;
 import com.syncron.utils.DatabaseHandler;
 import javafx.fxml.FXML;
@@ -16,7 +14,7 @@ public class ProfileController {
 
     public static User viewingUser = null;
     private static final int MIN_PASSWORD_LENGTH = 8;
-    private User loadedUser; // Used for password changes
+    private User loadedUser;
 
     // Main Boxes
     @FXML private VBox studentHistoryBox;
@@ -24,15 +22,16 @@ public class ProfileController {
     @FXML private VBox passwordFormBox;
 
     // Top Profile Header
+    @FXML private Label topHeaderNameLabel;
     @FXML private Label nameLabel;
     @FXML private Label roleLabel;
     @FXML private Label sectionLabel;
 
-    // --- ADDED: NEW CHAMELEON CONTAINERS ---
+    // Chameleon Containers
     @FXML private HBox teacherInfoContainer;
     @FXML private VBox studentInfoContainer;
 
-    // --- ADDED: TEACHER SPECIFIC LABELS ---
+    // Teacher Specific Labels
     @FXML private Label teacherBioLabel;
     @FXML private Label teacherIdLabel;
     @FXML private Label teacherResearchLabel;
@@ -43,7 +42,7 @@ public class ProfileController {
     @FXML private Label teacherRoomLabel;
     @FXML private Label teacherEmailLabel;
 
-    // --- ADDED: STUDENT SPECIFIC LABELS ---
+    // Student Specific Labels
     @FXML private Label studentBioLabel;
     @FXML private Label studentIdLabel;
     @FXML private Label studentSectionLabel;
@@ -71,8 +70,7 @@ public class ProfileController {
 
     private void loadUserData(User user) {
         if (user == null) return;
-
-        this.loadedUser = user; // Fixed bug: Assigning user to the class variable for Password checks!
+        this.loadedUser = user;
 
         // Set the universal info
         nameLabel.setText(user.getName());
@@ -80,7 +78,11 @@ public class ProfileController {
         String email = user.getEmail() != null ? user.getEmail() : "--";
         String id = user.getId() != null ? user.getId() : "--";
 
-        // --- THE NEW PIXEL-PERFECT CHAMELEON LOGIC ---
+        if (topHeaderNameLabel != null) {
+            topHeaderNameLabel.setText(user.getName());
+        }
+
+        // --- THE PIXEL-PERFECT CHAMELEON LOGIC ---
         if ("STUDENT".equalsIgnoreCase(user.getRole())) {
 
             // Toggle containers
@@ -94,16 +96,16 @@ public class ProfileController {
             teacherAssignedBox.setVisible(false);
             teacherAssignedBox.setManaged(false);
 
-            // Populate exact design fields
-            studentBioLabel.setText("Bio : Passionate CS student at BUET, interested in algorithms and systems programming.");
+            // Populate student fields
+            studentBioLabel.setText("Bio : Passionate CS student at BUET.");
             studentIdLabel.setText("Student ID : " + id);
             studentEmailLabel.setText("Email Address : " + email);
             studentGithubLabel.setText("GitHub : github.com/" + id);
             studentLinkedinLabel.setText("LinkedIn : linkedin.com/in/" + id);
             studentClassroomLabel.setText("Class Room : Room 402");
 
-            if (user instanceof Student) {
-                Student student = (Student) user;
+            if (user instanceof com.syncron.models.Student) {
+                com.syncron.models.Student student = (com.syncron.models.Student) user;
                 String sec = student.getSection() != null ? student.getSection() : "--";
                 String subSec = student.getSubsection() != null ? student.getSubsection() : "--";
                 studentSectionLabel.setText("Section : " + sec);
@@ -126,7 +128,7 @@ public class ProfileController {
             studentHistoryBox.setVisible(false);
             studentHistoryBox.setManaged(false);
 
-            // Populate exact design fields
+            // Populate teacher fields
             teacherBioLabel.setText("Bio : ");
             teacherIdLabel.setText("Teacher ID : " + id);
             teacherResearchLabel.setText("Research Interest : ");
@@ -140,7 +142,7 @@ public class ProfileController {
         }
     }
 
-    // --- ADDED: THE COURSE LINK ROUTING METHOD ---
+    // --- The Course Link Routing Method ---
     @FXML
     private void handleCourseClick(javafx.scene.input.MouseEvent event) {
         Label clickedLabel = (Label) event.getSource();
@@ -241,13 +243,9 @@ public class ProfileController {
     @FXML
     private void handleLogout() {
         try {
-            // 1. Clear the profile view memory
             viewingUser = null;
-
-            // 2. Clear the actual authenticated session
             SessionManager.setCurrentUser(null);
 
-            // 3. Teleport back to the login door
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/login.fxml"));
             javafx.scene.Parent root = loader.load();
 
