@@ -2,6 +2,7 @@ package com.syncron.controllers;
 
 import com.syncron.models.Course;
 import com.syncron.models.Module;
+import com.syncron.models.User;
 import com.syncron.utils.DatabaseHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -22,12 +23,22 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class HomeController {
+
+    @FXML private Label topHeaderNameLabel;
+    @FXML private Label welcomeLabel;
+
     @FXML private HBox profileBtn;
     @FXML private ProgressBar semesterProgressBar;
     @FXML private VBox courseCardContainer;
     @FXML private VBox urgentContainer;
 
     @FXML private Button detailsBtn;
+
+    @FXML private Label semesterTitleLabel;
+    @FXML private Label semesterStatusLabel;
+    @FXML private Label semesterProgressText;
+    @FXML private Label termFinalLabel;
+    @FXML private Label daysRemainingLabel;
 
     @FXML
     public void initialize() throws SQLException {
@@ -38,6 +49,9 @@ public class HomeController {
         loadCourseCards();
         // 3. Load the urgent deadlines
         loadUrgentDeadlines();
+        // 4. load current semester's data
+        loadSemesterData();
+        
         if (profileBtn != null) {
             profileBtn.setOnMouseClicked(e -> openProfile());
         }
@@ -46,6 +60,24 @@ public class HomeController {
         if (detailsBtn != null) {
             detailsBtn.setOnAction(e -> openSemesterDetails());
         }
+
+        User currentUser = SessionManager.getCurrentUser();
+        if (currentUser != null && topHeaderNameLabel != null && welcomeLabel != null) {
+            topHeaderNameLabel.setText(currentUser.getName());
+
+            String FirstName = currentUser.getName().split(" ")[0];
+            welcomeLabel.setText("Welcome Back, " + FirstName + "!");
+        }
+    }
+
+    private void loadSemesterData() {
+        // will be updated later
+        semesterTitleLabel.setText("Semester : Level 1 Term 2");
+        semesterStatusLabel.setText("PRESENT");
+        semesterProgressBar.setProgress(0.35); // 35% Progress
+        semesterProgressText.setText("35% Completed");
+        termFinalLabel.setText("📅 Term Final: 15 August 2026");
+        daysRemainingLabel.setText("⏳ Days Remaining: 145");
     }
 
     private void loadCourseCards() {

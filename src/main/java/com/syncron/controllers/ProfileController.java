@@ -115,6 +115,8 @@ public class ProfileController {
                 sectionLabel.setText("Student");
             }
 
+            generateDynamicCourseList(studentHistoryBox, false);
+
         } else {
 
             // Toggle containers
@@ -139,6 +141,9 @@ public class ProfileController {
             teacherRoomLabel.setText("Room No : ");
             teacherEmailLabel.setText("Email Address : " + email);
             sectionLabel.setText(id); // Badge next to name
+
+
+            generateDynamicCourseList(teacherAssignedBox, true);
         }
     }
 
@@ -254,6 +259,70 @@ public class ProfileController {
         } catch (java.io.IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void generateDynamicCourseList(VBox containerBox, boolean isTeacher) {
+        // 1. Clear any existing children EXCEPT the first label ("Level 1 Term 2")
+        if (containerBox.getChildren().size() > 1) {
+            containerBox.getChildren().remove(1, containerBox.getChildren().size());
+        }
+
+        // 2. Fetch courses. (Eventually: DatabaseHandler.getUserCourses(loadedUser.getId()))
+        // For right now, we grab all courses to prove the UI works!
+        java.util.List<com.syncron.models.Course> courses = DatabaseHandler.getAllCourses();
+
+        // 3. Create the 2-Column Structure
+        HBox mainRow = new HBox(40);
+        VBox theoryCol = new VBox(10);
+        VBox sessionalCol = new VBox(10);
+        javafx.scene.layout.HBox.setHgrow(theoryCol, javafx.scene.layout.Priority.ALWAYS);
+        javafx.scene.layout.HBox.setHgrow(sessionalCol, javafx.scene.layout.Priority.ALWAYS);
+
+        // 4. Create Headers
+        Label tHeader = new Label("THEORY");
+        tHeader.setStyle("-fx-text-fill: #D35400; -fx-font-weight: bold;");
+        Label sHeader = new Label("SESSIONAL");
+        sHeader.setStyle("-fx-text-fill: #D35400; -fx-font-weight: bold;");
+        theoryCol.getChildren().add(tHeader);
+        sessionalCol.getChildren().add(sHeader);
+
+        // 5. Loop through Database courses and build the UI rows!
+        for (com.syncron.models.Course c : courses) {
+            String fullText = c.getCourseCode() + " — " + c.getCourseTitle();
+
+            // Auto-detect if it's a Sessional (BUET theory courses usually end in odd numbers, sessionals in even)
+            boolean isSessional = c.getCourseTitle().toLowerCase().contains("sessional") ||
+                    c.getCourseCode().endsWith("2") || c.getCourseCode().endsWith("4") ||
+                    c.getCourseCode().endsWith("6") || c.getCourseCode().endsWith("8");
+
+            HBox courseRow = new HBox(10);
+            courseRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+            Label courseLabel = new Label(fullText);
+
+            // Dynamic Colors: Teacher gets Orange, Students get Dark Blue / Gray
+            String textColor = isTeacher ? "#E67E22" : (isSessional ? "#7F8C8D" : "#2C3E50");
+            courseLabel.setStyle("-fx-text-fill: " + textColor + "; -fx-cursor: hand;");
+
+            // Attach the router!
+            courseLabel.setOnMouseClicked(this::handleCourseClick);
+            courseRow.getChildren().add(courseLabel);
+
+            if (isTeacher) {
+                Label badge = new Label("L1T2");
+                badge.getStyleClass().add("badge-outline-gray");
+                courseRow.getChildren().add(badge);
+            }
+
+            if (isSessional) {
+                sessionalCol.getChildren().add(courseRow);
+            } else {
+                theoryCol.getChildren().add(courseRow);
+            }
+        }
+
+        mainRow.getChildren().addAll(theoryCol, sessionalCol);
+        containerBox.getChildren().add(mainRow);
     }
 
     private void hidePasswordForm() {

@@ -133,23 +133,6 @@
                         <VBox fx:id="studentHistoryContentBox" spacing="20" styleClass="profile-card">
                             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                             <Label text="Level - I Term - II" style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2C3E50;"/>
-                            <HBox spacing="40">
-                                <VBox spacing="10" HBox.hgrow="ALWAYS">
-                                    <Label text="THEORY" style="-fx-text-fill: #D35400; -fx-font-weight: bold;"/>
-                                    <Label text="CSE 201 — Data Structures" style="-fx-text-fill: #2C3E50; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
-                                    <Label text="CSE 203 — Discrete Mathematics" style="-fx-text-fill: #2C3E50; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
-                                    <Label text="CSE 205 — Electronics I" style="-fx-text-fill: #2C3E50; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
-                                    <Label text="MATH 201 — Differential Equations" style="-fx-text-fill: #2C3E50; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
-                                    <Label text="PHY 201 — Optics &amp; Waves" style="-fx-text-fill: #2C3E50; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
-                                </VBox>
-                                <VBox spacing="10" HBox.hgrow="ALWAYS">
-                                    <Label text="SESSIONAL" style="-fx-text-fill: #D35400; -fx-font-weight: bold;"/>
-                                    <Label text="CSE 202 — Data Structures Sessional" style="-fx-text-fill: #7F8C8D; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
-                                    <Label text="CSE 204 — Digital Logic Design Sessional" style="-fx-text-fill: #7F8C8D; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
-                                    <Label text="CSE 206 — Electronics I Sessional" style="-fx-text-fill: #7F8C8D; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
-                                    <Label text="PHY 202 — Physics Sessional" style="-fx-text-fill: #7F8C8D; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/>
-                                </VBox>
-                            </HBox>
                         </VBox>
                     </VBox>
 
@@ -158,19 +141,6 @@
                         <VBox fx:id="teacherAssignedContentBox" spacing="20" styleClass="profile-card">
                             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
                             <Label text="Current Semester" style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2C3E50;"/>
-                            <HBox spacing="40">
-                                <VBox spacing="15" HBox.hgrow="ALWAYS">
-                                    <Label text="THEORY" style="-fx-text-fill: #D35400; -fx-font-weight: bold;"/>
-                                    <HBox spacing="10" alignment="CENTER_LEFT"><Label text="CSE 201 — Data Structures" style="-fx-text-fill: #E67E22; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/><Label text="L1T2" styleClass="badge-outline-gray"/></HBox>
-                                    <HBox spacing="10" alignment="CENTER_LEFT"><Label text="CSE 301 — Computer Architecture" style="-fx-text-fill: #E67E22; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/><Label text="L2T1" styleClass="badge-outline-gray"/></HBox>
-                                    <HBox spacing="10" alignment="CENTER_LEFT"><Label text="CSE 401 — Machine Learning" style="-fx-text-fill: #E67E22; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/><Label text="L3T1" styleClass="badge-outline-gray"/></HBox>
-                                </VBox>
-                                <VBox spacing="15" HBox.hgrow="ALWAYS">
-                                    <Label text="SESSIONAL" style="-fx-text-fill: #D35400; -fx-font-weight: bold;"/>
-                                    <HBox spacing="10" alignment="CENTER_LEFT"><Label text="CSE 202 — Data Structures Sessional" style="-fx-text-fill: #E67E22; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/><Label text="L1T2" styleClass="badge-outline-gray"/></HBox>
-                                    <HBox spacing="10" alignment="CENTER_LEFT"><Label text="CSE 302 — Computer Architecture Sessional" style="-fx-text-fill: #E67E22; -fx-cursor: hand;" onMouseClicked="#handleCourseClick"/><Label text="L2T1" styleClass="badge-outline-gray"/></HBox>
-                                </VBox>
-                            </HBox>
                         </VBox>
                     </VBox>
                 </VBox>

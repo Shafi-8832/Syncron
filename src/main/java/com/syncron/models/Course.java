@@ -5,14 +5,16 @@ import java.util.ArrayList;
 public class Course {
     private String courseCode; // e.g., "CSE 108"
     private String courseTitle;
+    private String credits;
+    private String type;
     private ArrayList<Teacher> instructors; // Changed from single Teacher to a List
     private ArrayList<Student> enrolledStudents;
 
-    public Course(String courseCode, String courseTitle) {
+    public Course(String courseCode, String courseTitle, String credits, String type) {
         this.courseCode = courseCode;
         this.courseTitle = courseTitle;
-        this.instructors = new ArrayList<>(); // Initialize empty list
-        this.enrolledStudents = new ArrayList<>();
+        this.credits = credits;
+        this.type = type;
     }
 
     public void addTeacher(Teacher t) {

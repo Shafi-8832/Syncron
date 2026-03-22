@@ -174,7 +174,7 @@ public class DatabaseHandler {
         // 1. Create an empty list to hold the courses
         ObservableList<Course> courseList = FXCollections.observableArrayList();
 
-        String sql = "SELECT * FROM courses"; // The question we ask the DB
+        String sql = "SELECT course_code, course_title, credits, type FROM courses"; // The question we ask the DB
 
         try (Connection conn = connect();
              Statement stmt = conn.createStatement();
@@ -183,11 +183,13 @@ public class DatabaseHandler {
             // 2. The Loop: "While there is a next row..."
             while (rs.next()) {
                 // 3. Read the columns
-                String code = rs.getString("code");
-                String title = rs.getString("title");
+                String code = rs.getString("course_code");
+                String title = rs.getString("course_title");
+                String credits = rs.getString("credits");
+                String type = rs.getString("type");
 
                 // 4. Create a Course object and add it to the list
-                courseList.add(new Course(code, title));
+                courseList.add(new Course(code, title, credits, type));
             }
 
         } catch (SQLException e) {

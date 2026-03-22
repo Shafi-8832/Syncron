@@ -29,7 +29,7 @@
 
                         <Button text="🔔" styleClass="kernel-notification-btn" />
                         <HBox fx:id="profileBtn" alignment="CENTER" spacing="10" styleClass="kernel-profile-box" style="-fx-cursor: hand;">
-                            <Label text="Ahnaf Ahmed Shafi" style="-fx-font-family: 'Inter', sans-serif; -fx-font-weight: bold; -fx-text-fill: #4A2C1A;" />
+                            <Label fx:id="topHeaderNameLabel" text="Loading..." style="-fx-font-family: 'Inter', sans-serif; -fx-font-weight: bold; -fx-text-fill: #4A2C1A;" />
                             <Circle radius="12.0" fill="#A0522D" />
                         </HBox>
                     </children>
@@ -38,29 +38,28 @@
                 <VBox spacing="10.0" styleClass="kernel-semester-card">
                     <children>
                         <HBox alignment="CENTER_LEFT" spacing="10.0">
-                            <Label text="Semester : July 2025" styleClass="kernel-semester-title" />
-                            <Label text="PRESENT" styleClass="kernel-semester-pill" />
+                            <Label fx:id="semesterTitleLabel" text="Loading Semester..." styleClass="kernel-semester-title" />
+                            <Label fx:id="semesterStatusLabel" text="LOADING" styleClass="kernel-semester-pill" />
                             <Region HBox.hgrow="ALWAYS" />
                             <Button fx:id="detailsBtn" text="See Semester Details →" style="-fx-background-color: transparent; -fx-text-fill: #A0522D; -fx-font-family: 'Inter', sans-serif; -fx-cursor: hand;" />
                         </HBox>
 
                         <HBox alignment="CENTER_LEFT" spacing="15.0">
-                            <ProgressBar fx:id="semesterProgressBar" progress="0.65" prefHeight="10.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" style="-fx-accent: #2ECC71;" />
-                            <Label text="65% Completed" style="-fx-text-fill: #8C7A6B; -fx-font-family: 'Inter', sans-serif; -fx-font-size: 12px;" />
+                            <ProgressBar fx:id="semesterProgressBar" progress="0.0" prefHeight="10.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" style="-fx-accent: #2ECC71;" />
+                            <Label fx:id="semesterProgressText" text="0% Completed" style="-fx-text-fill: #8C7A6B; -fx-font-family: 'Inter', sans-serif; -fx-font-size: 12px;" />
                         </HBox>
 
                         <HBox spacing="20.0" style="-fx-padding: 10 0 0 0;">
-                            <Label text="📅 Term Final: 12 Oct 2025" style="-fx-text-fill: #8C7A6B; -fx-font-family: 'Inter', sans-serif; -fx-font-size: 13px;" />
-                            <Label text="⏳ Days Remaining: 45" style="-fx-text-fill: #E74C3C; -fx-font-family: 'Inter', sans-serif; -fx-font-weight: bold; -fx-font-size: 13px;" />
+                            <Label fx:id="termFinalLabel" text="📅 Term Final: TBD" style="-fx-text-fill: #8C7A6B; -fx-font-family: 'Inter', sans-serif; -fx-font-size: 13px;" />
+                            <Label fx:id="daysRemainingLabel" text="⏳ Days Remaining: TBD" style="-fx-text-fill: #E74C3C; -fx-font-family: 'Inter', sans-serif; -fx-font-weight: bold; -fx-font-size: 13px;" />
                         </HBox>
                     </children>
                 </VBox>
 
-                <Label text="Welcome Back, Shafi!" style="-fx-font-family: 'Georgia', serif; -fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #4A2C1A; -fx-padding: 10 0 5 0;" />
+                <Label fx:id="welcomeLabel" text="Welcome Back!" style="-fx-font-family: 'Georgia', serif; -fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #4A2C1A; -fx-padding: 10 0 5 0;" />
 
                 <HBox spacing="25.0">
                     <children>
-
                         <VBox prefWidth="260.0" spacing="20.0">
                             <VBox spacing="10" styleClass="kernel-pinned-box">
                                 <Label text="📌 Pinned Items" styleClass="kernel-pinned-title" />
@@ -94,7 +93,6 @@
 
                     </children>
                 </HBox>
-
             </children>
         </VBox>
     </content>
