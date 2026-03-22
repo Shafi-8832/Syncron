@@ -453,10 +453,7 @@ public class DatabaseHandler {
                                 u.email,
                                 u.password,
                                 u.role,
-                                CASE
-                                    WHEN upper(u.role) = 'STUDENT' THEN COALESCE(substr(u.id, 1, 1), '')
-                                    ELSE ''
-                                END AS section
+                                '' AS section
                 FROM users u
                 LEFT JOIN enrollment_requests er
                        ON er.student_id = u.id
@@ -495,7 +492,7 @@ public class DatabaseHandler {
                                 rs.getString("section")
                         ));
                     } else if ("TEACHER".equals(normalizedRole)) {
-                        participants.add(new Teacher(id, name, email, password, ""));
+                        participants.add(new Teacher(id, name, email, password, "Teacher"));
                     }
                 }
             }
