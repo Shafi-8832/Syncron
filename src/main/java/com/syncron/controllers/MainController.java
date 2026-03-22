@@ -34,6 +34,9 @@ public class MainController {
     @FXML private Label courseTypeFlair;
     @FXML private Label creditsFlair;
 
+    //missing Profile Button injection
+    @FXML private HBox profileBtn;
+
     private String courseCode = "";
     private String courseTitle = "";
     private String courseType = "theory"; // "theory" or "sessional"
@@ -86,6 +89,11 @@ public class MainController {
 
         // Add the button to the sidebar
         sidebarButtonContainer.getChildren().add(timelineBtn);
+
+        // 👉 ADDED: The click event to open the Profile page
+        if (profileBtn != null) {
+            profileBtn.setOnMouseClicked(e -> openProfile());
+        }
     }
 
     /**
@@ -205,8 +213,6 @@ public class MainController {
         activeButton = button;
     }
 
-    // deleted loadContentView()
-
     /**
      * Updates the breadcrumb bar with interactive, clickable segments.
      * Each segment acts like a button that navigates to that level.
@@ -270,9 +276,7 @@ public class MainController {
      */
     private Label createBreadcrumbSegment(String text, Runnable onClick) {
         Label label = new Label(text);
-        label.setStyle("-fx-font-size: 14px; -fx-text-fill: #3498DB; -fx-cursor: hand;");
-        label.setOnMouseEntered(e -> label.setStyle("-fx-font-size: 14px; -fx-text-fill: #2980B9; -fx-cursor: hand; -fx-underline: true;"));
-        label.setOnMouseExited(e -> label.setStyle("-fx-font-size: 14px; -fx-text-fill: #3498DB; -fx-cursor: hand;"));
+        label.getStyleClass().add("breadcrumb-link"); // Uses the new CSS!
         label.setOnMouseClicked(e -> onClick.run());
         return label;
     }
@@ -282,7 +286,7 @@ public class MainController {
      */
     private Label createBreadcrumbSeparator() {
         Label sep = new Label(" / ");
-        sep.setStyle("-fx-font-size: 14px; -fx-text-fill: #BDC3C7;");
+        sep.getStyleClass().add("breadcrumb-text"); // Uses the new CSS!
         return sep;
     }
 
@@ -319,6 +323,23 @@ public class MainController {
         try {
             FXMLLoader loader = new FXMLLoader(
                     getClass().getResource("/com/syncron/views/home.fxml"));
+            Parent root = loader.load();
+
+            Stage stage = (Stage) mainBorderPane.getScene().getWindow();
+            stage.getScene().setRoot(root);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // 👉 ADDED: The routing method to teleport you to the Profile page!
+    @FXML
+    private void openProfile() {
+        try {
+            // Tell the ProfileController to load the logged-in user
+            ProfileController.viewingUser = null;
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/profile.fxml"));
             Parent root = loader.load();
 
             Stage stage = (Stage) mainBorderPane.getScene().getWindow();

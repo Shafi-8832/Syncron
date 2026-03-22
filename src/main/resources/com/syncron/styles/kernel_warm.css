@@ -434,3 +434,61 @@
     -fx-background-radius: 10;
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 3, 0, 2, 2);
 }
+
+
+/* --- COURSE HEADER BADGES (From Image 3) --- */
+.course-badge-warm {
+    -fx-background-color: #F5EDE3;
+    -fx-text-fill: #A0522D;
+    -fx-font-size: 12px;
+    -fx-font-family: "Inter", "-apple-system", sans-serif;
+    -fx-padding: 4 12 4 12;
+    -fx-background-radius: 15;
+}
+
+/* --- THE NEW SIDEBAR (From Image 4) --- */
+.kernel-course-sidebar {
+    -fx-background-color: #4A6B6C; /* The muted teal/green */
+    -fx-padding: 20 0 20 0;
+}
+
+.nav-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #C8D8D8;
+    -fx-font-family: "Inter", "-apple-system", sans-serif;
+    -fx-font-size: 14px;
+    -fx-padding: 12 25 12 25;
+    -fx-alignment: center-left;
+    -fx-cursor: hand;
+}
+.nav-btn:hover {
+    -fx-text-fill: #FFFFFF;
+}
+
+.nav-btn-active {
+    -fx-background-color: rgba(255, 255, 255, 0.15); /* The light highlight box */
+    -fx-text-fill: #FFFFFF;
+    -fx-font-family: "Inter", "-apple-system", sans-serif;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 25 12 25;
+    -fx-alignment: center-left;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+/* --- BREADCRUMB MODERN FONT --- */
+.breadcrumb-text {
+    -fx-font-family: "Inter", "-apple-system", sans-serif;
+    -fx-font-size: 13px;
+    -fx-text-fill: #8C7A6B;
+}
+.breadcrumb-link {
+    -fx-font-family: "Inter", "-apple-system", sans-serif;
+    -fx-font-size: 13px;
+    -fx-text-fill: #A0522D;
+    -fx-cursor: hand;
+}
+.breadcrumb-link:hover {
+    -fx-underline: true;
+}

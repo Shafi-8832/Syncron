@@ -49,44 +49,43 @@ public class HomeController {
     }
 
     private void loadCourseCards() {
-        // Fetch list from Database
         var courseList = DatabaseHandler.getAllCourses();
 
         for (Course course : courseList) {
-            // --- BUILD THE CARD UI (Replicating your FXML design) ---
             HBox card = new HBox();
             card.setSpacing(10);
-            card.setPadding(new Insets(15));
-            // The exact shadow and style from your FXML
-            card.setStyle("-fx-background-color: white; -fx-background-radius: 10; " +
-                    "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 5, 0, 0, 2); " +
+            card.setPadding(new Insets(18));
+            // Apply the warm card style!
+            card.setStyle("-fx-background-color: #FFFCF8; -fx-background-radius: 10; " +
+                    "-fx-border-color: #E0D5C7; -fx-border-radius: 10; " +
+                    "-fx-effect: dropshadow(three-pass-box, rgba(74,44,26,0.06), 6, 0, 0, 3); " +
                     "-fx-cursor: hand;");
 
-            // Left Side: Course Info
             VBox infoBox = new VBox();
             Label codeLabel = new Label(course.getCourseCode());
-            codeLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2C3E50;");
+            // Serif bold font for course code
+            codeLabel.setStyle("-fx-font-family: 'Georgia', serif; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #4A2C1A;");
 
             Label titleLabel = new Label(course.getCourseTitle());
-            titleLabel.setStyle("-fx-text-fill: #7F8C8D;");
+            // Modern sans-serif for course title
+            titleLabel.setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-size: 13px; -fx-text-fill: #8C7A6B;");
 
             infoBox.getChildren().addAll(codeLabel, titleLabel);
 
-            // Spacer (Pushes arrow to the right)
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
 
-            // Right Side: The Arrow
             Label arrowLabel = new Label("➜");
-            arrowLabel.setStyle("-fx-text-fill: #BDC3C7; -fx-font-size: 18px;");
+            arrowLabel.setStyle("-fx-text-fill: #C4A882; -fx-font-size: 18px;"); // Warm gold arrow
 
-            // Combine everything into the card
             card.getChildren().addAll(infoBox, spacer, arrowLabel);
 
-            // --- THE CLICK ACTION (Connects to Yesterday's Work) ---
+            // Hover effect
+            card.setOnMouseEntered(e -> card.setStyle(card.getStyle() + "-fx-background-color: #F5EDE3;"));
+            card.setOnMouseExited(e -> card.setStyle(card.getStyle() + "-fx-background-color: #FFFCF8;"));
+
             card.setOnMouseClicked(event -> openCoursePortal(course.getCourseCode(), course.getCourseTitle()));
 
-            // Add card to the screen
             courseCardContainer.getChildren().add(card);
         }
     }
