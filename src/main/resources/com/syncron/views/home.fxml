@@ -21,7 +21,7 @@
 
                 <HBox alignment="CENTER_LEFT" spacing="15.0">
                     <children>
-                        <Label text="Cortex" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;" />
+                        <Label text="Kernel" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;" />
                         <Circle radius="3.0" fill="#7F8C8D" />
                         <Label text="CSE - BUET" style="-fx-font-size: 16px; -fx-text-fill: #7F8C8D;" />
 

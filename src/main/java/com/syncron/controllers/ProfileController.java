@@ -238,6 +238,26 @@ public class ProfileController {
         }
     }
 
+    @FXML
+    private void handleLogout() {
+        try {
+            // 1. Clear the profile view memory
+            viewingUser = null;
+
+            // 2. Clear the actual authenticated session
+            SessionManager.setCurrentUser(null);
+
+            // 3. Teleport back to the login door
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/login.fxml"));
+            javafx.scene.Parent root = loader.load();
+
+            javafx.stage.Stage stage = (javafx.stage.Stage) passwordFormBox.getScene().getWindow();
+            stage.getScene().setRoot(root);
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void hidePasswordForm() {
         passwordFormBox.setVisible(false);
         passwordFormBox.setManaged(false);

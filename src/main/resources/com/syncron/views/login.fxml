@@ -1,88 +1,107 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckBox?>
-<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane xmlns="http://javafx.com/javafx/21"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.syncron.controllers.LoginController"
-            styleClass="login-root"
-            stylesheets="@../styles/login.css">
+<BorderPane styleClass="login-root" stylesheets="@../styles/kernel_warm.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.syncron.controllers.LoginController">
 
-    <!-- ==================== CENTER: Login Form ==================== -->
     <center>
-        <VBox styleClass="login-form-container" alignment="CENTER">
+        <HBox alignment="CENTER" spacing="100">
 
-            <!-- Header -->
-            <Label text="KERNEL LOGIN" styleClass="login-title" />
-            <Label text="Provide necessary credentials to access the system."
-                   styleClass="login-subtitle" />
-
-            <!-- ID Field -->
-            <TextField fx:id="idField"
-                       promptText="Enter your ID"
-                       styleClass="login-input" />
-
-            <!-- Password Field (with show/hide toggle) -->
-            <StackPane styleClass="password-stack">
-                <PasswordField fx:id="passwordField"
-                               promptText="Enter your password"
-                               styleClass="login-input" />
-                <TextField fx:id="visiblePasswordField"
-                           promptText="Enter your password"
-                           visible="false"
-                           managed="false"
-                           styleClass="login-input" />
-            </StackPane>
-
-            <!-- Show Password + Forget Password Row -->
-            <HBox styleClass="password-options-row">
-                <CheckBox fx:id="showPasswordCheck"
-                          text="Show Password"
-                          onAction="#handleShowPassword"
-                          styleClass="show-password-check" />
-                <Region HBox.hgrow="ALWAYS" />
-                <Hyperlink text="Forget password?"
-                           onAction="#handleForgetPassword"
-                           styleClass="forget-password-link" />
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="✹" style="-fx-text-fill: #D35400; -fx-font-size: 60px; -fx-font-weight: bold;"/>
+                <Label text="KERNEL" style="-fx-font-family: 'Georgia', 'Times New Roman', serif; -fx-font-size: 55px; -fx-text-fill: #8A3B2B; -fx-font-weight: bold; -fx-letter-spacing: 2px;"/>
             </HBox>
 
-            <!-- Error Label -->
-            <Label fx:id="errorLabel"
-                   styleClass="error-label" />
+            <StackPane>
+                <VBox fx:id="loginBox" alignment="TOP_CENTER" spacing="20" styleClass="profile-card" maxWidth="400" maxHeight="-Infinity">
+                    <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
 
-            <!-- Login Button -->
-            <Button text="Login"
-                    onAction="#handleLoginClick"
-                    styleClass="login-button" />
+                    <Label text="Log in to Department of Computer&#10;Science &amp; Engineering, BUET" textAlignment="CENTER" style="-fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #2C3E50;"/>
 
-            <!-- Go Back Button -->
-            <Button text="Go Back"
-                    onAction="#handleGoBack"
-                    styleClass="go-back-button" />
+                    <HBox styleClass="role-toggle-box" alignment="CENTER">
+                        <Button fx:id="loginStudentBtn" text="Student" styleClass="role-btn-active" onAction="#setLoginRoleStudent"/>
+                        <Button fx:id="loginTeacherBtn" text="Teacher" styleClass="role-btn" onAction="#setLoginRoleTeacher"/>
+                        <Button fx:id="loginAdminBtn" text="Admin" styleClass="role-btn" onAction="#setLoginRoleAdmin"/>
+                    </HBox>
 
-        </VBox>
+                    <Label fx:id="loginErrorLabel" textFill="#E74C3C" visible="false" managed="false" style="-fx-font-weight: bold;"/>
+
+                    <VBox spacing="5" maxWidth="Infinity">
+                        <Label fx:id="loginIdTitle" text="Student ID" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                        <TextField fx:id="loginIdField" promptText="Enter your Student ID" styleClass="login-input"/>
+                    </VBox>
+
+                    <VBox spacing="5" maxWidth="Infinity">
+                        <Label text="Password" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                        <PasswordField fx:id="loginPasswordField" promptText="Enter your password" styleClass="login-input"/>
+                        <HBox alignment="CENTER_RIGHT"><Label text="Forgot Password?" style="-fx-text-fill: #D35400; -fx-font-size: 12px; -fx-cursor: hand;"/></HBox>
+                    </VBox>
+
+                    <Button text="Login" maxWidth="Infinity" style="-fx-background-color: #D35400; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10; -fx-background-radius: 6; -fx-cursor: hand;" onAction="#handleLogin"/>
+
+                    <HBox alignment="CENTER" spacing="5" style="-fx-padding: 10 0 0 0;">
+                        <Label text="Don't have an account?" style="-fx-text-fill: #7F8C8D; -fx-font-size: 12px;"/>
+                        <Label text="Sign Up" style="-fx-text-fill: #D35400; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 12px;" onMouseClicked="#showSignup"/>
+                    </HBox>
+                </VBox>
+
+                <VBox fx:id="signupBox" alignment="TOP_CENTER" spacing="15" styleClass="profile-card" maxWidth="400" maxHeight="-Infinity" visible="false">
+                    <padding><Insets top="30" right="40" bottom="30" left="40"/></padding>
+
+                    <Label text="Create Account" style="-fx-font-weight: bold; -fx-font-size: 18px; -fx-text-fill: #2C3E50;"/>
+
+                    <HBox styleClass="role-toggle-box" alignment="CENTER">
+                        <Button fx:id="signupStudentBtn" text="Student" styleClass="role-btn-active" onAction="#setSignupRoleStudent"/>
+                        <Button fx:id="signupTeacherBtn" text="Teacher" styleClass="role-btn" onAction="#setSignupRoleTeacher"/>
+                        <Button fx:id="signupAdminBtn" text="Admin" styleClass="role-btn" onAction="#setSignupRoleAdmin"/>
+                    </HBox>
+
+                    <Label fx:id="signupErrorLabel" textFill="#E74C3C" visible="false" managed="false" style="-fx-font-weight: bold;"/>
+
+                    <VBox spacing="2" maxWidth="Infinity">
+                        <Label text="Full Name" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                        <TextField fx:id="signupNameField" promptText="Enter your full name" styleClass="login-input"/>
+                        <Label fx:id="signupHelperLabel" text="Type your name exactly as it appears in your Student ID Card" style="-fx-font-size: 10px; -fx-text-fill: #9E9E9E;"/>
+                    </VBox>
+
+                    <VBox spacing="2" maxWidth="Infinity">
+                        <Label fx:id="signupIdTitle" text="Student ID" style="-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                        <TextField fx:id="signupIdField" promptText="Enter your Student ID" styleClass="login-input"/>
+                    </VBox>
+
+                    <Label text="Your password will be provided by the Admin after approval." style="-fx-text-fill: #7C6FE0; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 10 0 10 0;" textAlignment="CENTER" wrapText="true"/>
+
+                    <Button text="Sign Up" maxWidth="Infinity" style="-fx-background-color: #D35400; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10; -fx-background-radius: 6; -fx-cursor: hand;" onAction="#handleSignup"/>
+
+                    <HBox alignment="CENTER" spacing="5" style="-fx-padding: 5 0 0 0;">
+                        <Label text="Already Signed Up?" style="-fx-text-fill: #7F8C8D; -fx-font-size: 12px;"/>
+                        <Label text="Login" style="-fx-text-fill: #D35400; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 12px;" onMouseClicked="#showLogin"/>
+                    </HBox>
+                </VBox>
+            </StackPane>
+
+        </HBox>
     </center>
 
-    <!-- ==================== BOTTOM: Footer ==================== -->
     <bottom>
-        <VBox styleClass="login-footer">
-            <Label text="Kernel in collaboration with Dept of CSE, BUET"
-                   styleClass="footer-text" />
-            <Label text="Built with JavaFX &amp; Maven"
-                   styleClass="footer-text" />
-            <Label text="© 2026 Kernel"
-                   styleClass="footer-copyright" />
+        <VBox alignment="CENTER" spacing="10">
+            <padding><Insets bottom="30"/></padding>
+            <HBox alignment="CENTER" spacing="15">
+                <ImageView fitHeight="45" preserveRatio="true"><Image url="@../assets/buet_logo.png"/></ImageView>
+            </HBox>
+            <Label text="Kernel's collaboration with Department of Computer Science &amp; Engineering, BUET" style="-fx-text-fill: #7F8C8D; -fx-font-size: 11px;"/>
+            <Label text="Built with JavaFX" style="-fx-text-fill: #7F8C8D; -fx-font-size: 11px;"/>
+            <Label text="Copyright © 2026 Kernel 1.0.8 — All rights reserved" style="-fx-text-fill: #7F8C8D; -fx-font-size: 11px;"/>
         </VBox>
     </bottom>
-
 </BorderPane>

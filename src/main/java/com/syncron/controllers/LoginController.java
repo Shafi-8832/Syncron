@@ -3,130 +3,183 @@ package com.syncron.controllers;
 import com.syncron.models.User;
 import com.syncron.utils.DatabaseHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.stage.Stage;
-import java.io.IOException;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 public class LoginController {
 
-    // --- UI Elements ---
-    @FXML private TextField idField;
-    @FXML private PasswordField passwordField;
-    @FXML private TextField visiblePasswordField; // For the "Show Password" toggle
-    @FXML private CheckBox showPasswordCheck;
-    @FXML private Label errorLabel;
+    @FXML private VBox loginBox;
+    @FXML private VBox signupBox;
 
-    // --- Action Methods ---
+    // --- LOGIN FIELDS ---
+    @FXML private Button loginStudentBtn, loginTeacherBtn, loginAdminBtn;
+    @FXML private Label loginIdTitle, loginErrorLabel;
+    @FXML private TextField loginIdField;
+    @FXML private PasswordField loginPasswordField;
+    private String currentLoginRole = "STUDENT";
 
-    /**
-     * The main gateway logic. Authenticates the user and routes them
-     * to the correct dashboard based on their RBAC role.
-     */
+    // --- SIGNUP FIELDS ---
+    @FXML private Button signupStudentBtn, signupTeacherBtn, signupAdminBtn;
+    @FXML private Label signupIdTitle, signupHelperLabel, signupErrorLabel;
+    @FXML private TextField signupNameField, signupIdField;
+    private String currentSignupRole = "STUDENT";
+
     @FXML
-    private void handleLoginClick() {
-        // You already know how to write this!
-        // 1. Get ID and Password.
-        // 2. Call DatabaseHandler.authenticateUser(id, password).
-        // 3. Switch scene based on the returned role (ADMIN, TEACHER, STUDENT).
-        String id = idField.getText();
+    public void initialize() {
+        showLogin();
+    }
 
-        // Smart Check: read from whichever password field is currently active
-        String password = showPasswordCheck.isSelected() ?
-                visiblePasswordField.getText() :
-                passwordField.getText();
+    // --- VIEW TOGGLING ---
+    @FXML
+    private void showSignup() {
+        loginBox.setVisible(false);
+        signupBox.setVisible(true);
+        loginErrorLabel.setVisible(false);
+    }
 
-        if (id.isEmpty() || password.isEmpty()) {
-            errorLabel.setText("Please enter both ID and Password.");
+    @FXML
+    private void showLogin() {
+        signupBox.setVisible(false);
+        loginBox.setVisible(true);
+        signupErrorLabel.setVisible(false);
+    }
+
+    // --- ROLE SELECTION LOGIC (LOGIN) ---
+    @FXML private void setLoginRoleStudent() { updateLoginRoleUI("STUDENT", loginStudentBtn, "Student ID"); }
+    @FXML private void setLoginRoleTeacher() { updateLoginRoleUI("TEACHER", loginTeacherBtn, "Email Address"); }
+    @FXML private void setLoginRoleAdmin()   { updateLoginRoleUI("ADMIN", loginAdminBtn, "Admin ID"); }
+
+    private void updateLoginRoleUI(String role, Button activeBtn, String titleText) {
+        currentLoginRole = role;
+        loginStudentBtn.getStyleClass().setAll("role-btn");
+        loginTeacherBtn.getStyleClass().setAll("role-btn");
+        loginAdminBtn.getStyleClass().setAll("role-btn");
+        activeBtn.getStyleClass().setAll("role-btn-active");
+
+        loginIdTitle.setText(titleText);
+        loginIdField.setPromptText("Enter your " + titleText);
+    }
+
+    // --- ROLE SELECTION LOGIC (SIGNUP) ---
+    @FXML private void setSignupRoleStudent() { updateSignupRoleUI("STUDENT", signupStudentBtn, "Student ID", "Type your name exactly as it appears in your Student ID Card"); }
+    @FXML private void setSignupRoleTeacher() { updateSignupRoleUI("TEACHER", signupTeacherBtn, "Email Address", "Use your official university email address"); }
+
+    @FXML
+    private void setSignupRoleAdmin() {
+        // Admins cannot sign up! Automatically flip them to the Login screen
+        showLogin();
+        setLoginRoleAdmin();
+    }
+
+    private void updateSignupRoleUI(String role, Button activeBtn, String titleText, String helperText) {
+        currentSignupRole = role;
+        signupStudentBtn.getStyleClass().setAll("role-btn");
+        signupTeacherBtn.getStyleClass().setAll("role-btn");
+        signupAdminBtn.getStyleClass().setAll("role-btn");
+        activeBtn.getStyleClass().setAll("role-btn-active");
+
+        signupIdTitle.setText(titleText);
+        signupIdField.setPromptText("Enter your " + titleText);
+        signupHelperLabel.setText(helperText);
+    }
+
+    // --- AUTHENTICATION ACTIONS ---
+    @FXML
+    private void handleLogin() {
+        String id = loginIdField.getText();
+        String password = loginPasswordField.getText();
+
+        if (id == null || id.isBlank() || password == null || password.isBlank()) {
+            showError(loginErrorLabel, "Please enter your ID and password.");
             return;
         }
 
-        // 1.  authentication: ask the DB for user's role
-        String userRole = DatabaseHandler.authenticateUser(id, password);
+        String dbRole = DatabaseHandler.authenticateUser(id, password);
 
-        if (userRole != null) {
-            // Routing
+        if (dbRole != null && dbRole.equalsIgnoreCase(currentLoginRole)) {
+
+            String name = DatabaseHandler.getUserNameById(id);
+            String email = id + "@buet.ac.bd"; // Fallback email
+            User sessionUser;
+
+            if ("STUDENT".equalsIgnoreCase(dbRole)) {
+                sessionUser = new com.syncron.models.Student(id, name, email, password, false, "");
+            } else if ("TEACHER".equalsIgnoreCase(dbRole)) {
+                sessionUser = new com.syncron.models.Teacher(id, name, email, password, "Teacher");
+            } else {
+                sessionUser = new com.syncron.models.Teacher(id, name, email, password, "Admin");
+            }
+
+            SessionManager.setCurrentUser(sessionUser);
+
             try {
-                SessionManager.setCurrentUserRole(userRole);
-                String userName = DatabaseHandler.getUserNameById(id);
-                User currentUser = new User() {};
-                currentUser.setId(id);
-                currentUser.setName(userName == null || userName.isBlank() ? id : userName);
-                currentUser.setRole(userRole);
-                SessionManager.setCurrentUser(currentUser);
-                String targetFxml = "";
-
-                switch (userRole) {
-                    case "ADMIN":
-                        targetFxml = "/com/syncron/views/admin_dashboard.fxml";
-                        break;
-                    case "TEACHER":
-                    case "STUDENT":
-                        targetFxml = "/com/syncron/views/home.fxml"; // existing student view
-                        break;
-                    default:
-                        errorLabel.setText("System Error: Unknown Role.");
-                        return;
-                }
-                // 3. Switch Scenes
-                FXMLLoader loader = new FXMLLoader(getClass().getResource(targetFxml));
-                Parent root = loader.load();
-
-                Stage stage = (Stage) idField.getScene().getWindow();
-                stage.setScene(new Scene(root, 1000, 700));
-                stage.centerOnScreen();
-            }
-            catch (IOException e) {
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/home.fxml"));
+                javafx.scene.Parent root = loader.load();
+                javafx.stage.Stage stage = (javafx.stage.Stage) loginBox.getScene().getWindow();
+                stage.getScene().setRoot(root);
+            } catch (Exception e) {
                 e.printStackTrace();
-                errorLabel.setText("Error loading the dashboard UI.");
+            }
+
+        } else if (dbRole != null) {
+            showError(loginErrorLabel, "Invalid role. Please select " + dbRole);
+        } else {
+            showError(loginErrorLabel, "Invalid credentials or account is pending approval.");
+        }
+    }
+
+    @FXML
+    private void handleSignup() {
+        String name = signupNameField.getText();
+        String id = signupIdField.getText();
+
+        if (name == null || name.isBlank() || id == null || id.isBlank()) {
+            showError(signupErrorLabel, "All fields are required.");
+            return;
+        }
+
+        // Add to database with PENDING status. Admin sets password later!
+        String sql = "INSERT INTO users (id, name, email, password, role, status) VALUES (?, ?, ?, ?, ?, 'PENDING')";
+
+        try (Connection conn = DatabaseHandler.connect();
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+
+            pstmt.setString(1, id); // Works for both Student ID and Teacher Email
+            pstmt.setString(2, name);
+            pstmt.setString(3, currentSignupRole.equals("TEACHER") ? id : id + "@buet.ac.bd");
+            pstmt.setString(4, "PENDING_APPROVAL_PASS"); // Dummy password so DB doesn't complain
+            pstmt.setString(5, currentSignupRole);
+
+            pstmt.executeUpdate();
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setHeaderText("Request Submitted!");
+            alert.setContentText("Your account has been requested. An Admin will approve it and provide your password.");
+            alert.showAndWait();
+
+            signupNameField.clear(); signupIdField.clear();
+            showLogin();
+
+        } catch (SQLException e) {
+            if (e.getMessage().contains("UNIQUE") || e.getMessage().contains("PRIMARY KEY")) {
+                showError(signupErrorLabel, "An account with this ID or Email already exists.");
+            } else {
+                showError(signupErrorLabel, "Database Error: " + e.getMessage());
             }
         }
-        else {
-            // FAILURE: The Bouncer says no.
-            errorLabel.setText("Invalid ID or Password!");
-        }
     }
 
-    /**
-     * Toggles the visibility of the password between hidden (dots) and plain text.
-     */
-    @FXML
-    private void handleShowPassword() {
-
-        if (showPasswordCheck.isSelected()) {
-
-            visiblePasswordField.setText(passwordField.getText());
-            visiblePasswordField.setVisible(true);
-            visiblePasswordField.setManaged(true);
-
-            passwordField.setVisible(false);
-            passwordField.setManaged(false);
-        } else {
-            passwordField.setText(visiblePasswordField.getText());
-            passwordField.setVisible(true);
-            passwordField.setManaged(true);
-
-            visiblePasswordField.setVisible(false);
-            visiblePasswordField.setManaged(false);
-        }
-    }
-
-    /**
-     * Placeholder for future functionality
-     */
-    @FXML
-    private void handleForgetPassword() {
-        errorLabel.setText("Forget Password feature coming soon!");
-        errorLabel.setStyle("-fx-text-fill: #3498DB;"); // Make it blue instead of red for info
-    }
-
-    /**
-     * Placeholder for future functionality
-     */
-    @FXML
-    private void handleGoBack() {
-        System.out.println("Returning to main portal...");
+    private void showError(Label label, String message) {
+        label.setText(message);
+        label.setVisible(true);
+        label.setManaged(true);
     }
 }

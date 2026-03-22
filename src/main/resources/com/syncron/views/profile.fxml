@@ -25,6 +25,10 @@
                 <Label text="Dashboard" style="-fx-text-fill: #3498DB; -fx-cursor: hand; -fx-font-weight: bold;" onMouseClicked="#goBackToDashboard"/>
                 <Label text="/" style="-fx-text-fill: #7F8C8D;"/>
                 <Label text="Profile" style="-fx-text-fill: #7F8C8D;"/>
+
+                <Region HBox.hgrow="ALWAYS" />
+
+                <Button text="Log Out" style="-fx-background-color: transparent; -fx-text-fill: #E74C3C; -fx-border-color: #E74C3C; -fx-border-radius: 6; -fx-cursor: hand; -fx-font-weight: bold; -fx-padding: 5 15;" onAction="#handleLogout"/>
             </HBox>
 
             <VBox alignment="TOP_CENTER" spacing="15" styleClass="profile-card">

@@ -20,14 +20,14 @@ public class HelloApplication extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("views/login.fxml"));
 
         // 3. Create Scene
-        Scene scene = new Scene(fxmlLoader.load(), 1280, 720);
+        Scene scene = new Scene(fxmlLoader.load(), 1080, 1000);
 
         // 4. Load CSS (Wrap in try-catch or check null to avoid crashes if file is missing)
         if (getClass().getResource("style.css") != null) {
             scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
         }
 
-        stage.setTitle("Cortex");
+        stage.setTitle("Kernel");
         stage.setScene(scene);
         stage.show();
     }
