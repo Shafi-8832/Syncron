@@ -9,34 +9,55 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 public class ProfileController {
 
     public static User viewingUser = null;
     private static final int MIN_PASSWORD_LENGTH = 8;
+    private User loadedUser; // Used for password changes
 
-    @FXML private GridPane infoGrid;
+    // Main Boxes
     @FXML private VBox studentHistoryBox;
     @FXML private VBox teacherAssignedBox;
     @FXML private VBox passwordFormBox;
+
+    // Top Profile Header
     @FXML private Label nameLabel;
     @FXML private Label roleLabel;
     @FXML private Label sectionLabel;
-    @FXML private Label emailValueLabel;
-    @FXML private Label phoneValueLabel;
-    @FXML private Label departmentValueLabel;
-    @FXML private Label officeValueLabel;
-    @FXML private Label joinedValueLabel;
-    @FXML private Label advisingHoursValueLabel;
+
+    // --- ADDED: NEW CHAMELEON CONTAINERS ---
+    @FXML private HBox teacherInfoContainer;
+    @FXML private VBox studentInfoContainer;
+
+    // --- ADDED: TEACHER SPECIFIC LABELS ---
+    @FXML private Label teacherBioLabel;
+    @FXML private Label teacherIdLabel;
+    @FXML private Label teacherResearchLabel;
+    @FXML private Label teacherContactLabel;
+    @FXML private Label teacherGithubLabel;
+    @FXML private Label teacherLinkedinLabel;
+    @FXML private Label teacherFbLabel;
+    @FXML private Label teacherRoomLabel;
+    @FXML private Label teacherEmailLabel;
+
+    // --- ADDED: STUDENT SPECIFIC LABELS ---
+    @FXML private Label studentBioLabel;
+    @FXML private Label studentIdLabel;
+    @FXML private Label studentSectionLabel;
+    @FXML private Label studentClassroomLabel;
+    @FXML private Label studentEmailLabel;
+    @FXML private Label studentGithubLabel;
+    @FXML private Label studentLinkedinLabel;
+    @FXML private Label semesterBadgeLabel;
+
+    // Password Fields
     @FXML private PasswordField currentPasswordField;
     @FXML private PasswordField newPasswordField;
     @FXML private PasswordField confirmPasswordField;
     @FXML private Label passwordErrorLabel;
-    @FXML private Button changePasswordButton;
-
-    private User loadedUser;
 
     @FXML
     public void initialize() {
@@ -49,51 +70,102 @@ public class ProfileController {
     }
 
     private void loadUserData(User user) {
-        loadedUser = user;
-        if (user == null) {
-            return;
-        }
+        if (user == null) return;
 
-        nameLabel.setText(orDash(user.getName()));
-        roleLabel.setText(orDash(user.getRole()));
-        emailValueLabel.setText(orDash(user.getEmail()));
-        phoneValueLabel.setText("--");
-        departmentValueLabel.setText("--");
-        officeValueLabel.setText("--");
-        joinedValueLabel.setText("--");
-        advisingHoursValueLabel.setText("--");
+        this.loadedUser = user; // Fixed bug: Assigning user to the class variable for Password checks!
 
-        String role = user.getRole() == null ? "" : user.getRole().toUpperCase();
-        if ("STUDENT".equals(role)) {
+        // Set the universal info
+        nameLabel.setText(user.getName());
+        roleLabel.setText(user.getRole() != null ? user.getRole().toUpperCase() : "UNKNOWN");
+        String email = user.getEmail() != null ? user.getEmail() : "--";
+        String id = user.getId() != null ? user.getId() : "--";
+
+        // --- THE NEW PIXEL-PERFECT CHAMELEON LOGIC ---
+        if ("STUDENT".equalsIgnoreCase(user.getRole())) {
+
+            // Toggle containers
+            studentInfoContainer.setVisible(true);
+            studentInfoContainer.setManaged(true);
+            teacherInfoContainer.setVisible(false);
+            teacherInfoContainer.setManaged(false);
+
             studentHistoryBox.setVisible(true);
             studentHistoryBox.setManaged(true);
             teacherAssignedBox.setVisible(false);
             teacherAssignedBox.setManaged(false);
-            if (user instanceof Student student) {
-                sectionLabel.setText(student.getSection() == null || student.getSection().isBlank()
-                        ? "Student"
-                        : "Sec: " + student.getSection());
+
+            // Populate exact design fields
+            studentBioLabel.setText("Bio : Passionate CS student at BUET, interested in algorithms and systems programming.");
+            studentIdLabel.setText("Student ID : " + id);
+            studentEmailLabel.setText("Email Address : " + email);
+            studentGithubLabel.setText("GitHub : github.com/" + id);
+            studentLinkedinLabel.setText("LinkedIn : linkedin.com/in/" + id);
+            studentClassroomLabel.setText("Class Room : Room 402");
+
+            if (user instanceof Student) {
+                Student student = (Student) user;
+                String sec = student.getSection() != null ? student.getSection() : "--";
+                String subSec = student.getSubsection() != null ? student.getSubsection() : "--";
+                studentSectionLabel.setText("Section : " + sec);
+                sectionLabel.setText(subSec); // Badge next to name
             } else {
+                studentSectionLabel.setText("Section : --");
                 sectionLabel.setText("Student");
             }
-        } else if ("TEACHER".equals(role)) {
+
+        } else {
+
+            // Toggle containers
+            teacherInfoContainer.setVisible(true);
+            teacherInfoContainer.setManaged(true);
+            studentInfoContainer.setVisible(false);
+            studentInfoContainer.setManaged(false);
+
             teacherAssignedBox.setVisible(true);
             teacherAssignedBox.setManaged(true);
             studentHistoryBox.setVisible(false);
             studentHistoryBox.setManaged(false);
-            if (user instanceof Teacher teacher) {
-                sectionLabel.setText(teacher.getDesignation() == null || teacher.getDesignation().isBlank()
-                        ? "Teacher"
-                        : teacher.getDesignation());
-            } else {
-                sectionLabel.setText("Teacher");
-            }
-        } else {
-            studentHistoryBox.setVisible(false);
-            studentHistoryBox.setManaged(false);
-            teacherAssignedBox.setVisible(false);
-            teacherAssignedBox.setManaged(false);
-            sectionLabel.setText("--");
+
+            // Populate exact design fields
+            teacherBioLabel.setText("Bio : ");
+            teacherIdLabel.setText("Teacher ID : " + id);
+            teacherResearchLabel.setText("Research Interest : ");
+            teacherContactLabel.setText("Contact No. : ");
+            teacherGithubLabel.setText("Github Link : ");
+            teacherLinkedinLabel.setText("LinkedIn Link : ");
+            teacherFbLabel.setText("FB Link : ");
+            teacherRoomLabel.setText("Room No : ");
+            teacherEmailLabel.setText("Email Address : " + email);
+            sectionLabel.setText(id); // Badge next to name
+        }
+    }
+
+    // --- ADDED: THE COURSE LINK ROUTING METHOD ---
+    @FXML
+    private void handleCourseClick(javafx.scene.input.MouseEvent event) {
+        Label clickedLabel = (Label) event.getSource();
+        String fullText = clickedLabel.getText();
+
+        String courseCode = fullText;
+        String courseTitle = "";
+        if (fullText.contains(" — ")) {
+            String[] parts = fullText.split(" — ");
+            courseCode = parts[0].trim();
+            courseTitle = parts[1].trim();
+        }
+
+        try {
+            viewingUser = null;
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
+            javafx.scene.Parent root = loader.load();
+
+            MainController controller = loader.getController();
+            controller.setCourseContext(courseCode, courseTitle, "theory");
+
+            javafx.stage.Stage stage = (javafx.stage.Stage) passwordFormBox.getScene().getWindow();
+            stage.getScene().setRoot(root);
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -152,6 +224,20 @@ public class ProfileController {
         }
     }
 
+    @FXML
+    private void goBackToDashboard() {
+        try {
+            viewingUser = null;
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/home.fxml"));
+            javafx.scene.Parent root = loader.load();
+
+            javafx.stage.Stage stage = (javafx.stage.Stage) passwordFormBox.getScene().getWindow();
+            stage.getScene().setRoot(root);
+        } catch (java.io.IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void hidePasswordForm() {
         passwordFormBox.setVisible(false);
         passwordFormBox.setManaged(false);
@@ -163,9 +249,5 @@ public class ProfileController {
         currentPasswordField.clear();
         newPasswordField.clear();
         confirmPasswordField.clear();
-    }
-
-    private String orDash(String value) {
-        return value == null || value.isBlank() ? "--" : value;
     }
 }

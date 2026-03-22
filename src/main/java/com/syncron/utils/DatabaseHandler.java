@@ -555,60 +555,98 @@ public class DatabaseHandler {
         }
     }
 
+//    public static List<User> getCourseParticipants(String courseCode) {
+//        List<User> participants = new ArrayList<>();
+//
+//        String sql = """
+//                SELECT DISTINCT u.id,
+//                                u.name,
+//                                u.email,
+//                                u.password,
+//                                u.role,
+//                                '' AS section
+//                FROM users u
+//                LEFT JOIN enrollment_requests er
+//                       ON er.student_id = u.id
+//                      AND er.course_code = ?
+//                      AND upper(COALESCE(er.status, '')) = 'APPROVED'
+//                LEFT JOIN course_teachers ct
+//                       ON ct.teacher_id = u.id
+//                      AND ct.course_code = ?
+//                WHERE er.student_id IS NOT NULL
+//                   OR ct.teacher_id IS NOT NULL
+//                ORDER BY u.name COLLATE NOCASE ASC
+//                """;
+//
+//        try (Connection conn = connect();
+//             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+//
+//            pstmt.setString(1, courseCode);
+//            pstmt.setString(2, courseCode);
+//
+//            try (ResultSet rs = pstmt.executeQuery()) {
+//                while (rs.next()) {
+//                    String id = rs.getString("id");
+//                    String name = rs.getString("name");
+//                    String email = rs.getString("email");
+//                    String password = rs.getString("password");
+//                    String role = rs.getString("role");
+//                    String normalizedRole = role == null ? "" : role.toUpperCase();
+//
+//                    if ("STUDENT".equals(normalizedRole)) {
+//                        participants.add(new Student(
+//                                id,
+//                                name,
+//                                email,
+//                                password,
+//                                false,
+//                                rs.getString("section")
+//                        ));
+//                    } else if ("TEACHER".equals(normalizedRole)) {
+//                        participants.add(new Teacher(id, name, email, password, "Teacher"));
+//                    }
+//                }
+//            }
+//        } catch (SQLException e) {
+//            System.out.println("Error fetching course participants: " + e.getMessage());
+//        }
+//
+//        return participants;
+//    }
+
     public static List<User> getCourseParticipants(String courseCode) {
         List<User> participants = new ArrayList<>();
 
-        String sql = """
-                SELECT DISTINCT u.id,
-                                u.name,
-                                u.email,
-                                u.password,
-                                u.role,
-                                '' AS section
-                FROM users u
-                LEFT JOIN enrollment_requests er
-                       ON er.student_id = u.id
-                      AND er.course_code = ?
-                      AND upper(COALESCE(er.status, '')) = 'APPROVED'
-                LEFT JOIN course_teachers ct
-                       ON ct.teacher_id = u.id
-                      AND ct.course_code = ?
-                WHERE er.student_id IS NOT NULL
-                   OR ct.teacher_id IS NOT NULL
-                ORDER BY u.name COLLATE NOCASE ASC
-                """;
+        // Fetching everyone for the presentation grid!
+        String sql = "SELECT * FROM users ORDER BY name COLLATE NOCASE ASC";
 
         try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
 
-            pstmt.setString(1, courseCode);
-            pstmt.setString(2, courseCode);
+            while (rs.next()) {
+                String id = rs.getString("id");
+                String name = rs.getString("name");
+                String email = rs.getString("email");
+                String password = rs.getString("password");
+                String role = rs.getString("role");
+                String normalizedRole = role == null ? "" : role.toUpperCase();
 
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    String id = rs.getString("id");
-                    String name = rs.getString("name");
-                    String email = rs.getString("email");
-                    String password = rs.getString("password");
-                    String role = rs.getString("role");
-                    String normalizedRole = role == null ? "" : role.toUpperCase();
-
-                    if ("STUDENT".equals(normalizedRole)) {
-                        participants.add(new Student(
-                                id,
-                                name,
-                                email,
-                                password,
-                                false,
-                                rs.getString("section")
-                        ));
-                    } else if ("TEACHER".equals(normalizedRole)) {
-                        participants.add(new Teacher(id, name, email, password, "Teacher"));
-                    }
+                if ("STUDENT".equals(normalizedRole)) {
+                    participants.add(new Student(
+                            id,
+                            name,
+                            email,
+                            password,
+                            false,
+                            rs.getString("section")
+                    ));
+                } else if ("TEACHER".equals(normalizedRole)) {
+                    participants.add(new Teacher(id, name, email, password, "Teacher"));
                 }
             }
         } catch (SQLException e) {
-            System.out.println("Error fetching course participants: " + e.getMessage());
+            System.out.println("Error fetching participants: " + e.getMessage());
         }
 
         return participants;
