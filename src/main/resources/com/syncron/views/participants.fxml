@@ -1,11 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      spacing="15" style="-fx-padding: 30; -fx-background-color: #F4F7FC;">
-    <Label text="Participants" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
-    <Label text="Enrolled students and instructors will appear here."
-           style="-fx-text-fill: #7F8C8D; -fx-font-size: 14px;" wrapText="true"/>
+      fx:controller="com.syncron.controllers.ParticipantsController"
+      spacing="15"
+      style="-fx-padding: 20; -fx-background-color: #F4F7FC;">
+
+    <Label text="Participants"
+           style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+
+    <HBox spacing="10">
+        <TextField fx:id="searchBox" promptText="Search by name..." HBox.hgrow="ALWAYS"/>
+        <ComboBox fx:id="roleFilter" prefWidth="180"/>
+    </HBox>
+
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                style="-fx-background: transparent; -fx-background-color: transparent;">
+        <content>
+            <FlowPane fx:id="participantsGrid"
+                      hgap="15"
+                      vgap="15"
+                      prefWrapLength="900"
+                      style="-fx-padding: 5;"/>
+        </content>
+    </ScrollPane>
 </VBox>
