@@ -25,13 +25,18 @@ public class Course {
         enrolledStudents.add(s);
     }
 
+
     // Getters
     public String getCourseCode() { return courseCode; }
     public String getCourseTitle() { return courseTitle; }
+    public String getType() {return type;}
+    public String getCredits() {return credits;}
+
 
     // Returns the full list of teachers
     public ArrayList<Teacher> getInstructors() { return instructors; }
 
     public ArrayList<Student> getEnrolledStudents() { return enrolledStudents; }
+
 
 }

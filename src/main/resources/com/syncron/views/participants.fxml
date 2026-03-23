@@ -24,11 +24,7 @@
     <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
                 style="-fx-background: transparent; -fx-background-color: transparent;">
         <content>
-            <FlowPane fx:id="participantsGrid"
-                      hgap="15"
-                      vgap="15"
-                      prefWrapLength="900"
-                      style="-fx-padding: 5;"/>
+            <VBox fx:id="participantsContainer"/>
         </content>
     </ScrollPane>
 </VBox>

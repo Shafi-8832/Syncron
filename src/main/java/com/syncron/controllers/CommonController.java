@@ -1,15 +1,21 @@
 package com.syncron.controllers;
 
 import com.syncron.models.User;
+import com.syncron.utils.DatabaseHandler;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.scene.control.Button;
-import javafx.scene.control.Hyperlink;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
+
+import java.util.List;
 
 public class CommonController {
-    private static final String[] DUMMY_TEACHER_NAMES = {"Khaled Mahmud Shahriar", "Abdur Rafi", "Md. Mahfuzul Islam"};
+    private static final String TEACHER_ROLE = "TEACHER";
 
     @FXML
     private VBox teacherResourcesContainer;
@@ -22,48 +28,54 @@ public class CommonController {
     private void loadTeacherResources() {
         teacherResourcesContainer.getChildren().clear();
 
-        //  ADDED: Safely verify the current user is a teacher from the Session Manager
-        boolean isTeacher = false;
-        User currentUser = SessionManager.getCurrentUser();
-        if (currentUser != null && "TEACHER".equalsIgnoreCase(currentUser.getRole())) {
-            isTeacher = true;
-        }
+        // 1. Grab the current course from memory, then fetch the real teachers!
+        String currentCourse = SessionManager.getCurrentCourseCode();
+        List<User> realTeachers = DatabaseHandler.getTeachersByCourse(currentCourse);
 
-        for (String teacherName : DUMMY_TEACHER_NAMES) {
-            VBox teacherBox = new VBox(10);
+        for (User teacher : realTeachers) {
+            // 2. The Beautiful Box Container
+            VBox teacherBox = new VBox(15);
+            teacherBox.setPadding(new Insets(20));
+            teacherBox.setStyle("-fx-background-color: #FFFCF8; -fx-border-color: #E0D5C7; -fx-border-radius: 12; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(74,44,26,0.05), 8, 0, 0, 3);");
 
-            // --- NEW SPLIT HEADER LOGIC ---
-            HBox headerBox = new HBox();
+            // --- Header Row (Photo + Name) ---
+            HBox headerBox = new HBox(12);
             headerBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
-            Label prefix = new Label("Resources from ");
-            prefix.setStyle("-fx-font-size: 16px; -fx-text-fill: #2C3E50;");
+            Circle profilePic = new Circle(18, javafx.scene.paint.Color.web("#A0522D")); // Warm brown circle
 
-            Hyperlink nameLink = new Hyperlink(teacherName);
-            nameLink.setStyle("-fx-font-size: 16px; -fx-text-fill: #3498DB; -fx-padding: 0;");
+            VBox nameCol = new VBox(2);
+            Label nameLabel = new Label(teacher.getName());
+            nameLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;");
+            Label roleLabel = new Label("Lecturer");
+            roleLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #7F8C8D;");
+            nameCol.getChildren().addAll(nameLabel, roleLabel);
 
-            headerBox.getChildren().addAll(prefix, nameLink);
-            // ------------------------------
+            headerBox.getChildren().addAll(profilePic, nameCol);
 
-            Label uploadsLabel = new Label("Uploads: Links/Files");
+            // --- Resources Area ---
+            VBox resourcesArea = new VBox(8);
+            resourcesArea.setStyle("-fx-padding: 15; -fx-background-color: #FFFFFF; -fx-border-color: #F0F0F0; -fx-border-radius: 8; -fx-background-radius: 8;");
+            Label emptyRes = new Label("No resources uploaded yet.");
+            emptyRes.setStyle("-fx-text-fill: #95A5A6; -fx-font-style: italic;");
+            resourcesArea.getChildren().add(emptyRes);
 
-            // Add the headerBox instead of the old single hyperlink
-            teacherBox.getChildren().addAll(headerBox, uploadsLabel);
+            teacherBox.getChildren().addAll(headerBox, resourcesArea);
 
-            //  FIX: If the boolean above passed, the button is generated
-            if (isTeacher) {
-                Button addResourcesButton = new Button("Add Resources");
+            // --- Add Resources Button (ONLY for Teachers) ---
+            if (TEACHER_ROLE.equals(SessionManager.getCurrentUserRole())) {
+                Button addResourcesButton = new Button("+ Add Material");
+                addResourcesButton.setStyle("-fx-background-color: #D35400; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
+
                 addResourcesButton.setOnAction(event -> {
-                    if (!addResourcesButton.isDisable()) {
-                        HBox uploadOptions = new HBox(10);
-                        Button uploadFromComputerButton = new Button("Upload from Computer");
-                        Button uploadFromDriveButton = new Button("Upload from Drive");
-                        uploadOptions.getChildren().addAll(uploadFromComputerButton, uploadFromDriveButton);
-                        teacherBox.getChildren().add(uploadOptions);
-                        addResourcesButton.setDisable(true);
-                    }
+                    addResourcesButton.setText("Feature coming soon!");
+                    addResourcesButton.setDisable(true);
                 });
-                teacherBox.getChildren().add(addResourcesButton);
+
+                HBox btnContainer = new HBox();
+                btnContainer.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+                btnContainer.getChildren().add(addResourcesButton);
+                teacherBox.getChildren().add(btnContainer);
             }
 
             teacherResourcesContainer.getChildren().add(teacherBox);

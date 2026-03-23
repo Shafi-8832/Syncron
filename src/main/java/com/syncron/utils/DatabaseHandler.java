@@ -557,101 +557,65 @@ public class DatabaseHandler {
         }
     }
 
-//    public static List<User> getCourseParticipants(String courseCode) {
-//        List<User> participants = new ArrayList<>();
-//
-//        String sql = """
-//                SELECT DISTINCT u.id,
-//                                u.name,
-//                                u.email,
-//                                u.password,
-//                                u.role,
-//                                '' AS section
-//                FROM users u
-//                LEFT JOIN enrollment_requests er
-//                       ON er.student_id = u.id
-//                      AND er.course_code = ?
-//                      AND upper(COALESCE(er.status, '')) = 'APPROVED'
-//                LEFT JOIN course_teachers ct
-//                       ON ct.teacher_id = u.id
-//                      AND ct.course_code = ?
-//                WHERE er.student_id IS NOT NULL
-//                   OR ct.teacher_id IS NOT NULL
-//                ORDER BY u.name COLLATE NOCASE ASC
-//                """;
-//
-//        try (Connection conn = connect();
-//             PreparedStatement pstmt = conn.prepareStatement(sql)) {
-//
-//            pstmt.setString(1, courseCode);
-//            pstmt.setString(2, courseCode);
-//
-//            try (ResultSet rs = pstmt.executeQuery()) {
-//                while (rs.next()) {
-//                    String id = rs.getString("id");
-//                    String name = rs.getString("name");
-//                    String email = rs.getString("email");
-//                    String password = rs.getString("password");
-//                    String role = rs.getString("role");
-//                    String normalizedRole = role == null ? "" : role.toUpperCase();
-//
-//                    if ("STUDENT".equals(normalizedRole)) {
-//                        participants.add(new Student(
-//                                id,
-//                                name,
-//                                email,
-//                                password,
-//                                false,
-//                                rs.getString("section")
-//                        ));
-//                    } else if ("TEACHER".equals(normalizedRole)) {
-//                        participants.add(new Teacher(id, name, email, password, "Teacher"));
-//                    }
-//                }
-//            }
-//        } catch (SQLException e) {
-//            System.out.println("Error fetching course participants: " + e.getMessage());
-//        }
-//
-//        return participants;
-//    }
-
     public static List<User> getCourseParticipants(String courseCode) {
         List<User> participants = new ArrayList<>();
 
-        // Fetching everyone for the presentation grid!
-        String sql = "SELECT * FROM users ORDER BY name COLLATE NOCASE ASC";
+        // 1. Just reuse the method we already built
+        participants.addAll(getTeachersByCourse(courseCode));
+
+        // 2. Fetch the Students (Since this is a specific BUET batch, all students take these core courses)
+        String studentQuery = "SELECT id, name, email, password, section, subsection FROM users WHERE role = 'STUDENT'";
 
         try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
+             PreparedStatement pstmt = conn.prepareStatement(studentQuery)) {
 
+            ResultSet rs = pstmt.executeQuery();
             while (rs.next()) {
-                String id = rs.getString("id");
-                String name = rs.getString("name");
-                String email = rs.getString("email");
-                String password = rs.getString("password");
-                String role = rs.getString("role");
-                String normalizedRole = role == null ? "" : role.toUpperCase();
-
-                if ("STUDENT".equals(normalizedRole)) {
-                    participants.add(new Student(
-                            id,
-                            name,
-                            email,
-                            password,
-                            false,
-                            rs.getString("section")
-                    ));
-                } else if ("TEACHER".equals(normalizedRole)) {
-                    participants.add(new Teacher(id, name, email, password, "Teacher"));
-                }
+                Student student = new com.syncron.models.Student(
+                        rs.getString("id"),
+                        rs.getString("name"),
+                        rs.getString("email"),
+                        rs.getString("password"),
+                        false,
+                        rs.getString("section")
+                );
+                // student.setSubsection(rs.getString("subsection")); // Uncomment if your model supports this
+                participants.add(student);
             }
-        } catch (SQLException e) {
-            System.out.println("Error fetching participants: " + e.getMessage());
+        } catch (java.sql.SQLException e) {
+            e.printStackTrace();
         }
 
         return participants;
+    }
+
+    // Fetch teachers linked to a specific course
+    public static List<User> getTeachersByCourse(String courseCode) {
+        List<User> teachers = new java.util.ArrayList<>();
+        String query = "SELECT u.id, u.name, u.email, u.password, u.role, u.status " +
+                "FROM users u " +
+                "JOIN teacher_courses tc ON u.id = tc.teacher_id " +
+                "WHERE tc.course_code = ?";
+
+        try (Connection conn = connect();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, courseCode);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                Teacher t = new Teacher(
+                        rs.getString("id"),
+                        rs.getString("name"),
+                        rs.getString("email"),
+                        rs.getString("password"),
+                        "Teacher"
+                );
+                teachers.add(t);
+            }
+        } catch (java.sql.SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return teachers;
     }
 
 }
