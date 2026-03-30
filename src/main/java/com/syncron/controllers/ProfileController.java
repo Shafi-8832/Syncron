@@ -154,20 +154,25 @@ public class ProfileController {
         String fullText = clickedLabel.getText();
 
         String courseCode = fullText;
-        String courseTitle = "";
         if (fullText.contains(" — ")) {
-            String[] parts = fullText.split(" — ");
-            courseCode = parts[0].trim();
-            courseTitle = parts[1].trim();
+            courseCode = fullText.split(" — ")[0].trim();
         }
+
+        // 1.Ask the database for the REAL course details
+        com.syncron.models.Course clickedCourse = DatabaseHandler.getCourseByCode(courseCode);
+        if (clickedCourse == null) return;
 
         try {
             viewingUser = null;
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
             javafx.scene.Parent root = loader.load();
 
+            // 2.Update  the Session Memory
+            SessionManager.setCurrentCourseCode(clickedCourse.getCourseCode());
+
+            // 3. Pass the real data to the layout
             MainController controller = loader.getController();
-            controller.setCourseContext(courseCode, courseTitle, "theory");
+            controller.setCourseContext(clickedCourse.getCourseCode(), clickedCourse.getCourseTitle(), clickedCourse.getType(), clickedCourse.getCredits());
 
             javafx.stage.Stage stage = (javafx.stage.Stage) passwordFormBox.getScene().getWindow();
             stage.getScene().setRoot(root);

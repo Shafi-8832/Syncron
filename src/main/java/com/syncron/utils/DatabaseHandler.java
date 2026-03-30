@@ -618,4 +618,24 @@ public class DatabaseHandler {
         return teachers;
     }
 
+    // quick lookup tool for the Profile page
+    public static com.syncron.models.Course getCourseByCode(String code) {
+        String query = "SELECT course_code, course_title, credits, type FROM courses WHERE course_code = ?";
+
+
+        try (java.sql.Connection conn = connect();
+             java.sql.PreparedStatement pstmt = conn.prepareStatement(query)) {
+            pstmt.setString(1, code);
+
+            java.sql.ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return new com.syncron.models.Course(
+                        rs.getString("course_code"), rs.getString("course_title"),
+                        rs.getString("credits"), rs.getString("type")
+                );
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+        return null;
+    }
+
 }

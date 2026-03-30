@@ -190,12 +190,13 @@ public class MainController {
         button.setMaxWidth(Double.MAX_VALUE);
 
         button.setOnAction(event -> {
+            setActiveButton(button);
+            updateBreadcrumb(label);
+
+            // Back to normal routing!
             String fxmlPath = getFxmlPathForButton(label);
             if (fxmlPath != null) {
-                setActiveButton(button);
-                // use the global engine
                 NavigationManager.switchScreen(fxmlPath);
-                updateBreadcrumb(label);
             }
         });
 
@@ -345,6 +346,21 @@ public class MainController {
             Stage stage = (Stage) mainBorderPane.getScene().getWindow();
             stage.getScene().setRoot(root);
         } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Attach "Onlines" or "Offlines" sidebar button
+    @FXML
+    private void openSessionalEvaluations() {
+        try {
+            // Load the beautiful new creation canvas into the center of your screen
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/sessional_evaluations.fxml"));
+            javafx.scene.Node evaluationsView = loader.load();
+
+            // Assuming 'contentArea' is the fx:id of the center pane in your main_layout.fxml
+            contentArea.getChildren().setAll(evaluationsView);
+        } catch (java.io.IOException e) {
             e.printStackTrace();
         }
     }
