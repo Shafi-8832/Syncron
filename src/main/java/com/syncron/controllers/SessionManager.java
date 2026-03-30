@@ -29,4 +29,15 @@ public class SessionManager {
     // Course Context Memory
     public static String getCurrentCourseCode() { return currentCourseCode.get(); }
     public static void setCurrentCourseCode(String code) { currentCourseCode.set(code == null ? "" : code); }
+
+    // Evaluation Memory
+    private static final java.util.concurrent.atomic.AtomicReference<String> currentEvaluationId = new java.util.concurrent.atomic.AtomicReference<>("");
+    public static String getCurrentEvaluationId() { return currentEvaluationId.get(); }
+    public static void setCurrentEvaluationId(String id) { currentEvaluationId.set(id == null ? "" : id); }
+
+
+    // Evaluations Edit Memory
+    private static final java.util.concurrent.atomic.AtomicReference<String> editEvaluationId = new java.util.concurrent.atomic.AtomicReference<>("");
+    public static String getEditEvaluationId() { return editEvaluationId.get(); }
+    public static void setEditEvaluationId(String id) { editEvaluationId.set(id == null ? "" : id); }
 }

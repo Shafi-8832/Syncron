@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" styleClass="kernel-root" stylesheets="@../styles/kernel_warm.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.syncron.controllers.EvaluationDetailsController">
+    <VBox spacing="25" style="-fx-padding: 30 40;">
+
+        <HBox alignment="CENTER_LEFT" spacing="15">
+            <Button text="← Back" onAction="#goBack" style="-fx-background-color: transparent; -fx-text-fill: #A0522D; -fx-font-weight: bold; -fx-cursor: hand;" />
+            <Label fx:id="titleLabel" text="Loading Title..." style="-fx-font-family: 'Georgia', serif; -fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;" />
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="marksLabel" text="Marks: --" style="-fx-font-weight: bold; -fx-text-fill: #D35400; -fx-font-size: 14px; -fx-background-color: #FDEBD0; -fx-padding: 5 15; -fx-background-radius: 20;" />
+        </HBox>
+
+        <VBox spacing="15" style="-fx-background-color: #FFFFFF; -fx-border-color: #E0D5C7; -fx-border-radius: 8; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(74,44,26,0.05), 5, 0, 0, 2);">
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label fx:id="statusClockLabel" text="Loading Time..." style="-fx-font-weight: bold; -fx-font-size: 14px;" />
+            </HBox>
+
+            <VBox spacing="3" style="-fx-padding: 0 0 10 0; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;">
+                <Label fx:id="openedTimeLabel" text="Opened: --" style="-fx-text-fill: #2C3E50; -fx-font-size: 12px; -fx-font-family: 'Inter', sans-serif;" />
+                <Label fx:id="closedTimeLabel" text="Due: --" style="-fx-text-fill: #2C3E50; -fx-font-size: 12px; -fx-font-family: 'Inter', sans-serif;" />
+            </VBox>
+
+            <Label text="Instructions:" style="-fx-font-weight: bold; -fx-text-fill: #7F8C8D;" />
+            <Label fx:id="descLabel" text="Loading description..." wrapText="true" style="-fx-text-fill: #2C3E50; -fx-font-family: 'Inter', sans-serif;" />
+
+            <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 10 0 0 0; -fx-border-color: #ECF0F1; -fx-border-width: 1 0 0 0;">
+                <Label text="Attached File:" style="-fx-text-fill: #7F8C8D;" />
+                <Button fx:id="downloadQuestionBtn" text="No file attached" onAction="#downloadQuestion" style="-fx-background-color: transparent; -fx-text-fill: #3498DB; -fx-cursor: hand; -fx-underline: true;" />
+            </HBox>
+        </VBox>
+
+        <VBox fx:id="studentViewBox" spacing="15" visible="false" managed="false">
+            <Label text="Submission Status" style="-fx-font-family: 'Georgia', serif; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;" />
+
+            <VBox style="-fx-background-color: #FFFFFF; -fx-border-color: #E0D5C7; -fx-border-radius: 8;">
+                <HBox spacing="20" style="-fx-padding: 15; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;">
+                    <Label text="Status" prefWidth="120" style="-fx-font-weight: bold; -fx-text-fill: #7F8C8D;" />
+                    <Label fx:id="submissionStatusLabel" text="No submission" style="-fx-text-fill: #E74C3C; -fx-font-weight: bold;" />
+                </HBox>
+                <HBox spacing="20" style="-fx-padding: 15; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;">
+                    <Label text="Grading" prefWidth="120" style="-fx-font-weight: bold; -fx-text-fill: #7F8C8D;" />
+                    <Label fx:id="studentGradeLabel" text="Not Graded" style="-fx-text-fill: #2C3E50;" />
+                </HBox>
+                <HBox spacing="20" style="-fx-padding: 15;">
+                    <Label text="Your Files" prefWidth="120" style="-fx-font-weight: bold; -fx-text-fill: #7F8C8D;" />
+                    <VBox fx:id="studentFilesContainer" spacing="5" />
+                </HBox>
+            </VBox>
+
+            <HBox spacing="15" alignment="CENTER_LEFT">
+                <Button fx:id="selectFilesBtn" text="📎 Select Files" onAction="#handleSelectFiles" style="-fx-background-color: #ECF0F1; -fx-text-fill: #2C3E50; -fx-font-weight: bold; -fx-cursor: hand;" />
+                <Button fx:id="saveChangesBtn" text="Save Changes" onAction="#handleSaveChanges" disable="true" style="-fx-background-color: #2ECC71; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button fx:id="removeSubBtn" text="Remove Submission" onAction="#handleRemoveSubmission" visible="false" style="-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" />
+            </HBox>
+        </VBox>
+
+        <VBox fx:id="teacherViewBox" spacing="15" visible="false" managed="false">
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label fx:id="submissionCountLabel" text="Submissions (0)" style="-fx-font-family: 'Georgia', serif; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button text="✏️ Edit" onAction="#handleEdit" style="-fx-background-color: #3498DB; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" />
+                <Button text="🗑️ Delete" onAction="#handleDelete" style="-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" />
+                <Button text="📥 Import Grades (CSV)" onAction="#handleImportCSV" style="-fx-background-color: #F39C12; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15; -fx-background-radius: 6; -fx-cursor: hand;" />
+            </HBox>
+
+            <VBox fx:id="gradingListContainer" spacing="10" />
+        </VBox>
+
+    </VBox>
+</ScrollPane>

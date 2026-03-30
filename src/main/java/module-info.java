@@ -12,6 +12,7 @@ module com.syncron {
     requires org.controlsfx.controls;
     requires com.dlsc.formsfx;
     requires org.kordamp.bootstrapfx.core;
+    requires java.desktop;
 
     // 4. PERMISSIONS (Crucial for FXML to work)
     opens com.syncron to javafx.fxml;

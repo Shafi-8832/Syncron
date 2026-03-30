@@ -1,11 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      spacing="15" style="-fx-padding: 30; -fx-background-color: #F4F7FC;">
-    <Label text="Onlines" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
-    <Label text="Online exam details and submissions will appear here."
-           style="-fx-text-fill: #7F8C8D; -fx-font-size: 14px;" wrapText="true"/>
-</VBox>
+<ScrollPane fitToWidth="true" styleClass="kernel-root" stylesheets="@../styles/kernel_warm.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.syncron.controllers.OnlinesController">
+    <VBox spacing="20" style="-fx-padding: 30 40;">
+
+        <HBox alignment="CENTER_LEFT">
+            <VBox>
+                <Label text="Online Lab Tests" style="-fx-font-family: 'Georgia', serif; -fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;" />
+                <Label text="Manage and participate in live lab evaluations here." style="-fx-text-fill: #7F8C8D; -fx-font-size: 13px;" />
+            </VBox>
+            <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="createOnlineBtn" text="+ Create Online" onAction="#openCreateScreen" style="-fx-background-color: #D35400; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15; -fx-background-radius: 6; -fx-cursor: hand;" />
+        </HBox>
+
+        <VBox fx:id="evaluationsContainer" spacing="15" />
+
+    </VBox>
+</ScrollPane>

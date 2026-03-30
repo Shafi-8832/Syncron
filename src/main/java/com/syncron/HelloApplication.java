@@ -20,7 +20,7 @@ public class HelloApplication extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("views/login.fxml"));
 
         // 3. Create Scene
-        Scene scene = new Scene(fxmlLoader.load(), 1080, 1000);
+        Scene scene = new Scene(fxmlLoader.load(), 1400, 1000);
 
         // 4. Load CSS (Wrap in try-catch or check null to avoid crashes if file is missing)
         if (getClass().getResource("style.css") != null) {

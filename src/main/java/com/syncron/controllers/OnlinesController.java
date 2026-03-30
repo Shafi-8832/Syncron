@@ -14,17 +14,18 @@ import javafx.scene.layout.VBox;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class OfflinesController {
+public class OnlinesController {
 
-    @FXML private Button createOfflineBtn;
+    @FXML private Button createOnlineBtn;
     @FXML private VBox evaluationsContainer;
 
     @FXML
     public void initialize() {
+        // Vault check: Hide Create button from students
         com.syncron.models.User currentUser = SessionManager.getCurrentUser();
         if (currentUser == null || !"TEACHER".equalsIgnoreCase(currentUser.getRole())) {
-            createOfflineBtn.setVisible(false);
-            createOfflineBtn.setManaged(false);
+            createOnlineBtn.setVisible(false);
+            createOnlineBtn.setManaged(false);
         }
 
         loadEvaluations();
@@ -35,9 +36,9 @@ public class OfflinesController {
         String currentCourse = SessionManager.getCurrentCourseCode();
         boolean hasData = false;
 
-        // 👉 THE FETCH ENGINE: Grab all OFFLINES for this specific course
+        // 👉 Fetch ONLY 'ONLINE' evaluations
         String query = "SELECT id, title, start_date, start_time, deadline_date, deadline_time " +
-                "FROM evaluations WHERE course_code = ? AND type = 'OFFLINE' ORDER BY id DESC";
+                "FROM evaluations WHERE course_code = ? AND type = 'ONLINE' ORDER BY id DESC";
 
         try (java.sql.Connection conn = DatabaseHandler.connect();
              java.sql.PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -50,36 +51,30 @@ public class OfflinesController {
             while (rs.next()) {
                 hasData = true;
 
-                // 1. Build the Card
                 VBox card = new VBox(10);
                 card.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E0D5C7; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(74,44,26,0.05), 5, 0, 0, 2); -fx-cursor: hand;");
 
-                // Hover effect
                 card.setOnMouseEntered(e -> card.setStyle(card.getStyle() + "-fx-background-color: #FFFCF8;"));
                 card.setOnMouseExited(e -> card.setStyle(card.getStyle().replace("-fx-background-color: #FFFCF8;", "-fx-background-color: #FFFFFF;")));
 
-                // 2. Title
                 Label titleLabel = new Label(rs.getString("title"));
                 titleLabel.setStyle("-fx-font-family: 'Georgia', serif; -fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;");
 
-                // 3. Status Bar (With Live Clock!)
                 HBox statusBar = new HBox(15);
                 statusBar.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
                 Label statusClockLabel = new Label("Calculating time...");
 
-                // Combine DB date/time strings to fuel the Time Engine
                 String publishStr = rs.getString("start_date") + " " + rs.getString("start_time");
                 String deadlineStr = rs.getString("deadline_date") + " " + rs.getString("deadline_time");
 
                 try {
                     LocalDateTime startTime = LocalDateTime.parse(publishStr, formatter);
                     LocalDateTime endTime = LocalDateTime.parse(deadlineStr, formatter);
-
-                    // Ignite the Live Ticking Clock!
-                    TimeEngine.startLiveCountdown(statusClockLabel, "OFFLINE", startTime, endTime);
+                    // Pass "ONLINE" so the TimeEngine knows to use the "Starts in:" logic
+                    TimeEngine.startLiveCountdown(statusClockLabel, "ONLINE", startTime, endTime);
                 } catch (Exception timeEx) {
-                    statusClockLabel.setText("Due: " + deadlineStr);
+                    statusClockLabel.setText("Ends: " + deadlineStr);
                     statusClockLabel.setStyle("-fx-text-fill: #7F8C8D;");
                 }
 
@@ -92,7 +87,6 @@ public class OfflinesController {
                 statusBar.getChildren().addAll(statusClockLabel, spacer, arrow);
                 card.getChildren().addAll(titleLabel, statusBar);
 
-                // 👉 THE NEXT STEP: Clicking this card opens the Dropzone/Grading Details!
                 String evalId = rs.getString("id");
                 card.setOnMouseClicked(e -> openEvaluationDetails(evalId));
 
@@ -104,21 +98,21 @@ public class OfflinesController {
         }
 
         if (!hasData) {
-            Label emptyMsg = new Label("No offlines published yet.");
+            Label emptyMsg = new Label("No online tests scheduled yet.");
             emptyMsg.setStyle("-fx-text-fill: #95A5A6; -fx-font-style: italic;");
             evaluationsContainer.getChildren().add(emptyMsg);
         }
     }
 
     private void openEvaluationDetails(String evaluationId) {
-        // 1. Save the clicked ID to memory
         SessionManager.setCurrentEvaluationId(evaluationId);
-        // 2. Teleport to the details screen!
         NavigationManager.switchScreen("evaluation_details.fxml");
     }
 
     @FXML
     private void openCreateScreen() {
+        // Pre-select the ONLINE toggle in the creation screen?
+        // We can just open the same screen; the teacher can toggle it there.
         NavigationManager.switchScreen("sessional_evaluations.fxml");
     }
 }
