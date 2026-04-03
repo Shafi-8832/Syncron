@@ -23,15 +23,14 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
-public class SessionalEvaluationsController {
-
-    @FXML private Button offlineToggleBtn;
-    @FXML private Button onlineToggleBtn;
+public class TheoryEvaluationsController {
 
     @FXML private TextField titleInput;
     @FXML private DatePicker datePicker;
 
-    //
+    @FXML private VBox targetSectionContainer;
+    @FXML private HBox sectionBox;
+
     @FXML private ComboBox<String> startHour, startMin, startAmPm;
 
     @FXML private VBox durationBox;        // Replaced endTimeBox
@@ -48,12 +47,14 @@ public class SessionalEvaluationsController {
     @FXML private Label timeLabel;
 
     @FXML private VBox endTimeBox;           // NEW: The container for Closing Time
-    @FXML private VBox targetSectionContainer;
-    @FXML private HBox sectionBox;
+
+    @FXML private Button assignmentToggleBtn;
+    @FXML private Button ctToggleBtn;
+    // don't need section boxes for Theory
 
     @FXML private Label fileNameLabel;
 
-    private String currentType = "OFFLINE";
+    private String currentType = "ASSIGNMENT";
     private File selectedPdfFile = null;
 
     private String editId = null;
@@ -61,123 +62,140 @@ public class SessionalEvaluationsController {
 
     @FXML
     public void initialize() {
-        setupTimeSpinners();
+        System.out.println("--- 🚀 THEORY ENGINE STARTING ---");
+        try {
+            setupTimeSpinners();
 
-        User currentUser = SessionManager.getCurrentUser();
-        if (currentUser == null || !"TEACHER".equalsIgnoreCase(currentUser.getRole())) {
-            NavigationManager.switchScreen("home.fxml");
-            return;
-        }
+            com.syncron.models.User currentUser = SessionManager.getCurrentUser();
+            if (currentUser == null || !"TEACHER".equalsIgnoreCase(currentUser.getRole())) {
+                NavigationManager.switchScreen("home.fxml");
+                return;
+            }
 
-        // Edit Mode Check
-        editId = SessionManager.getEditEvaluationId();
-        if (editId != null && !editId.isEmpty()) {
-            cancelBtn.setVisible(true);
-            cancelBtn.setManaged(true);
-            publishBtn.setText("Update Assessment");
-            loadExistingDataForEdit();
-            SessionManager.setEditEvaluationId(null);
-        }
-        else setOfflineMode();
-    }
+            editId = SessionManager.getEditEvaluationId();
+            System.out.println("🔍 Fetched Edit ID: [" + editId + "]");
 
-    @FXML
-    private void loadExistingDataForEdit() {
-        try (java.sql.Connection conn = DatabaseHandler.connect();
-             java.sql.PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM evaluations WHERE id = ?")) {
+            if (editId != null && !editId.trim().isEmpty()) {
+                System.out.println("✅ Edit ID found! Entering Edit Mode.");
 
-            pstmt.setString(1, editId);
-            java.sql.ResultSet rs = pstmt.executeQuery();
-
-            if (rs.next()) {
-                // 1. load basic text fields
-                titleInput.setText(rs.getString("title"));
-                marksInput.setText(rs.getString("total_marks"));
-                descriptionInput.setText(rs.getString("description"));
-
-                String type = rs.getString("type");
-
-                // 2. set the mode
-                if ("ONLINE".equals(type)) {
-                    setOnlineMode();
+                // Safe checks to prevent NullPointerExceptions!
+                if (cancelBtn != null) {
+                    cancelBtn.setVisible(true);
+                    cancelBtn.setManaged(true);
                 } else {
-                    setOfflineMode();
+                    System.out.println("❌ ERROR: cancelBtn is missing from FXML!");
                 }
 
-                // 3. smartly load the dates and times back into the calendar and dropdowns
-                try {
-                    String dateStr = "ONLINE".equals(type) ? rs.getString("start_date") : rs.getString("deadline_date");
-                    if (dateStr != null && !dateStr.isEmpty() && datePicker != null) {
-                        datePicker.setValue(java.time.LocalDate.parse(dateStr));
-                    }
+                if (publishBtn != null) publishBtn.setText("Update Assessment");
 
-                    String timeStr = "ONLINE".equals(type) ? rs.getString("start_time") : rs.getString("deadline_time");
-                    if (timeStr != null && !timeStr.isEmpty()) {
-                        java.time.LocalTime time = java.time.LocalTime.parse(timeStr);
-                        int hour = time.getHour();
-                        String amPm = hour >= 12 ? "PM" : "AM";
-
-                        if (hour == 0) hour = 12;
-                        else if (hour > 12) hour -= 12;
-
-                        if (startHour != null) startHour.setValue(String.format("%02d", hour));
-                        if (startMin != null) startMin.setValue(String.format("%02d", time.getMinute()));
-                        if (startAmPm != null) startAmPm.setValue(amPm);
-                    }
-
-                    // 4. calculate duration safely for online lab tests
-                    if ("ONLINE".equals(type) && durationInput != null) {
-                        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-                        java.time.LocalDateTime sTime = java.time.LocalDateTime.parse(rs.getString("start_date") + " " + rs.getString("start_time"), fmt);
-                        java.time.LocalDateTime eTime = java.time.LocalDateTime.parse(rs.getString("deadline_date") + " " + rs.getString("deadline_time"), fmt);
-                        long mins = java.time.temporal.ChronoUnit.MINUTES.between(sTime, eTime);
-                        durationInput.setText(String.valueOf(mins));
-                    }
-                } catch (Exception timeEx) {
-                    System.out.println("could not parse dates perfectly, skipping auto-fill for time");
-                }
+                loadExistingDataForEdit();
+                SessionManager.setEditEvaluationId(null);
+            } else {
+                System.out.println("⚠️ No Edit ID. Entering Blank Create Mode.");
+                setAssignmentMode();
             }
         } catch (Exception e) {
+            System.out.println("❌ CRITICAL CRASH IN INITIALIZE:");
             e.printStackTrace();
         }
     }
 
 
     @FXML
-    private void setOfflineMode() {
-        currentType = "OFFLINE";
-        offlineToggleBtn.getStyleClass().setAll("button", "kernel-toggle-active");
-        onlineToggleBtn.getStyleClass().setAll("button", "kernel-toggle-inactive");
+    private void loadExistingDataForEdit() {
+        try (Connection conn = DatabaseHandler.connect();
+             PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM evaluations WHERE id = ?")) {
+
+            pstmt.setString(1, editId);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                // 1. Restore text fields
+                titleInput.setText(rs.getString("title"));
+                marksInput.setText(rs.getString("total_marks"));
+                descriptionInput.setText(rs.getString("description"));
+
+                String type = rs.getString("type");
+
+                // 2. Set mode correctly
+                if ("CT".equals(type)) {
+                    setCtMode();
+                } else {
+                    setAssignmentMode();
+                }
+
+                // 3. 👉 RESTORE DATES AND TIMES (This was missing from your file!)
+                try {
+                    String dateStr = "CT".equals(type) ? rs.getString("start_date") : rs.getString("deadline_date");
+                    if (dateStr != null && !dateStr.isEmpty()) {
+                        datePicker.setValue(LocalDate.parse(dateStr));
+                    }
+
+                    String timeStr = "CT".equals(type) ? rs.getString("start_time") : rs.getString("deadline_time");
+                    if (timeStr != null && !timeStr.isEmpty()) {
+                        LocalTime time = LocalTime.parse(timeStr);
+                        int hour = time.getHour();
+                        String amPm = hour >= 12 ? "PM" : "AM";
+
+                        if (hour == 0) hour = 12;
+                        else if (hour > 12) hour -= 12;
+
+                        startHour.setValue(String.format("%02d", hour));
+                        startMin.setValue(String.format("%02d", time.getMinute()));
+                        startAmPm.setValue(amPm);
+                    }
+
+                    // 4. Calculate duration for CTs
+                    if ("CT".equals(type)) {
+                        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+                        LocalDateTime sTime = LocalDateTime.parse(rs.getString("start_date") + " " + rs.getString("start_time"), fmt);
+                        LocalDateTime eTime = LocalDateTime.parse(rs.getString("deadline_date") + " " + rs.getString("deadline_time"), fmt);
+                        long mins = java.time.temporal.ChronoUnit.MINUTES.between(sTime, eTime);
+                        durationInput.setText(String.valueOf(mins));
+                    }
+                } catch (Exception timeEx) {
+                    System.out.println("Could not parse dates properly, skipping autofill.");
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void setAssignmentMode() {
+        currentType = "ASSIGNMENT";
+        assignmentToggleBtn.getStyleClass().setAll("button", "kernel-toggle-active");
+        ctToggleBtn.getStyleClass().setAll("button", "kernel-toggle-inactive");
 
         dateLabel.setText("Deadline Date");
         timeLabel.setText("Due Time");
 
-        // Hide Sections & End Time for Offlines
-        targetSectionContainer.setVisible(false);
-        targetSectionContainer.setManaged(false);
-        //
         durationBox.setVisible(false);
         durationBox.setManaged(false);
-        //
+
+        // set default values for assignments
+        marksInput.setText("20");
+        durationInput.clear();
     }
 
     @FXML
-    private void setOnlineMode() {
-        currentType = "ONLINE";
-        onlineToggleBtn.getStyleClass().setAll("button", "kernel-toggle-active");
-        offlineToggleBtn.getStyleClass().setAll("button", "kernel-toggle-inactive");
+    private void setCtMode() {
+        currentType = "CT";
+        ctToggleBtn.getStyleClass().setAll("button", "kernel-toggle-active");
+        assignmentToggleBtn.getStyleClass().setAll("button", "kernel-toggle-inactive");
 
         dateLabel.setText("Exam Date");
         timeLabel.setText("Opening Time");
 
-        // Show Sections & End Time for Onlines
-        targetSectionContainer.setVisible(true);
-        targetSectionContainer.setManaged(true);
-        //
         durationBox.setVisible(true);
         durationBox.setManaged(true);
-        //
+
+        // set default values for class tests
+        durationInput.setText("25");
+        marksInput.setText("20");
     }
+
 
     @FXML
     private void handleAttachFile() {
@@ -197,20 +215,15 @@ public class SessionalEvaluationsController {
         }
     }
 
-    @FXML
+    @FXML // Gemini
     private void handleCancel() {
-
-        String routeTo = SessionManager.getLastSidebarTab();
-
-        if (currentType.equals(routeTo)) {
-            NavigationManager.switchScreen("onlines.fxml");
-        } else {
-            NavigationManager.switchScreen("offlines.fxml");
-        }
+        NavigationManager.switchScreen("ct_assignments.fxml");
     }
-    @FXML
-    private void goBack() {handleCancel();}
 
+    @FXML
+    private void goBack() {
+        handleCancel();
+    }
 
     @FXML
     private void handlePublish() {
@@ -219,19 +232,21 @@ public class SessionalEvaluationsController {
         LocalDate date = datePicker.getValue();
         String desc = descriptionInput.getText();
 
+        // FIX 1: Must be initialized so the compiler doesn't panic on Assignments
         String targetSections = "All";
 
-        if (currentType.equals("ONLINE")) {
+        if (currentType.equals("CT")) {
             StringBuilder sections = new StringBuilder();
             for (Node node : sectionBox.getChildren()) {
                 if (node instanceof CheckBox && ((CheckBox) node).isSelected()) {
                     sections.append(((CheckBox) node).getText()).append(",");
                 }
             }
-            if (!sections.isEmpty()) {
+
+            if (sections.length() > 0) {
                 targetSections = sections.substring(0, sections.length() - 1);
             } else {
-                new Alert(Alert.AlertType.WARNING, "Please select at least one Target Section for the Lab Test!").show();
+                new Alert(Alert.AlertType.WARNING, "Please select at least one Target Section!").show();
                 return;
             }
         }
@@ -240,13 +255,12 @@ public class SessionalEvaluationsController {
         if (title.isEmpty()) missingFields.append("• Assessment Title\n");
         if (date == null) missingFields.append("• Deadline Date\n");
 
-        // Check if any of the three start time dropdowns are unselected
         boolean isStartMissing = startHour.getValue() == null || startMin.getValue() == null || startAmPm.getValue() == null;
         if (isStartMissing) {
-            missingFields.append(currentType.equals("OFFLINE") ? "• Due Time\n" : "• Opening Time\n");
+            missingFields.append(currentType.equals("ASSIGNMENT") ? "• Due Time\n" : "• Opening Time\n");
         }
 
-        if (currentType.equals("ONLINE")) {
+        if (currentType.equals("CT")) {
             if (durationInput.getText().isEmpty()) {
                 missingFields.append("• Duration (Mins)\n");
             } else {
@@ -259,19 +273,17 @@ public class SessionalEvaluationsController {
             }
         }
 
-
-        if (!missingFields.isEmpty()) {
+        if (missingFields.length() > 0) {
             new Alert(Alert.AlertType.WARNING, "Please fill out the following missing fields:\n\n" + missingFields.toString()).show();
             return;
         }
 
-        // NEW TIME LOGIC ENGINE (Auto-Calculates Deadlines)
         String startDateStr;
         String startTimeStr;
         String deadlineDateStr;
         String deadlineTimeStr;
 
-        if (currentType.equals("OFFLINE")) {
+        if (currentType.equals("ASSIGNMENT")) {
             startDateStr = LocalDate.now().toString();
             startTimeStr = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
             deadlineDateStr = date.toString();
@@ -280,12 +292,10 @@ public class SessionalEvaluationsController {
             startDateStr = date.toString();
             startTimeStr = get24HourTime(startHour.getValue(), startMin.getValue(), startAmPm.getValue());
 
-            // Add the duration to calculate exact closing time
             LocalDateTime startDT = LocalDateTime.of(date, LocalTime.parse(startTimeStr));
             int durationMins = Integer.parseInt(durationInput.getText());
             LocalDateTime endDT = startDT.plusMinutes(durationMins);
 
-            // This safely handles if a 45-min exam crosses midnight into the next day
             deadlineDateStr = endDT.toLocalDate().toString();
             deadlineTimeStr = endDT.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"));
         }
@@ -311,23 +321,20 @@ public class SessionalEvaluationsController {
             }
         }
 
-        // DATABASE INJECTION & EDIT ROUTING
+        boolean successFlag = false;
+
         try (java.sql.Connection conn = DatabaseHandler.connect();
              java.sql.Statement alterStmt = conn.createStatement()) {
 
-            // Add the new start_date and start_time columns dynamically if they don't exist yet!
             try { alterStmt.execute("ALTER TABLE evaluations ADD COLUMN start_date TEXT"); } catch (Exception ignore) {}
             try { alterStmt.execute("ALTER TABLE evaluations ADD COLUMN start_time TEXT"); } catch (Exception ignore) {}
             try { alterStmt.execute("ALTER TABLE evaluations ADD COLUMN file_path TEXT"); } catch (Exception ignore) {}
 
             if (editId != null && !editId.isEmpty()) {
-                //  UPDATE EXISTING LOGIC
                 String updateSql;
                 if (selectedPdfFile != null) {
-                    // Update EVERYTHING including the new file
                     updateSql = "UPDATE evaluations SET title=?, type=?, target_sections=?, total_marks=?, start_date=?, start_time=?, deadline_date=?, deadline_time=?, description=?, file_path=? WHERE id=?";
                 } else {
-                    // Update everything EXCEPT the file (keeps the old PDF safe)
                     updateSql = "UPDATE evaluations SET title=?, type=?, target_sections=?, total_marks=?, start_date=?, start_time=?, deadline_date=?, deadline_time=?, description=? WHERE id=?";
                 }
 
@@ -351,9 +358,9 @@ public class SessionalEvaluationsController {
 
                 pstmt.executeUpdate();
                 new Alert(Alert.AlertType.INFORMATION, "Assessment Updated Successfully!").showAndWait();
+                successFlag = true;
 
             } else {
-                // INSERT NEW LOGIC
                 String insertSql = "INSERT INTO evaluations (course_code, title, type, target_sections, total_marks, start_date, start_time, deadline_date, deadline_time, description, creator_id, file_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
                 java.sql.PreparedStatement pstmt = conn.prepareStatement(insertSql);
@@ -371,36 +378,31 @@ public class SessionalEvaluationsController {
                 pstmt.setString(12, savedFilePath);
                 pstmt.executeUpdate();
 
-                // Auto-Announce ONLY when creating a new assessment
                 String announcementText = "🔔 New " + currentType + " Published: " + title + " (Due: " + deadlineDateStr + " " + deadlineTimeStr + ")";
                 String announceSql = "INSERT INTO announcements (course_code, message, timestamp, creator_id) VALUES (?, ?, ?, ?)";
-                java.sql.PreparedStatement astmt = conn.prepareStatement(announceSql);
-                astmt.setString(1, courseCode);
-                astmt.setString(2, announcementText);
-                astmt.setString(3, LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a")));
-                astmt.setString(4, teacherId);
-                astmt.executeUpdate();
+                try (java.sql.PreparedStatement astmt = conn.prepareStatement(announceSql)) {
+                    astmt.setString(1, courseCode);
+                    astmt.setString(2, announcementText);
+                    astmt.setString(3, LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a")));
+                    astmt.setString(4, teacherId);
+                    astmt.executeUpdate();
+                }
 
                 Alert success = new Alert(Alert.AlertType.INFORMATION, "Assessment Published Successfully!");
                 success.showAndWait();
-            }
-
-            // Route back
-
-            String routeTo = SessionManager.getLastSidebarTab();
-
-            if ("ONLINE".equals(routeTo)) {
-                NavigationManager.switchScreen("offlines.fxml");
-            } else {
-                NavigationManager.switchScreen("onlines.fxml");
+                successFlag = true;
             }
 
         } catch (Exception e) {
             e.printStackTrace();
             new Alert(Alert.AlertType.ERROR, "Failed to publish assessment. Database error.").show();
         }
-    }
 
+        // FIX 2: Safely placed outside the try-catch block
+        if (successFlag) {
+            NavigationManager.switchScreen("ct_assignments.fxml");
+        }
+    }
 
     // INJECTS DATA INTO DROPDOWNS
     private void setupTimeSpinners() {

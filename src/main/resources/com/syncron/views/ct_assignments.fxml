@@ -2,14 +2,24 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.syncron.controllers.CTAssignmentsController"
-      spacing="15" style="-fx-padding: 30; -fx-background-color: #F4F7FC;">
-    <Label text="CT and Assignments" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
-    <Button fx:id="createAssessmentBtn" text="Create CT/Assignment"
-            style="-fx-background-color: #3498DB; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 16; -fx-background-radius: 5;"/>
-    <FlowPane fx:id="assessmentContainer" hgap="12" vgap="12" prefWrapLength="800"/>
-</VBox>
+<ScrollPane fitToWidth="true" styleClass="kernel-root" stylesheets="@../styles/kernel_warm.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.syncron.controllers.CtAssignmentsController">
+    <VBox spacing="20" style="-fx-padding: 30 40;">
+
+        <HBox alignment="CENTER_LEFT">
+            <VBox>
+                <Label text="Class Tests &amp; Assignments" style="-fx-font-family: 'Georgia', serif; -fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;" />
+                <Label text="Manage and submit your theory course evaluations here." style="-fx-text-fill: #7F8C8D; -fx-font-size: 13px;" />
+            </VBox>
+            <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="createBtn" text="+ Create Assessment" onAction="#openCreateScreen" style="-fx-background-color: #D35400; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15; -fx-background-radius: 6; -fx-cursor: hand;" />
+        </HBox>
+
+        <VBox fx:id="evaluationsContainer" spacing="15" />
+
+    </VBox>
+</ScrollPane>

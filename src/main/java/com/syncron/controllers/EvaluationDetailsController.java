@@ -43,13 +43,20 @@ public class EvaluationDetailsController {
     @FXML private Button removeSubBtn;
 
     // Teacher View
-    @FXML private VBox teacherViewBox;
     @FXML private Label submissionCountLabel;
     @FXML private VBox gradingListContainer;
 
     private String evaluationId;
     private String attachedFilePath = "None";
     private String evaluationType = "OFFLINE";
+
+    // Hyperlink to profile
+
+    @FXML private javafx.scene.control.Hyperlink creatorLink;
+    @FXML private VBox datesBox;
+    @FXML private HBox teacherActionBox;
+    @FXML private VBox teacherGradingBox;
+    private String creatorId = null;
 
 
     // Edge Case Tracking
@@ -70,32 +77,63 @@ public class EvaluationDetailsController {
 
         loadEvaluationData();
 
-        User currentUser = SessionManager.getCurrentUser();
+        com.syncron.models.User currentUser = SessionManager.getCurrentUser();
+
         if ("TEACHER".equalsIgnoreCase(currentUser.getRole())) {
-            teacherViewBox.setVisible(true);
-            teacherViewBox.setManaged(true);
-            loadTeacherGradingList();
+            // edit/delete buttons are always visible to teachers
+            teacherActionBox.setVisible(true);
+            teacherActionBox.setManaged(true);
+
+            if ("CT".equals(evaluationType)) {
+                teacherGradingBox.setVisible(false);
+                teacherGradingBox.setManaged(false);
+            } else {
+                teacherGradingBox.setVisible(true);
+                teacherGradingBox.setManaged(true);
+                loadTeacherGradingList();
+            }
         } else {
-            studentViewBox.setVisible(true);
-            studentViewBox.setManaged(true);
-            loadStudentSubmissionStatus();
+            if ("CT".equals(evaluationType)) {
+                studentViewBox.setVisible(false);
+                studentViewBox.setManaged(false);
+            } else {
+                studentViewBox.setVisible(true);
+                studentViewBox.setManaged(true);
+                loadStudentSubmissionStatus();
+            }
         }
     }
 
     private void loadEvaluationData() {
-        String query = "SELECT * FROM evaluations WHERE id = ?";
+        // updated query to fetch the creator's full name alongside the evaluation data
+        String query = "SELECT e.*, u.name AS creator_name FROM evaluations e " +
+                "JOIN users u ON e.creator_id = u.id WHERE e.id = ?";
+
         try (java.sql.Connection conn = DatabaseHandler.connect();
              java.sql.PreparedStatement pstmt = conn.prepareStatement(query)) {
 
             pstmt.setString(1, evaluationId);
             java.sql.ResultSet rs = pstmt.executeQuery();
+
             if (rs.next()) {
                 titleLabel.setText(rs.getString("title"));
                 marksLabel.setText("Marks: " + rs.getString("total_marks"));
                 descLabel.setText(rs.getString("description"));
 
-                // THE BUG FIX: Move this OUTSIDE the try-catch block!
                 evaluationType = rs.getString("type");
+
+                // set the creator name and store their id for the profile link
+                creatorLink.setText(rs.getString("creator_name"));
+                creatorId = rs.getString("creator_id");
+
+                // completely hide the opened/due dates if it is a ct
+                if ("CT".equals(evaluationType)) {
+                    datesBox.setVisible(false);
+                    datesBox.setManaged(false);
+                } else {
+                    datesBox.setVisible(true);
+                    datesBox.setManaged(true);
+                }
 
                 attachedFilePath = rs.getString("file_path");
                 if (attachedFilePath != null && !attachedFilePath.equals("None")) {
@@ -117,18 +155,19 @@ public class EvaluationDetailsController {
                     openedTimeLabel.setText("Opened: " + startTime.format(displayFormat));
                     closedTimeLabel.setText("Due: " + endTime.format(displayFormat));
 
-                    TimeEngine.startLiveCountdown(statusClockLabel, evaluationType, startTime, endTime);
+                    String engineType = (evaluationType.equals("CT") || evaluationType.equals("ONLINE")) ? "ONLINE" : "OFFLINE";
+                    TimeEngine.startLiveCountdown(statusClockLabel, engineType, startTime, endTime);
 
                     // THE UX FIX: Make the lock obvious
                     if (evaluationType.equals("ONLINE") && LocalDateTime.now().isBefore(startTime)) {
                         if (!"TEACHER".equalsIgnoreCase(SessionManager.getCurrentUser().getRole())) {
                             downloadQuestionBtn.setText("🔒 Unlocks at " + startTime.format(DateTimeFormatter.ofPattern("hh:mm a")));
                             downloadQuestionBtn.setDisable(true);
-                            downloadQuestionBtn.setStyle("-fx-text-fill: #F39C12; -fx-opacity: 1.0; -fx-font-weight: bold; -fx-underline: false;");
+                            downloadQuestionBtn.setStyle("-fx-text-fill: #F39C12; -fx-opacity: 1.0; -fx-font-weight: bold; -fx-underline: false; -fx-font-size: 14px;");
 
                             selectFilesBtn.setDisable(true);
                             submissionStatusLabel.setText("Submissions not open yet.");
-                            submissionStatusLabel.setStyle("-fx-text-fill: #F39C12; -fx-font-weight: bold;");
+                            submissionStatusLabel.setStyle("-fx-text-fill: #F39C12; -fx-font-weight: bold; -fx-font-size: 14px;");
                         }
                     }
 
@@ -382,7 +421,13 @@ public class EvaluationDetailsController {
     @FXML
     private void handleEdit() {
         SessionManager.setEditEvaluationId(this.evaluationId);
-        NavigationManager.switchScreen("sessional_evaluations.fxml");
+
+        // BUG FIXED: Dynamically route to the correct Creator Canvas
+        if ("CT".equals(evaluationType) || "ASSIGNMENT".equals(evaluationType)) {
+            NavigationManager.switchScreen("theory_evaluations.fxml");
+        } else {
+            NavigationManager.switchScreen("sessional_evaluations.fxml");
+        }
     }
 
     @FXML
@@ -407,6 +452,38 @@ public class EvaluationDetailsController {
     private void goBack() {
         if ("ONLINE".equals(evaluationType))
             NavigationManager.switchScreen("onlines.fxml");
-        else NavigationManager.switchScreen("offlines.fxml");
+        else if ("OFFLINE".equals(evaluationType)) NavigationManager.switchScreen("offlines.fxml");
+        else NavigationManager.switchScreen("ct_assignments.fxml");
     }
+
+
+    @FXML
+    private void handleDownloadQuestion() {
+        if (attachedFilePath == null || attachedFilePath.equals("None") || attachedFilePath.isEmpty()) {
+            return; // No file to open
+        }
+
+        try {
+            java.io.File file = new java.io.File(attachedFilePath);
+            if (file.exists()) {
+                // This opens the PDF beautifully using the user's default system viewer (e.g., Chrome, Edge, Adobe)
+                java.awt.Desktop.getDesktop().open(file);
+            } else {
+                new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR, "The file could not be found!").show();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR, "Unable to open the file.").show();
+        }
+    }
+
+    @FXML
+    private void openCreatorProfile() {
+        if (creatorId != null && !creatorId.isEmpty()) {
+            SessionManager.setViewProfileId(creatorId);
+            // route this to whatever your profile fxml is named
+            NavigationManager.switchScreen("view_profile.fxml");
+        }
+    }
+
 }

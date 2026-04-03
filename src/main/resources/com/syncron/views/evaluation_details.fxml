@@ -7,6 +7,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
+<?import javafx.scene.control.Hyperlink?>
 <ScrollPane fitToWidth="true" styleClass="kernel-root" stylesheets="@../styles/kernel_warm.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.syncron.controllers.EvaluationDetailsController">
     <VBox spacing="25" style="-fx-padding: 30 40;">
 
@@ -17,23 +18,30 @@
             <Label fx:id="marksLabel" text="Marks: --" style="-fx-font-weight: bold; -fx-text-fill: #D35400; -fx-font-size: 14px; -fx-background-color: #FDEBD0; -fx-padding: 5 15; -fx-background-radius: 20;" />
         </HBox>
 
-        <VBox spacing="15" style="-fx-background-color: #FFFFFF; -fx-border-color: #E0D5C7; -fx-border-radius: 8; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(74,44,26,0.05), 5, 0, 0, 2);">
+        <VBox spacing="20" style="-fx-background-color: #FFFFFF; -fx-border-color: #E0D5C7; -fx-border-radius: 8; -fx-padding: 30; -fx-effect: dropshadow(three-pass-box, rgba(74,44,26,0.08), 8, 0, 0, 3);">
+
             <HBox spacing="10" alignment="CENTER_LEFT">
-                <Label fx:id="statusClockLabel" text="Loading Time..." style="-fx-font-weight: bold; -fx-font-size: 14px;" />
+                <Label fx:id="statusClockLabel" text="Loading Time..." style="-fx-font-weight: bold; -fx-font-size: 18px;" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label text="Created by:" style="-fx-text-fill: #95A5A6; -fx-font-size: 13px;" />
+                <Hyperlink fx:id="creatorLink" text="Loading..." onAction="#openCreatorProfile" style="-fx-text-fill: #2980B9; -fx-font-weight: bold; -fx-font-size: 14px; -fx-underline: false; -fx-padding: 0;" />
             </HBox>
 
-            <VBox spacing="3" style="-fx-padding: 0 0 10 0; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;">
-                <Label fx:id="openedTimeLabel" text="Opened: --" style="-fx-text-fill: #2C3E50; -fx-font-size: 12px; -fx-font-family: 'Inter', sans-serif;" />
-                <Label fx:id="closedTimeLabel" text="Due: --" style="-fx-text-fill: #2C3E50; -fx-font-size: 12px; -fx-font-family: 'Inter', sans-serif;" />
+            <VBox fx:id="datesBox" spacing="6" style="-fx-padding: 0 0 15 0; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;">
+                <Label fx:id="openedTimeLabel" text="Opened: --" style="-fx-text-fill: #34495E; -fx-font-size: 14px; -fx-font-weight: bold;" />
+                <Label fx:id="closedTimeLabel" text="Due: --" style="-fx-text-fill: #34495E; -fx-font-size: 14px; -fx-font-weight: bold;" />
             </VBox>
 
-            <Label text="Instructions:" style="-fx-font-weight: bold; -fx-text-fill: #7F8C8D;" />
-            <Label fx:id="descLabel" text="Loading description..." wrapText="true" style="-fx-text-fill: #2C3E50; -fx-font-family: 'Inter', sans-serif;" />
+            <VBox spacing="10">
+                <Label text="Instructions / Syllabus:" style="-fx-font-weight: bold; -fx-text-fill: #7F8C8D; -fx-font-size: 14px;" />
+                <Label fx:id="descLabel" text="Loading description..." wrapText="true" style="-fx-text-fill: #2C3E50; -fx-font-size: 15px;" />
+            </VBox>
 
-            <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 10 0 0 0; -fx-border-color: #ECF0F1; -fx-border-width: 1 0 0 0;">
-                <Label text="Attached File:" style="-fx-text-fill: #7F8C8D;" />
-                <Button fx:id="downloadQuestionBtn" text="No file attached" onAction="#downloadQuestion" style="-fx-background-color: transparent; -fx-text-fill: #3498DB; -fx-cursor: hand; -fx-underline: true;" />
+            <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-padding: 15 0 0 0; -fx-border-color: #ECF0F1; -fx-border-width: 1 0 0 0;">
+                <Label text="Attached File:" style="-fx-font-weight: bold; -fx-text-fill: #7F8C8D; -fx-font-size: 14px;" />
+                <Button fx:id="downloadQuestionBtn" text="No file attached" onAction="#handleDownloadQuestion" style="-fx-background-color: transparent; -fx-text-fill: #3498DB; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0;" />
             </HBox>
+
         </VBox>
 
         <VBox fx:id="studentViewBox" spacing="15" visible="false" managed="false">
@@ -46,7 +54,7 @@
                 </HBox>
                 <HBox spacing="20" style="-fx-padding: 15; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;">
                     <Label text="Grading" prefWidth="120" style="-fx-font-weight: bold; -fx-text-fill: #7F8C8D;" />
-                    <Label fx:id="studentGradeLabel" text="Not Graded" style="-fx-text-fill: #2C3E50;" />
+                    <Label fx:id="gradingStatusLabel" text="Not Graded" style="-fx-text-fill: #2C3E50;" />
                 </HBox>
                 <HBox spacing="20" style="-fx-padding: 15;">
                     <Label text="Your Files" prefWidth="120" style="-fx-font-weight: bold; -fx-text-fill: #7F8C8D;" />
@@ -62,12 +70,15 @@
             </HBox>
         </VBox>
 
-        <VBox fx:id="teacherViewBox" spacing="15" visible="false" managed="false">
+        <HBox fx:id="teacherActionBox" spacing="10" alignment="CENTER_RIGHT" visible="false" managed="false" style="-fx-padding: 10 0;">
+            <Button text="✏️ Edit" onAction="#handleEdit" style="-fx-background-color: #3498DB; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" />
+            <Button text="🗑️ Delete" onAction="#handleDelete" style="-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" />
+        </HBox>
+
+        <VBox fx:id="teacherGradingBox" spacing="15" visible="false" managed="false">
             <HBox alignment="CENTER_LEFT" spacing="10">
                 <Label fx:id="submissionCountLabel" text="Submissions (0)" style="-fx-font-family: 'Georgia', serif; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;" />
                 <Region HBox.hgrow="ALWAYS" />
-                <Button text="✏️ Edit" onAction="#handleEdit" style="-fx-background-color: #3498DB; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" />
-                <Button text="🗑️ Delete" onAction="#handleDelete" style="-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" />
                 <Button text="📥 Import Grades (CSV)" onAction="#handleImportCSV" style="-fx-background-color: #F39C12; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 15; -fx-background-radius: 6; -fx-cursor: hand;" />
             </HBox>
 

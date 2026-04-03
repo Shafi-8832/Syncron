@@ -40,4 +40,15 @@ public class SessionManager {
     private static final java.util.concurrent.atomic.AtomicReference<String> editEvaluationId = new java.util.concurrent.atomic.AtomicReference<>("");
     public static String getEditEvaluationId() { return editEvaluationId.get(); }
     public static void setEditEvaluationId(String id) { editEvaluationId.set(id == null ? "" : id); }
+
+    // memory for viewing other people's profiles
+    private static final java.util.concurrent.atomic.AtomicReference<String> viewProfileId = new java.util.concurrent.atomic.AtomicReference<>("");
+    public static String getViewProfileId() { return viewProfileId.get(); }
+    public static void setViewProfileId(String id) { viewProfileId.set(id == null ? "" : id); }
+
+    // The Sidebar Memory anchor
+    private static String lastSidebarTab = "OFFLINE";
+    public static String getLastSidebarTab() { return lastSidebarTab; }
+    public static void setLastSidebarTab(String tab) { lastSidebarTab = tab; }
+
 }

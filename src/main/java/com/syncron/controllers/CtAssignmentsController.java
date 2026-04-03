@@ -1,6 +1,5 @@
 package com.syncron.controllers;
 
-import com.syncron.models.User;
 import com.syncron.utils.DatabaseHandler;
 import com.syncron.utils.NavigationManager;
 import com.syncron.utils.TimeEngine;
@@ -15,22 +14,18 @@ import javafx.scene.layout.VBox;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-public class OfflinesController {
+public class CtAssignmentsController {
 
-    @FXML private Button createOfflineBtn;
+    @FXML private Button createBtn;
     @FXML private VBox evaluationsContainer;
 
     @FXML
     public void initialize() {
-
-        SessionManager.setLastSidebarTab("OFFLINE");
-
-        User currentUser = SessionManager.getCurrentUser();
+        com.syncron.models.User currentUser = SessionManager.getCurrentUser();
         if (currentUser == null || !"TEACHER".equalsIgnoreCase(currentUser.getRole())) {
-            createOfflineBtn.setVisible(false);
-            createOfflineBtn.setManaged(false);
+            createBtn.setVisible(false);
+            createBtn.setManaged(false);
         }
-
         loadEvaluations();
     }
 
@@ -38,19 +33,18 @@ public class OfflinesController {
         evaluationsContainer.getChildren().clear();
         String currentCourse = SessionManager.getCurrentCourseCode();
 
-        // 1. fetch the data into a temporary list so we can sort it
+        // 1. Fetch the data into a temporary list so we can sort it
         class EvalCard {
             String id, title, type, startStr, endStr;
-            java.time.LocalDateTime startTime, endTime;
+            LocalDateTime startTime, endTime;
             boolean isPast = false;
         }
         java.util.List<EvalCard> cardList = new java.util.ArrayList<>();
 
-        // fetch ONLY 'OFFLINE' evaluations
         String query = "SELECT id, title, type, start_date, start_time, deadline_date, deadline_time " +
-                "FROM evaluations WHERE course_code = ? AND type = 'OFFLINE'";
+                "FROM evaluations WHERE course_code = ? AND type IN ('CT', 'ASSIGNMENT')";
 
-        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
         try (java.sql.Connection conn = DatabaseHandler.connect();
              java.sql.PreparedStatement pstmt = conn.prepareStatement(query)) {
@@ -67,10 +61,10 @@ public class OfflinesController {
                 c.endStr = rs.getString("deadline_date") + " " + rs.getString("deadline_time");
 
                 try {
-                    c.startTime = java.time.LocalDateTime.parse(c.startStr, formatter);
-                    c.endTime = java.time.LocalDateTime.parse(c.endStr, formatter);
-                    if (java.time.LocalDateTime.now().isAfter(c.endTime)) {
-                        c.isPast = true; // flag it as expired
+                    c.startTime = LocalDateTime.parse(c.startStr, formatter);
+                    c.endTime = LocalDateTime.parse(c.endStr, formatter);
+                    if (LocalDateTime.now().isAfter(c.endTime)) {
+                        c.isPast = true; // Flag it as expired
                     }
                 } catch (Exception e) {}
 
@@ -79,38 +73,38 @@ public class OfflinesController {
         } catch (Exception e) { e.printStackTrace(); }
 
         if (cardList.isEmpty()) {
-            Label emptyMsg = new Label("No offline assignments published yet.");
+            Label emptyMsg = new Label("No assessments scheduled yet.");
             emptyMsg.setStyle("-fx-text-fill: #95A5A6; -fx-font-style: italic;");
             evaluationsContainer.getChildren().add(emptyMsg);
             return;
         }
 
-        // 2. sorting engine: active first, then by id descending
+        // 2. SORTING ENGINE: Active first, then by ID descending
         cardList.sort((a, b) -> {
             if (a.isPast != b.isPast) return Boolean.compare(a.isPast, b.isPast);
             return Integer.compare(Integer.parseInt(b.id), Integer.parseInt(a.id));
         });
 
-        // 3. rendering engine
+        // 3. RENDERING ENGINE: Build the og op UI
         int index = 1;
         for (EvalCard c : cardList) {
 
             HBox cardRow = new HBox(15);
             cardRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
-            // the numbered circle
+            // THE NUMBERED CIRCLE
             javafx.scene.layout.StackPane circlePane = new javafx.scene.layout.StackPane();
             javafx.scene.shape.Circle circle = new javafx.scene.shape.Circle(16);
-            circle.setFill(javafx.scene.paint.Color.web(c.isPast ? "#BDC3C7" : "#D35400"));
+            circle.setFill(javafx.scene.paint.Color.web(c.isPast ? "#BDC3C7" : "#D35400")); // Gray if dead, Orange if alive
             Label numLabel = new Label(String.valueOf(index++));
             numLabel.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px;");
             circlePane.getChildren().addAll(circle, numLabel);
 
-            // the card itself
+            // THE CARD ITSELF
             VBox card = new VBox(10);
-            HBox.setHgrow(card, Priority.ALWAYS);
+            HBox.setHgrow(card, Priority.ALWAYS); // Make card stretch to fill space
 
-            // premium css: glowing if active, dimmed if past
+            // Premium CSS: Glowing if active, Dimmed if past
             if (c.isPast) {
                 card.setStyle("-fx-background-color: #F8F9FA; -fx-border-color: #E0E0E0; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 20; -fx-opacity: 0.7;");
             } else {
@@ -119,15 +113,23 @@ public class OfflinesController {
                 card.setOnMouseExited(e -> card.setStyle(card.getStyle().replace("-fx-background-color: #FFFDF8;", "-fx-background-color: #FFFFFF;")));
             }
 
+            HBox titleBox = new HBox(10);
+            titleBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
             Label titleLabel = new Label(c.title);
             titleLabel.setStyle("-fx-font-family: 'Georgia', serif; -fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;");
+
+            Label typeTag = new Label(c.type);
+            typeTag.setStyle(c.type.equals("CT") ? "-fx-background-color: #FDEBD0; -fx-text-fill: #D35400; -fx-padding: 3 8; -fx-background-radius: 12; -fx-font-size: 11px; -fx-font-weight: bold;"
+                    : "-fx-background-color: #D5F5E3; -fx-text-fill: #27AE60; -fx-padding: 3 8; -fx-background-radius: 12; -fx-font-size: 11px; -fx-font-weight: bold;");
+            titleBox.getChildren().addAll(titleLabel, typeTag);
 
             HBox statusBar = new HBox(15);
             statusBar.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
             Label statusClockLabel = new Label("Calculating time...");
 
             if (c.startTime != null && c.endTime != null) {
-                TimeEngine.startLiveCountdown(statusClockLabel, "OFFLINE", c.startTime, c.endTime);
+                String engineType = c.type.equals("CT") ? "ONLINE" : "OFFLINE";
+                TimeEngine.startLiveCountdown(statusClockLabel, engineType, c.startTime, c.endTime);
             } else {
                 statusClockLabel.setText("Due: " + c.endStr);
             }
@@ -138,28 +140,23 @@ public class OfflinesController {
             arrow.setStyle(c.isPast ? "-fx-text-fill: #95A5A6; -fx-font-weight: bold;" : "-fx-text-fill: #D35400; -fx-font-weight: bold;");
 
             statusBar.getChildren().addAll(statusClockLabel, spacer, arrow);
-            card.getChildren().addAll(titleLabel, statusBar);
+            card.getChildren().addAll(titleBox, statusBar);
 
-            // click routing
+            // Click routing
             card.setOnMouseClicked(e -> {
                 SessionManager.setCurrentEvaluationId(c.id);
                 NavigationManager.switchScreen("evaluation_details.fxml");
             });
 
+            // Add circle and card to the row
             cardRow.getChildren().addAll(circlePane, card);
             evaluationsContainer.getChildren().add(cardRow);
         }
     }
 
-    private void openEvaluationDetails(String evaluationId) {
-        // 1. Save the clicked ID to memory
-        SessionManager.setCurrentEvaluationId(evaluationId);
-        // 2. Teleport to the details screen!
-        NavigationManager.switchScreen("evaluation_details.fxml");
-    }
-
     @FXML
     private void openCreateScreen() {
-        NavigationManager.switchScreen("sessional_evaluations.fxml");
+        NavigationManager.switchScreen("theory_evaluations.fxml");
     }
+
 }
