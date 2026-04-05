@@ -12,6 +12,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -20,6 +21,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class HomeController {
@@ -28,7 +30,7 @@ public class HomeController {
     @FXML private Label welcomeLabel;
 
     @FXML private HBox profileBtn;
-    @FXML private ProgressBar semesterProgressBar;
+
     @FXML private VBox courseCardContainer;
     @FXML private VBox urgentContainer;
 
@@ -36,35 +38,38 @@ public class HomeController {
 
     @FXML private Label semesterTitleLabel;
     @FXML private Label semesterStatusLabel;
-    @FXML private Label semesterProgressText;
+
     @FXML private Label termFinalLabel;
     @FXML private Label daysRemainingLabel;
 
+    @FXML private TextField searchField;
+    private List<Course> allCourses = new ArrayList<>();
+
     @FXML
     public void initialize() throws SQLException {
-        // 1. Set the green progress bar
-        semesterProgressBar.setStyle("-fx-accent: #2ECC71;");
+        // 1. Load the real courses once from the database into memory
+        allCourses = DatabaseHandler.getAllCourses();
+        renderCourses(allCourses);
 
-        // 2. Load the real courses
-        loadCourseCards();
+        // 2. 👉 THE SEARCH ENGINE LISTENER
+        if (searchField != null) {
+            searchField.textProperty().addListener((observable, oldValue, newValue) -> {
+                filterCourses(newValue); // Instantly triggers when you type!
+            });
+        }
+
         // 3. Load the urgent deadlines
         loadUrgentDeadlines();
-        // 4. load current semester's data
-        loadSemesterData();
-        
-        if (profileBtn != null) {
-            profileBtn.setOnMouseClicked(e -> openProfile());
-        }
 
-        // 2. Add the clicking Event
-        if (detailsBtn != null) {
-            detailsBtn.setOnAction(e -> openSemesterDetails());
-        }
+        // 4. Load current semester's data
+        loadSemesterData();
+
+        if (profileBtn != null) profileBtn.setOnMouseClicked(e -> openProfile());
+        if (detailsBtn != null) detailsBtn.setOnAction(e -> openSemesterDetails());
 
         User currentUser = SessionManager.getCurrentUser();
         if (currentUser != null && topHeaderNameLabel != null && welcomeLabel != null) {
             topHeaderNameLabel.setText(currentUser.getName());
-
             String FirstName = currentUser.getName().split(" ")[0];
             welcomeLabel.setText("Welcome Back, " + FirstName + "!");
         }
@@ -74,32 +79,55 @@ public class HomeController {
         // will be updated later
         semesterTitleLabel.setText("Semester : Level 1 Term 2");
         semesterStatusLabel.setText("PRESENT");
-        semesterProgressBar.setProgress(0.35); // 35% Progress
-        semesterProgressText.setText("35% Completed");
         termFinalLabel.setText("📅 Term Final: 15 August 2026");
         daysRemainingLabel.setText("⏳ Days Remaining: 145");
     }
 
-    private void loadCourseCards() {
-        var courseList = DatabaseHandler.getAllCourses();
+    private void filterCourses(String query) {
+        // If the search bar is empty, show everything!
+        if (query == null || query.trim().isEmpty()) {
+            renderCourses(allCourses);
+            return;
+        }
 
-        for (Course course : courseList) {
+        String lowerQuery = query.toLowerCase();
+        java.util.List<Course> filteredList = new java.util.ArrayList<>();
+
+        // Search through course codes AND course titles
+        for (Course course : allCourses) {
+            if (course.getCourseCode().toLowerCase().contains(lowerQuery) ||
+                    course.getCourseTitle().toLowerCase().contains(lowerQuery)) {
+                filteredList.add(course);
+            }
+        }
+        renderCourses(filteredList);
+    }
+
+    private void renderCourses(java.util.List<Course> coursesToRender) {
+        courseCardContainer.getChildren().clear();
+
+        if (coursesToRender.isEmpty()) {
+            Label noMatch = new Label("No courses found matching your search.");
+            noMatch.setStyle("-fx-text-fill: #7F8C8D; -fx-font-style: italic; -fx-padding: 10 0;");
+            courseCardContainer.getChildren().add(noMatch);
+            return;
+        }
+
+        for (Course course : coursesToRender) {
             HBox card = new HBox();
             card.setSpacing(10);
             card.setPadding(new Insets(18));
-            // Apply the warm card style!
-            card.setStyle("-fx-background-color: #FFFCF8; -fx-background-radius: 10; " +
+            // Crisp white card to pop against the light-blue background
+            card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 10; " +
                     "-fx-border-color: #E0D5C7; -fx-border-radius: 10; " +
-                    "-fx-effect: dropshadow(three-pass-box, rgba(74,44,26,0.06), 6, 0, 0, 3); " +
+                    "-fx-effect: dropshadow(three-pass-box, rgba(74,44,26,0.04), 4, 0, 0, 2); " +
                     "-fx-cursor: hand;");
 
             VBox infoBox = new VBox();
             Label codeLabel = new Label(course.getCourseCode());
-            // Serif bold font for course code
             codeLabel.setStyle("-fx-font-family: 'Georgia', serif; -fx-font-weight: bold; -fx-font-size: 16px; -fx-text-fill: #4A2C1A;");
 
             Label titleLabel = new Label(course.getCourseTitle());
-            // Modern sans-serif for course title
             titleLabel.setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-size: 13px; -fx-text-fill: #8C7A6B;");
 
             infoBox.getChildren().addAll(codeLabel, titleLabel);
@@ -108,13 +136,12 @@ public class HomeController {
             HBox.setHgrow(spacer, Priority.ALWAYS);
 
             Label arrowLabel = new Label("➜");
-            arrowLabel.setStyle("-fx-text-fill: #C4A882; -fx-font-size: 18px;"); // Warm gold arrow
+            arrowLabel.setStyle("-fx-text-fill: #3498DB; -fx-font-size: 18px;"); // Beautiful blue arrow to match the theme
 
             card.getChildren().addAll(infoBox, spacer, arrowLabel);
 
-            // Hover effect
-            card.setOnMouseEntered(e -> card.setStyle(card.getStyle() + "-fx-background-color: #F5EDE3;"));
-            card.setOnMouseExited(e -> card.setStyle(card.getStyle() + "-fx-background-color: #FFFCF8;"));
+            card.setOnMouseEntered(e -> card.setStyle(card.getStyle() + "-fx-background-color: #F9FAFC;"));
+            card.setOnMouseExited(e -> card.setStyle(card.getStyle().replace("-fx-background-color: #F9FAFC;", "-fx-background-color: #FFFFFF;")));
 
             card.setOnMouseClicked(event -> openCoursePortal(course));
 

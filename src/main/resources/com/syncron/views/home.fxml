@@ -44,11 +44,6 @@
                             <Button fx:id="detailsBtn" text="See Semester Details →" style="-fx-background-color: transparent; -fx-text-fill: #A0522D; -fx-font-family: 'Inter', sans-serif; -fx-cursor: hand;" />
                         </HBox>
 
-                        <HBox alignment="CENTER_LEFT" spacing="15.0">
-                            <ProgressBar fx:id="semesterProgressBar" progress="0.0" prefHeight="10.0" maxWidth="Infinity" HBox.hgrow="ALWAYS" style="-fx-accent: #2ECC71;" />
-                            <Label fx:id="semesterProgressText" text="0% Completed" style="-fx-text-fill: #8C7A6B; -fx-font-family: 'Inter', sans-serif; -fx-font-size: 12px;" />
-                        </HBox>
-
                         <HBox spacing="20.0" style="-fx-padding: 10 0 0 0;">
                             <Label fx:id="termFinalLabel" text="📅 Term Final: TBD" style="-fx-text-fill: #8C7A6B; -fx-font-family: 'Inter', sans-serif; -fx-font-size: 13px;" />
                             <Label fx:id="daysRemainingLabel" text="⏳ Days Remaining: TBD" style="-fx-text-fill: #E74C3C; -fx-font-family: 'Inter', sans-serif; -fx-font-weight: bold; -fx-font-size: 13px;" />
@@ -72,11 +67,11 @@
                             </VBox>
                         </VBox>
 
-                        <VBox HBox.hgrow="ALWAYS" spacing="15.0">
+                        <VBox HBox.hgrow="ALWAYS" spacing="20.0" style="-fx-background-color: #F4F9FA; -fx-border-color: #D6EAF8; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(52, 152, 219, 0.08), 15, 0, 0, 5);">
                             <HBox alignment="CENTER_LEFT" spacing="10">
-                                <Label text="Course Overview" styleClass="kernel-section-header" />
+                                <Label text="Course Overview" style="-fx-font-family: 'Georgia', serif; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;" />
                                 <Region HBox.hgrow="ALWAYS" />
-                                <TextField promptText="Search courses..." style="-fx-background-radius: 15; -fx-background-color: #FFFCF8; -fx-border-color: #E0D5C7; -fx-border-radius: 15; -fx-font-family: 'Inter', sans-serif;" />
+                                <TextField fx:id="searchField" promptText="🔍 Search courses..." style="-fx-background-radius: 20; -fx-background-color: #FFFFFF; -fx-border-color: #BDC3C7; -fx-border-radius: 20; -fx-padding: 5 15; -fx-font-family: 'Inter', sans-serif; -fx-pref-width: 250;" />
                             </HBox>
 
                             <VBox fx:id="courseCardContainer" spacing="15.0">
