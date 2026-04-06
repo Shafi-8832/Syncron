@@ -14,6 +14,9 @@ module com.syncron {
     requires org.kordamp.bootstrapfx.core;
     requires java.desktop;
 
+    requires java.net.http;
+    requires com.google.gson;
+
     // 4. PERMISSIONS (Crucial for FXML to work)
     opens com.syncron to javafx.fxml;
     exports com.syncron;

@@ -28,12 +28,14 @@ public class CommonController {
     private void loadTeacherResources() {
         teacherResourcesContainer.getChildren().clear();
 
-        // 1. Grab the current course from memory, then fetch the real teachers!
+        // 1. Grab the current course from memory, then fetch the real teachers from the Cloud API!
         String currentCourse = SessionManager.getCurrentCourseCode();
         List<User> realTeachers = DatabaseHandler.getTeachersByCourse(currentCourse);
 
+        // 👉 Grab the currently logged in user to verify permissions!
+        User currentUser = SessionManager.getCurrentUser();
+
         for (User teacher : realTeachers) {
-            // 2. The Beautiful Box Container
             VBox teacherBox = new VBox(15);
             teacherBox.setPadding(new Insets(20));
             teacherBox.setStyle("-fx-background-color: #FFFCF8; -fx-border-color: #E0D5C7; -fx-border-radius: 12; -fx-background-radius: 12; -fx-effect: dropshadow(three-pass-box, rgba(74,44,26,0.05), 8, 0, 0, 3);");
@@ -42,7 +44,7 @@ public class CommonController {
             HBox headerBox = new HBox(12);
             headerBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
-            Circle profilePic = new Circle(18, javafx.scene.paint.Color.web("#A0522D")); // Warm brown circle
+            Circle profilePic = new Circle(18, javafx.scene.paint.Color.web("#A0522D"));
 
             VBox nameCol = new VBox(2);
             Label nameLabel = new Label(teacher.getName());
@@ -62,14 +64,40 @@ public class CommonController {
 
             teacherBox.getChildren().addAll(headerBox, resourcesArea);
 
-            // --- Add Resources Button (ONLY for Teachers) ---
-            if (TEACHER_ROLE.equals(SessionManager.getCurrentUserRole())) {
+            // 👉 THE SECURITY LOCKDOWN
+            // Only show the button if the user is a TEACHER, AND their ID perfectly matches this specific teacher!
+            if (currentUser != null && TEACHER_ROLE.equals(currentUser.getRole()) && currentUser.getId().equals(teacher.getId())) {
+
                 Button addResourcesButton = new Button("+ Add Material");
                 addResourcesButton.setStyle("-fx-background-color: #D35400; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
 
                 addResourcesButton.setOnAction(event -> {
-                    addResourcesButton.setText("Feature coming soon!");
-                    addResourcesButton.setDisable(true);
+                    // 1. Open the Native OS File Explorer
+                    javafx.stage.FileChooser fileChooser = new javafx.stage.FileChooser();
+                    fileChooser.setTitle("Select Material to Upload");
+                    java.io.File selectedFile = fileChooser.showOpenDialog(addResourcesButton.getScene().getWindow());
+
+                    if (selectedFile != null) {
+                        addResourcesButton.setText("Uploading...");
+                        addResourcesButton.setDisable(true);
+
+                        // 2. Run the heavy network upload on a Background Thread so the UI doesn't freeze!
+                        new Thread(() -> {
+                            boolean success = com.syncron.utils.MultipartUploader.uploadFileToCloud(selectedFile, currentCourse, currentUser.getId());
+
+                            // 3. Jump back to the Main Thread to update the UI button
+                            javafx.application.Platform.runLater(() -> {
+                                if (success) {
+                                    addResourcesButton.setText("✅ Uploaded!");
+                                    addResourcesButton.setStyle("-fx-background-color: #27AE60; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6;");
+                                } else {
+                                    addResourcesButton.setText("❌ Failed");
+                                    addResourcesButton.setStyle("-fx-background-color: #C0392B; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 6;");
+                                    addResourcesButton.setDisable(false);
+                                }
+                            });
+                        }).start();
+                    }
                 });
 
                 HBox btnContainer = new HBox();

@@ -306,101 +306,60 @@ public class TheoryEvaluationsController {
 
         if (selectedPdfFile != null) {
             try {
-                File uploadDir = new File("uploads");
-                if (!uploadDir.exists()) uploadDir.mkdir();
+                File uploadDir = new File("uploads/assessments");
+                if (!uploadDir.exists()) uploadDir.mkdirs();
 
-                String newFileName = courseCode.replace(" ", "") + "_" + teacherId + "_" + System.currentTimeMillis() + ".pdf";
+                String newFileName = courseCode.replace(" ", "") + "_" + teacherId + "_" + System.currentTimeMillis() + "_" + selectedPdfFile.getName();
                 File destFile = new File(uploadDir, newFileName);
 
                 Files.copy(selectedPdfFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                savedFilePath = destFile.getPath();
+                savedFilePath = destFile.getPath().replace("\\", "\\\\"); // Escape for JSON
             } catch (Exception e) {
                 e.printStackTrace();
-                new Alert(Alert.AlertType.ERROR, "Failed to upload file!").show();
+                new Alert(Alert.AlertType.ERROR, "Failed to process file!").show();
                 return;
             }
         }
 
-        boolean successFlag = false;
+        try {
+            // Escape description text for JSON safety
+            String safeDesc = desc.replace("\"", "\\\"").replace("\n", "\\n");
 
-        try (java.sql.Connection conn = DatabaseHandler.connect();
-             java.sql.Statement alterStmt = conn.createStatement()) {
+            String jsonPayload = String.format(
+                    "{\"courseCode\":\"%s\",\"title\":\"%s\",\"type\":\"%s\",\"targetSections\":\"%s\",\"totalMarks\":\"%s\",\"startDate\":\"%s\",\"startTime\":\"%s\",\"deadlineDate\":\"%s\",\"deadlineTime\":\"%s\",\"description\":\"%s\",\"creatorId\":\"%s\",\"filePath\":\"%s\"}",
+                    courseCode, title, currentType, targetSections, marks, startDateStr, startTimeStr, deadlineDateStr, deadlineTimeStr, safeDesc, teacherId, savedFilePath
+            );
 
-            try { alterStmt.execute("ALTER TABLE evaluations ADD COLUMN start_date TEXT"); } catch (Exception ignore) {}
-            try { alterStmt.execute("ALTER TABLE evaluations ADD COLUMN start_time TEXT"); } catch (Exception ignore) {}
-            try { alterStmt.execute("ALTER TABLE evaluations ADD COLUMN file_path TEXT"); } catch (Exception ignore) {}
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request;
 
+            // 👉 DYNAMIC ROUTING: Update if editing, Post if new!
             if (editId != null && !editId.isEmpty()) {
-                String updateSql;
-                if (selectedPdfFile != null) {
-                    updateSql = "UPDATE evaluations SET title=?, type=?, target_sections=?, total_marks=?, start_date=?, start_time=?, deadline_date=?, deadline_time=?, description=?, file_path=? WHERE id=?";
-                } else {
-                    updateSql = "UPDATE evaluations SET title=?, type=?, target_sections=?, total_marks=?, start_date=?, start_time=?, deadline_date=?, deadline_time=?, description=? WHERE id=?";
-                }
-
-                java.sql.PreparedStatement pstmt = conn.prepareStatement(updateSql);
-                pstmt.setString(1, title);
-                pstmt.setString(2, currentType);
-                pstmt.setString(3, targetSections);
-                pstmt.setString(4, marks);
-                pstmt.setString(5, startDateStr);
-                pstmt.setString(6, startTimeStr);
-                pstmt.setString(7, deadlineDateStr);
-                pstmt.setString(8, deadlineTimeStr);
-                pstmt.setString(9, desc);
-
-                if (selectedPdfFile != null) {
-                    pstmt.setString(10, savedFilePath);
-                    pstmt.setString(11, editId);
-                } else {
-                    pstmt.setString(10, editId);
-                }
-
-                pstmt.executeUpdate();
-                new Alert(Alert.AlertType.INFORMATION, "Assessment Updated Successfully!").showAndWait();
-                successFlag = true;
-
+                request = java.net.http.HttpRequest.newBuilder()
+                        .uri(java.net.URI.create("http://localhost:8080/api/evaluations/" + editId))
+                        .header("Content-Type", "application/json")
+                        .PUT(java.net.http.HttpRequest.BodyPublishers.ofString(jsonPayload))
+                        .build();
             } else {
-                String insertSql = "INSERT INTO evaluations (course_code, title, type, target_sections, total_marks, start_date, start_time, deadline_date, deadline_time, description, creator_id, file_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                request = java.net.http.HttpRequest.newBuilder()
+                        .uri(java.net.URI.create("http://localhost:8080/api/evaluations"))
+                        .header("Content-Type", "application/json")
+                        .POST(java.net.http.HttpRequest.BodyPublishers.ofString(jsonPayload))
+                        .build();
+            }
 
-                java.sql.PreparedStatement pstmt = conn.prepareStatement(insertSql);
-                pstmt.setString(1, courseCode);
-                pstmt.setString(2, title);
-                pstmt.setString(3, currentType);
-                pstmt.setString(4, targetSections);
-                pstmt.setString(5, marks);
-                pstmt.setString(6, startDateStr);
-                pstmt.setString(7, startTimeStr);
-                pstmt.setString(8, deadlineDateStr);
-                pstmt.setString(9, deadlineTimeStr);
-                pstmt.setString(10, desc);
-                pstmt.setString(11, teacherId);
-                pstmt.setString(12, savedFilePath);
-                pstmt.executeUpdate();
+            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
 
-                String announcementText = "🔔 New " + currentType + " Published: " + title + " (Due: " + deadlineDateStr + " " + deadlineTimeStr + ")";
-                String announceSql = "INSERT INTO announcements (course_code, message, timestamp, creator_id) VALUES (?, ?, ?, ?)";
-                try (java.sql.PreparedStatement astmt = conn.prepareStatement(announceSql)) {
-                    astmt.setString(1, courseCode);
-                    astmt.setString(2, announcementText);
-                    astmt.setString(3, LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a")));
-                    astmt.setString(4, teacherId);
-                    astmt.executeUpdate();
-                }
-
-                Alert success = new Alert(Alert.AlertType.INFORMATION, "Assessment Published Successfully!");
-                success.showAndWait();
-                successFlag = true;
+            if (response.statusCode() == 200) {
+                new Alert(Alert.AlertType.INFORMATION, "Assessment Published to Cloud Successfully!").showAndWait();
+                NavigationManager.switchScreen("ct_assignments.fxml"); // Route back to Theory tab
+            } else {
+                new Alert(Alert.AlertType.ERROR, "Cloud Error: Could not publish assessment.").show();
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Failed to publish assessment. Database error.").show();
-        }
-
-        // FIX 2: Safely placed outside the try-catch block
-        if (successFlag) {
-            NavigationManager.switchScreen("ct_assignments.fxml");
+            new Alert(Alert.AlertType.ERROR, "Network Error: Could not connect to Cloud Server.").show();
         }
     }
 

@@ -80,25 +80,28 @@ public class EvaluationDetailsController {
         com.syncron.models.User currentUser = SessionManager.getCurrentUser();
 
         if ("TEACHER".equalsIgnoreCase(currentUser.getRole())) {
-            // edit/delete buttons are always visible to teachers
-            teacherActionBox.setVisible(true);
-            teacherActionBox.setManaged(true);
+            // 1. Show Teacher UI
+            if (teacherActionBox != null) { teacherActionBox.setVisible(true); teacherActionBox.setManaged(true); }
+
+            // 2. HIDE Student UI
+            if (studentViewBox != null) { studentViewBox.setVisible(false); studentViewBox.setManaged(false); }
 
             if ("CT".equals(evaluationType)) {
-                teacherGradingBox.setVisible(false);
-                teacherGradingBox.setManaged(false);
+                if (teacherGradingBox != null) { teacherGradingBox.setVisible(false); teacherGradingBox.setManaged(false); }
             } else {
-                teacherGradingBox.setVisible(true);
-                teacherGradingBox.setManaged(true);
+                if (teacherGradingBox != null) { teacherGradingBox.setVisible(true); teacherGradingBox.setManaged(true); }
                 loadTeacherGradingList();
             }
         } else {
+            // 1. HIDE Teacher UI
+            if (teacherActionBox != null) { teacherActionBox.setVisible(false); teacherActionBox.setManaged(false); }
+            if (teacherGradingBox != null) { teacherGradingBox.setVisible(false); teacherGradingBox.setManaged(false); }
+
+            // 2. Show Student UI
             if ("CT".equals(evaluationType)) {
-                studentViewBox.setVisible(false);
-                studentViewBox.setManaged(false);
+                if (studentViewBox != null) { studentViewBox.setVisible(false); studentViewBox.setManaged(false); }
             } else {
-                studentViewBox.setVisible(true);
-                studentViewBox.setManaged(true);
+                if (studentViewBox != null) { studentViewBox.setVisible(true); studentViewBox.setManaged(true); }
                 loadStudentSubmissionStatus();
             }
         }
@@ -184,43 +187,54 @@ public class EvaluationDetailsController {
     // STUDENT LOGIC (Multi-file, Staging, Deletion)
 
     private void loadStudentSubmissionStatus() {
-        studentFilesContainer.getChildren().clear();
+        if (studentFilesContainer != null) studentFilesContainer.getChildren().clear();
         stagedFiles.clear();
-        saveChangesBtn.setDisable(true); // Disable until new files are chosen
+        if (saveChangesBtn != null) saveChangesBtn.setDisable(true);
 
         String studentId = SessionManager.getCurrentUser().getId();
-        String query = "SELECT file_path, grade FROM submissions WHERE evaluation_id = ? AND student_id = ?";
 
-        try (java.sql.Connection conn = DatabaseHandler.connect();
-             java.sql.PreparedStatement pstmt = conn.prepareStatement(query)) {
+        try {
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/submissions/" + evaluationId + "/" + studentId))
+                    .GET()
+                    .build();
 
-            pstmt.setString(1, evaluationId);
-            pstmt.setString(2, studentId);
-            java.sql.ResultSet rs = pstmt.executeQuery();
+            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
 
-            if (rs.next()) {
-                submissionStatusLabel.setText("Submitted for grading");
-                submissionStatusLabel.setStyle("-fx-text-fill: #2ECC71; -fx-font-weight: bold;");
-                studentGradeLabel.setText(rs.getString("grade"));
-                removeSubBtn.setVisible(true); // Show remove button!
+            if (response.statusCode() == 200) {
+                if (submissionStatusLabel != null) {
+                    submissionStatusLabel.setText("Submitted to Cloud");
+                    submissionStatusLabel.setStyle("-fx-text-fill: #2ECC71; -fx-font-weight: bold;");
+                }
+                if (removeSubBtn != null) removeSubBtn.setVisible(true);
 
-                // Split the paths if there are multiple files (separated by ;)
-                String paths = rs.getString("file_path");
-                if (paths != null && !paths.isEmpty()) {
+                String body = response.body();
+                String paths = extractJsonValue(body, "filePath");
+                String grade = extractJsonValue(body, "grade");
+
+                if (studentGradeLabel != null) studentGradeLabel.setText(grade);
+
+                if (paths != null && !paths.isEmpty() && studentFilesContainer != null) {
                     for (String path : paths.split(";")) {
-                        File f = new File(path);
-                        Label fileLbl = new Label("📎 " + f.getName());
+                        java.io.File f = new java.io.File(path);
+                        javafx.scene.control.Label fileLbl = new javafx.scene.control.Label("📄 " + f.getName());
                         fileLbl.setStyle("-fx-text-fill: #3498DB;");
                         studentFilesContainer.getChildren().add(fileLbl);
                     }
                 }
             } else {
-                submissionStatusLabel.setText("No submission");
-                submissionStatusLabel.setStyle("-fx-text-fill: #E74C3C; -fx-font-weight: bold;");
-                studentFilesContainer.getChildren().add(new Label("No files attached."));
-                removeSubBtn.setVisible(false);
+                if (submissionStatusLabel != null) {
+                    submissionStatusLabel.setText("No submission");
+                    submissionStatusLabel.setStyle("-fx-text-fill: #E74C3C; -fx-font-weight: bold;");
+                }
+                if (studentFilesContainer != null) studentFilesContainer.getChildren().add(new javafx.scene.control.Label("No files attached."));
+                if (removeSubBtn != null) removeSubBtn.setVisible(false);
+                if (studentGradeLabel != null) studentGradeLabel.setText("Not Graded");
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -250,65 +264,66 @@ public class EvaluationDetailsController {
         if (stagedFiles.isEmpty()) return;
 
         try {
-            File uploadDir = new File("uploads/submissions");
+            java.io.File uploadDir = new java.io.File("uploads/submissions");
             if (!uploadDir.exists()) uploadDir.mkdirs();
 
             String studentId = SessionManager.getCurrentUser().getId();
             StringBuilder allPaths = new StringBuilder();
 
-            for (File file : stagedFiles) {
+            for (java.io.File file : stagedFiles) {
                 String newFileName = evaluationId + "_" + studentId + "_" + System.currentTimeMillis() + "_" + file.getName();
-                File destFile = new File(uploadDir, newFileName);
-                Files.copy(file.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                java.io.File destFile = new java.io.File(uploadDir, newFileName);
+                java.nio.file.Files.copy(file.toPath(), destFile.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
                 allPaths.append(destFile.getPath()).append(";");
             }
 
-            // Remove trailing semicolon
             String finalPathString = allPaths.substring(0, allPaths.length() - 1);
 
-            // UPSERT LOGIC
-            boolean exists = false;
-            try (java.sql.Connection conn = DatabaseHandler.connect();
-                 java.sql.PreparedStatement check = conn.prepareStatement("SELECT id FROM submissions WHERE evaluation_id=? AND student_id=?")) {
-                check.setString(1, evaluationId); check.setString(2, studentId);
-                exists = check.executeQuery().next();
+            // 👉 THE CLOUD API CALL (No more Local DB!)
+            String jsonPayload = String.format("{\"assessmentId\":\"%s\",\"studentId\":\"%s\",\"filePath\":\"%s\"}",
+                    evaluationId, studentId, finalPathString.replace("\\", "\\\\"));
+
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/submissions"))
+                    .header("Content-Type", "application/json")
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(jsonPayload))
+                    .build();
+
+            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION, "Changes Saved to Cloud!").show();
+                loadStudentSubmissionStatus(); // Reloads securely from the Cloud!
+            } else {
+                new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR, "Cloud Error!").show();
             }
-
-            String sql = exists
-                    ? "UPDATE submissions SET file_path = ?, submission_time = ? WHERE evaluation_id = ? AND student_id = ?"
-                    : "INSERT INTO submissions (file_path, submission_time, evaluation_id, student_id, grade) VALUES (?, ?, ?, ?, 'Not Graded')";
-
-            try (java.sql.Connection conn = DatabaseHandler.connect();
-                 java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
-                pstmt.setString(1, finalPathString);
-                pstmt.setString(2, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-                pstmt.setString(3, evaluationId);
-                pstmt.setString(4, studentId);
-                pstmt.executeUpdate();
-            }
-
-            new Alert(Alert.AlertType.INFORMATION, "Changes Saved!").show();
-            loadStudentSubmissionStatus(); // Reload UI
 
         } catch (Exception e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Failed to upload submission.").show();
+            new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR, "Failed to upload submission.").show();
         }
     }
 
     @FXML
     private void handleRemoveSubmission() {
         String studentId = SessionManager.getCurrentUser().getId();
-        String sql = "DELETE FROM submissions WHERE evaluation_id = ? AND student_id = ?";
-        try (java.sql.Connection conn = DatabaseHandler.connect();
-             java.sql.PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, evaluationId);
-            pstmt.setString(2, studentId);
-            pstmt.executeUpdate();
+        try {
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/submissions/" + evaluationId + "/" + studentId))
+                    .DELETE()
+                    .build();
 
-            new Alert(Alert.AlertType.INFORMATION, "Submission Removed.").show();
-            loadStudentSubmissionStatus(); // Refresh UI to default
-        } catch (Exception e) { e.printStackTrace(); }
+            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION, "Submission Removed from Cloud.").show();
+                loadStudentSubmissionStatus();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // ==============================================================
@@ -317,60 +332,67 @@ public class EvaluationDetailsController {
 
     private void loadTeacherGradingList() {
         gradingListContainer.getChildren().clear();
-        int count = 0;
 
-        String query = "SELECT s.file_path, s.submission_time, s.grade, u.name, u.id as roll " +
-                "FROM submissions s JOIN users u ON s.student_id = u.id " +
-                "WHERE s.evaluation_id = ?";
+        try {
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/evaluations/" + evaluationId + "/submissions"))
+                    .GET()
+                    .build();
 
-        try (java.sql.Connection conn = DatabaseHandler.connect();
-             java.sql.PreparedStatement pstmt = conn.prepareStatement(query)) {
+            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
 
-            pstmt.setString(1, evaluationId);
-            java.sql.ResultSet rs = pstmt.executeQuery();
+            if (response.statusCode() == 200) {
+                com.google.gson.Gson gson = new com.google.gson.Gson();
+                java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<java.util.Map<String, String>>>(){}.getType();
+                java.util.List<java.util.Map<String, String>> dataList = gson.fromJson(response.body(), listType);
 
-            while (rs.next()) {
-                count++;
-                HBox row = new HBox(15);
-                row.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #ECF0F1; -fx-padding: 15; -fx-border-radius: 6;");
-                row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                int count = dataList.size();
+                hasSubmissions = (count > 0);
+                submissionCountLabel.setText("Submissions (" + count + ")");
 
-                VBox studentInfo = new VBox(5);
-                Label nameLbl = new Label(rs.getString("name") + " (" + rs.getString("roll") + ")");
-                nameLbl.setStyle("-fx-font-weight: bold; -fx-text-fill: #2C3E50;");
+                if (count == 0) {
+                    gradingListContainer.getChildren().add(new Label("No submissions yet."));
+                    return;
+                }
 
-                // Show how many files were submitted
-                String[] files = rs.getString("file_path").split(";");
-                Label timeLbl = new Label("Submitted " + files.length + " file(s) on " + rs.getString("submission_time"));
-                timeLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #7F8C8D;");
-                studentInfo.getChildren().addAll(nameLbl, timeLbl);
+                for (java.util.Map<String, String> rs : dataList) {
+                    HBox row = new HBox(15);
+                    row.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #ECF0F1; -fx-padding: 15; -fx-border-radius: 6;");
+                    row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
-                Region spacer = new Region();
-                HBox.setHgrow(spacer, Priority.ALWAYS);
+                    VBox studentInfo = new VBox(5);
+                    Label nameLbl = new Label(rs.get("name") + " (" + rs.get("roll") + ")");
+                    nameLbl.setStyle("-fx-font-weight: bold; -fx-text-fill: #2C3E50;");
 
-                // Show current grade from DB
-                Label currentGrade = new Label("Grade: " + rs.getString("grade"));
-                currentGrade.setStyle("-fx-font-weight: bold; -fx-text-fill: #D35400;");
+                    String[] files = rs.get("filePath") != null ? rs.get("filePath").split(";") : new String[0];
+                    Label timeLbl = new Label("Submitted " + files.length + " file(s) on " + rs.get("submissionTime"));
+                    timeLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #7F8C8D;");
+                    studentInfo.getChildren().addAll(nameLbl, timeLbl);
 
-                row.getChildren().addAll(studentInfo, spacer, currentGrade);
-                gradingListContainer.getChildren().add(row);
+                    Region spacer = new Region();
+                    HBox.setHgrow(spacer, Priority.ALWAYS);
+
+                    Label currentGrade = new Label("Grade: " + rs.get("grade"));
+                    currentGrade.setStyle("-fx-font-weight: bold; -fx-text-fill: #D35400;");
+
+                    row.getChildren().addAll(studentInfo, spacer, currentGrade);
+                    gradingListContainer.getChildren().add(row);
+                }
+            } else {
+                gradingListContainer.getChildren().add(new Label("Cloud error fetching submissions."));
             }
-            submissionCountLabel.setText("Submissions (" + count + ")");
-
-            hasSubmissions = (count > 0);
-
-            if (count == 0) {
-                gradingListContainer.getChildren().add(new Label("No submissions yet."));
-            }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    // NEW: Excel (CSV) Grading Engine!
+
+    // NEW: Excel (CSV) Grading Engine
     @FXML
     private void handleImportCSV() {
-
         if (!hasSubmissions) {
-            new Alert(Alert.AlertType.WARNING, "There are no submissions to grade yet.");
+            new Alert(Alert.AlertType.WARNING, "There are no submissions to grade yet.").show();
             return;
         }
 
@@ -382,34 +404,49 @@ public class EvaluationDetailsController {
 
         if (csvFile != null) {
             try {
-                List<String> lines = Files.readAllLines(csvFile.toPath());
-                int updatedCount = 0;
+                java.util.List<String> lines = Files.readAllLines(csvFile.toPath());
+                StringBuilder jsonArray = new StringBuilder("[");
 
-                try (java.sql.Connection conn = DatabaseHandler.connect();
-                     java.sql.PreparedStatement pstmt = conn.prepareStatement("UPDATE submissions SET grade = ? WHERE student_id = ? AND evaluation_id = ?")) {
-
-                    for (String line : lines) {
-                        String[] parts = line.split(",");
-                        if (parts.length >= 2) {
-                            String studentId = parts[0].trim();
-                            String grade = parts[1].trim();
-
-                            // Update the DB!
-                            pstmt.setString(1, grade);
-                            pstmt.setString(2, studentId);
-                            pstmt.setString(3, evaluationId);
-                            updatedCount += pstmt.executeUpdate();
-                        }
+                for (String line : lines) {
+                    String[] parts = line.split(",");
+                    if (parts.length >= 2) {
+                        String studentId = parts[0].trim();
+                        String grade = parts[1].trim();
+                        jsonArray.append(String.format("{\"evaluationId\":\"%s\", \"studentId\":\"%s\", \"grade\":\"%s\"},", evaluationId, studentId, grade));
                     }
                 }
-                new Alert(Alert.AlertType.INFORMATION, "Import Successful! " + updatedCount + " grades updated.").show();
-                loadTeacherGradingList(); // Refresh the UI to show the new marks!
+
+                // Remove trailing comma and close array
+                if (jsonArray.length() > 1) {
+                    jsonArray.setLength(jsonArray.length() - 1);
+                }
+                jsonArray.append("]");
+
+                java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+                java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                        .uri(java.net.URI.create("http://localhost:8080/api/submissions/grades"))
+                        .header("Content-Type", "application/json")
+                        .PUT(java.net.http.HttpRequest.BodyPublishers.ofString(jsonArray.toString()))
+                        .build();
+
+                java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() == 200) {
+                    String count = extractJsonValue(response.body(), "count");
+                    new Alert(Alert.AlertType.INFORMATION, "Import Successful! " + count + " grades updated to Cloud.").show();
+                    loadTeacherGradingList();
+                } else {
+                    new Alert(Alert.AlertType.ERROR, "Cloud Error updating grades.").show();
+                }
             } catch (Exception e) {
                 e.printStackTrace();
-                new Alert(Alert.AlertType.ERROR, "Error reading CSV file. Ensure format is: StudentID,Grade").show();
+                new Alert(Alert.AlertType.ERROR, "Error reading CSV or connecting to server.").show();
             }
         }
     }
+
+
+
 
     @FXML
     private void downloadQuestion() {
@@ -483,6 +520,25 @@ public class EvaluationDetailsController {
             SessionManager.setViewProfileId(creatorId);
             // route this to whatever your profile fxml is named
             NavigationManager.switchScreen("view_profile.fxml");
+        }
+    }
+
+    // JSON Helper (Bulletproofed against spaces)
+    private String extractJsonValue(String json, String key) {
+        try {
+            String search = "\"" + key + "\"";
+            int start = json.indexOf(search);
+            if (start == -1) return "";
+
+            start = json.indexOf(":", start) + 1;
+            while (json.charAt(start) == ' ' || json.charAt(start) == '\"') {
+                start++;
+            }
+
+            int end = json.indexOf("\"", start);
+            return end == -1 ? "" : json.substring(start, end);
+        } catch (Exception e) {
+            return "";
         }
     }
 

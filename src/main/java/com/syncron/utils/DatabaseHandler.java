@@ -202,117 +202,122 @@ public class DatabaseHandler {
     public static List<Section> getSectionsForCourse(String courseCode) {
         List<Section> sectionList = new ArrayList<>();
 
-        // SQL : get all weeks, 0, 1, 2, ...
-        String sql = "SELECT * FROM course_sections WHERE course_code = ? ORDER BY  week_number ASC";
+        try {
+            String safeCode = java.net.URLEncoder.encode(courseCode, StandardCharsets.UTF_8.toString());
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/sections/" + safeCode))
+                    .GET()
+                    .build();
 
-        try (Connection conn = connect();
-            PreparedStatement pstmt = conn.prepareStatement(sql))
-        {
-            pstmt.setString(1, courseCode);
-            ResultSet rs = pstmt.executeQuery();
+            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
 
-            while (rs.next()) {
-                // 1. Create the Section Object (The "Week Box")
-                int sectionId = rs.getInt("section_id");
-                String title = rs.getString("title");
-                int weekNum = rs.getInt("week_number");
-                String flair = rs.getString("flair_type");
+            if (response.statusCode() == 200) {
+                com.google.gson.Gson gson = new com.google.gson.Gson();
+                java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<List<java.util.Map<String, Object>>>(){}.getType();
+                List<java.util.Map<String, Object>> dataList = gson.fromJson(response.body(), listType);
 
-                Section newSection = new Section(sectionId, title, weekNum, flair);
+                for (java.util.Map<String, Object> data : dataList) {
+                    int sectionId = ((Double) data.get("id")).intValue();
+                    String title = String.valueOf(data.get("title"));
+                    int weekNum = ((Double) data.get("weekNumber")).intValue();
+                    String flair = String.valueOf(data.get("flairType"));
 
-                // 2. CRITICAL STEP : Fetch the items inside this specific section
-                // We call the helper method
-                List<Module> items = getModulesForSection(sectionId);
+                    // 1. Create the Section
+                    Section newSection = new Section(sectionId, title, weekNum, flair);
 
-                // 3. Add all items to the section
-                for (Module m : items) {
-                    newSection.addModule(m);
+                    // 2. Extract and create the Modules!
+                    List<java.util.Map<String, Object>> rawModules = (List<java.util.Map<String, Object>>) data.get("modules");
+                    if (rawModules != null) {
+                        for (java.util.Map<String, Object> mData : rawModules) {
+                            Module newModule = new Module(
+                                    ((Double) mData.get("id")).intValue(),
+                                    String.valueOf(mData.get("type")),
+                                    String.valueOf(mData.get("title")),
+                                    mData.get("description") != null ? String.valueOf(mData.get("description")) : "",
+                                    mData.get("fileLink") != null ? String.valueOf(mData.get("fileLink")) : "",
+                                    mData.get("dueDate") != null ? String.valueOf(mData.get("dueDate")) : ""
+                            );
+                            newSection.addModule(newModule);
+                        }
+                    }
+
+                    sectionList.add(newSection);
                 }
-
-                // 4. Add the finished section (week) to our main list
-                sectionList.add(newSection);
+            } else {
+                System.out.println("❌ Failed to fetch sections. Status: " + response.statusCode());
             }
-        } catch (SQLException e) {
-            System.out.println("Error fetching sections : " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("❌ Network error fetching sections.");
+            e.printStackTrace();
         }
 
         return sectionList;
     }
 
-    private static List<Module> getModulesForSection(int sectionId) {
-        List<Module> moduleList = new ArrayList<>();
-        String sql = "SELECT * FROM course_modules WHERE section_id = ?";
-
-        try (Connection conn = connect();
-        PreparedStatement pstmt = conn.prepareStatement(sql)){
-
-            pstmt.setInt(1, sectionId);
-            ResultSet rs = pstmt.executeQuery();
-
-            while (rs.next()) {
-                moduleList.add(new Module(
-                        rs.getInt("module_id"),
-                        rs.getString("module_type"),
-                        rs.getString("title"),
-                        rs.getString("description"),
-                        rs.getString("file_link"),
-                        rs.getString("due_date")
-                ));
-            }
-        }
-        catch (SQLException e) {
-            System.out.println("Error fetching modules: " + e.getMessage());
-        }
-
-        return moduleList;
-    }
+    // Deleted!
 
     public static List<Assessment> getAssessmentsForCourse(String courseCode) {
         List<Assessment> assessmentList = new ArrayList<>();
 
-        String sql = "SELECT * FROM assessments WHERE course_code = ? ORDER BY week_number ASC";
+        try {
+            // Encode the space in the course code (e.g. "CSE 105" -> "CSE%20105") for the URL
+            String safeCode = java.net.URLEncoder.encode(courseCode, StandardCharsets.UTF_8.toString());
 
-        try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/assessments/" + safeCode))
+                    .GET()
+                    .build();
 
-            pstmt.setString(1, courseCode);
-            ResultSet rs = pstmt.executeQuery();
+            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
 
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                String code = rs.getString("course_code");
-                int weekNumber = rs.getInt("week_number");
-                String title = rs.getString("title");
-                String dateTime = rs.getString("date_time");
-                String room = rs.getString("room");
-                String assessmentType = rs.getString("assessment_type");
+            if (response.statusCode() == 200) {
+                com.google.gson.Gson gson = new com.google.gson.Gson();
+                java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<List<java.util.Map<String, Object>>>(){}.getType();
+                List<java.util.Map<String, Object>> dataList = gson.fromJson(response.body(), listType);
 
-                switch (assessmentType) {
-                    case "CT":
-                        String syllabus = rs.getString("syllabus");
-                        int totalMarks = rs.getInt("total_marks");
-                        assessmentList.add(new CT(id, code, weekNumber, title, dateTime, room, syllabus, totalMarks));
-                        break;
-                    case "Assignment":
-                        String assignmentLink = rs.getString("submission_link");
-                        assessmentList.add(new Assignment(id, code, weekNumber, title, dateTime, room, assignmentLink));
-                        break;
-                    case "Offline":
-                        String offlineLink = rs.getString("submission_link");
-                        assessmentList.add(new Offline(id, code, weekNumber, title, dateTime, room, offlineLink));
-                        break;
-                    case "Online":
-                        String onlineDuration = rs.getString("duration");
-                        assessmentList.add(new Online(id, code, weekNumber, title, dateTime, room, onlineDuration));
-                        break;
-                    case "Quiz":
-                        String quizDuration = rs.getString("duration");
-                        assessmentList.add(new Quiz(id, code, weekNumber, title, dateTime, room, quizDuration));
-                        break;
+                for (java.util.Map<String, Object> data : dataList) {
+                    // Safely extract our data
+                    int id = ((Double) data.get("id")).intValue(); // Gson reads numbers as Doubles by default
+                    String code = String.valueOf(data.get("courseCode"));
+                    int weekNumber = ((Double) data.get("weekNumber")).intValue();
+                    String title = String.valueOf(data.get("title"));
+                    String dateTime = String.valueOf(data.get("dateTime"));
+                    String room = data.get("room") != null ? String.valueOf(data.get("room")) : "";
+                    String assessmentType = String.valueOf(data.get("assessmentType"));
+
+                    // Instantiate the correct object based on your model classes!
+                    switch (assessmentType) {
+                        case "CT":
+                            String syllabus = String.valueOf(data.get("syllabus"));
+                            int totalMarks = data.get("totalMarks") != null ? ((Double) data.get("totalMarks")).intValue() : 0;
+                            assessmentList.add(new CT(id, code, weekNumber, title, dateTime, room, syllabus, totalMarks));
+                            break;
+                        case "Assignment":
+                            String assignmentLink = String.valueOf(data.get("submissionLink"));
+                            assessmentList.add(new Assignment(id, code, weekNumber, title, dateTime, room, assignmentLink));
+                            break;
+                        case "Offline":
+                            String offlineLink = String.valueOf(data.get("submissionLink"));
+                            assessmentList.add(new Offline(id, code, weekNumber, title, dateTime, room, offlineLink));
+                            break;
+                        case "Online":
+                            String onlineDuration = String.valueOf(data.get("duration"));
+                            assessmentList.add(new Online(id, code, weekNumber, title, dateTime, room, onlineDuration));
+                            break;
+                        case "Quiz":
+                            String quizDuration = String.valueOf(data.get("duration"));
+                            assessmentList.add(new Quiz(id, code, weekNumber, title, dateTime, room, quizDuration));
+                            break;
+                    }
                 }
+            } else {
+                System.out.println("❌ Failed to fetch assessments. Status: " + response.statusCode());
             }
-        } catch (SQLException e) {
-            System.out.println("Error fetching assessments: " + e.getMessage());
+        } catch (Exception e) {
+            System.out.println("❌ Network error fetching assessments.");
+            e.printStackTrace();
         }
 
         return assessmentList;
@@ -592,28 +597,35 @@ public class DatabaseHandler {
     // Fetch teachers linked to a specific course
     public static List<User> getTeachersByCourse(String courseCode) {
         List<User> teachers = new java.util.ArrayList<>();
-        String query = "SELECT u.id, u.name, u.email, u.password, u.role, u.status " +
-                "FROM users u " +
-                "JOIN teacher_courses tc ON u.id = tc.teacher_id " +
-                "WHERE tc.course_code = ?";
+        try {
+            String safeCode = java.net.URLEncoder.encode(courseCode, java.nio.charset.StandardCharsets.UTF_8.toString());
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/courses/" + safeCode + "/teachers"))
+                    .GET()
+                    .build();
 
-        try (Connection conn = connect();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
-            pstmt.setString(1, courseCode);
-            ResultSet rs = pstmt.executeQuery();
+            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
 
-            while (rs.next()) {
-                Teacher t = new Teacher(
-                        rs.getString("id"),
-                        rs.getString("name"),
-                        rs.getString("email"),
-                        rs.getString("password"),
-                        "Teacher"
-                );
-                teachers.add(t);
+            if (response.statusCode() == 200) {
+                com.google.gson.Gson gson = new com.google.gson.Gson();
+                java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<List<java.util.Map<String, String>>>(){}.getType();
+                List<java.util.Map<String, String>> dataList = gson.fromJson(response.body(), listType);
+
+                for (java.util.Map<String, String> data : dataList) {
+                    // Match the Teacher constructor: Teacher(id, name, email, password, designation)
+                    com.syncron.models.Teacher t = new com.syncron.models.Teacher(
+                            data.get("id"),
+                            data.get("name"),
+                            data.get("email"),
+                            "",
+                            "Lecturer"
+                    );
+                    teachers.add(t);
+                }
             }
-        } catch (java.sql.SQLException e) {
-            System.out.println(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return teachers;
     }

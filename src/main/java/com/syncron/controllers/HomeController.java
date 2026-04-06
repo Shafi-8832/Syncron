@@ -48,7 +48,7 @@ public class HomeController {
     @FXML
     public void initialize() throws SQLException {
         // 1. Load the real courses once from the database into memory
-        allCourses = DatabaseHandler.getAllCourses();
+        allCourses = fetchCoursesFromServer();
         renderCourses(allCourses);
 
         // 2. 👉 THE SEARCH ENGINE LISTENER
@@ -73,6 +73,49 @@ public class HomeController {
             String FirstName = currentUser.getName().split(" ")[0];
             welcomeLabel.setText("Welcome Back, " + FirstName + "!");
         }
+    }
+
+    private java.util.List<Course> fetchCoursesFromServer() {
+        java.util.List<Course> downloadedCourses = new java.util.ArrayList<>();
+        try {
+            System.out.println("⏳ Attempting to fetch courses from server...");
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/courses"))
+                    .GET()
+                    .build();
+
+            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                System.out.println("✅ Server responded 200 OK! Parsing JSON...");
+
+                com.google.gson.Gson gson = new com.google.gson.Gson();
+                // UPGRADE: Changed String, String to String, Object to prevent Number format crashes!
+                java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<java.util.Map<String, Object>>>(){}.getType();
+                java.util.List<java.util.Map<String, Object>> courseData = gson.fromJson(response.body(), listType);
+
+                for (java.util.Map<String, Object> data : courseData) {
+                    // UPGRADE: Safely force everything to a String so the Course constructor doesn't panic
+                    String cCode = String.valueOf(data.get("courseCode"));
+                    String cTitle = String.valueOf(data.get("courseTitle"));
+                    String cType = String.valueOf(data.get("type"));
+
+                    // Handle numbers like 3.0 gracefully without decimal trailing if needed, or just pass as string
+                    String cCredits = String.valueOf(data.get("credits"));
+
+                    Course c = new Course(cCode, cTitle, cCredits, cType);
+                    downloadedCourses.add(c);
+                }
+                System.out.println("🎯 Successfully rendered " + downloadedCourses.size() + " courses to UI!");
+            } else {
+                System.out.println("❌ Server refused to send courses. HTTP Status: " + response.statusCode());
+            }
+        } catch (Exception e) {
+            System.out.println("❌ CRASH during course fetch/parse:");
+            e.printStackTrace();
+        }
+        return downloadedCourses;
     }
 
     private void loadSemesterData() {
@@ -201,34 +244,53 @@ public class HomeController {
     }
 
     // 4. Load urgent deadlines with this method
-    private void loadUrgentDeadlines() throws SQLException {
-        // 1. Ask the DB for the next 7 days of task.
-        List<com.syncron.models.Module> urgentTasks = DatabaseHandler.getUpcomingDeadlines();
+    private void loadUrgentDeadlines() {
+        urgentContainer.getChildren().clear();
 
-        // 2. If there's no homework
-        if (urgentTasks.isEmpty()) {
-            Label emptyMsg = new Label("No dues left. Relax! ☕");
-            emptyMsg.setStyle("-fx-text-fill: #7F8C8D; -fx-font-style: italic;");
-            urgentContainer.getChildren().add(emptyMsg);
-            return;
-        }
+        Label headerLbl = new Label("🔥 Upcoming Deadlines");
+        headerLbl.getStyleClass().add("kernel-accent-text");
+        urgentContainer.getChildren().add(headerLbl);
 
-        // 3. Not empty : Loop through the tasks and build the UI
-        for (Module task : urgentTasks) {
-            VBox taskBox = new VBox(2); // 2px spacing
+        try {
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/dashboard/urgent"))
+                    .GET()
+                    .build();
 
-            // Task Title
-            Label titleLabel = new Label("• " + task.getTitle());
-            titleLabel.setStyle("-fx-text-fill: #2C3E50; -fx-font-weight: bold; -fx-font-size: 12px;");
-            titleLabel.setWrapText(true);
+            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
 
-            // Task Date
-            Label dateLabel = new Label("Due: " + task.getDueDate());
-            dateLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #E74C3C; -fx-padding: 0 0 0 10;");
+            if (response.statusCode() == 200) {
+                com.google.gson.Gson gson = new com.google.gson.Gson();
+                java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<java.util.Map<String, String>>>(){}.getType();
+                java.util.List<java.util.Map<String, String>> urgentTasks = gson.fromJson(response.body(), listType);
 
-            taskBox.getChildren().addAll(titleLabel, dateLabel);
+                if (urgentTasks.isEmpty()) {
+                    Label emptyMsg = new Label("No dues left. Relax! ☕");
+                    emptyMsg.setStyle("-fx-text-fill: #7F8C8D; -fx-font-style: italic;");
+                    urgentContainer.getChildren().add(emptyMsg);
+                    return;
+                }
 
-            urgentContainer.getChildren().add(taskBox);
+                for (java.util.Map<String, String> task : urgentTasks) {
+                    VBox taskBox = new VBox(2);
+
+                    Label titleLabel = new Label("• " + task.get("title"));
+                    titleLabel.setStyle("-fx-text-fill: #2C3E50; -fx-font-weight: bold; -fx-font-size: 12px;");
+                    titleLabel.setWrapText(true);
+
+                    Label dateLabel = new Label("Due: " + task.get("dueDate"));
+                    dateLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #E74C3C; -fx-padding: 0 0 0 10;");
+
+                    taskBox.getChildren().addAll(titleLabel, dateLabel);
+                    urgentContainer.getChildren().add(taskBox);
+                }
+            } else {
+                urgentContainer.getChildren().add(new Label("Cloud error fetching deadlines."));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            urgentContainer.getChildren().add(new Label("Network error."));
         }
     }
 }
