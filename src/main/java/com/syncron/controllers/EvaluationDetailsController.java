@@ -5,6 +5,7 @@ import com.syncron.utils.DatabaseHandler;
 import com.syncron.utils.NavigationManager;
 import com.syncron.utils.TimeEngine;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -24,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class EvaluationDetailsController {
 
@@ -70,6 +72,13 @@ public class EvaluationDetailsController {
     // The Staging Memory for Students
     private List<File> stagedFiles = new ArrayList<>();
 
+
+    // UI & Search Memory
+    private List<Map<String, String>> allSubmissionsList = new ArrayList<>();
+    private TextField searchSubmissionsField;
+    private VBox submissionsWrapperBox;
+
+
     @FXML
     public void initialize() {
         evaluationId = SessionManager.getCurrentEvaluationId();
@@ -108,28 +117,27 @@ public class EvaluationDetailsController {
     }
 
     private void loadEvaluationData() {
-        // updated query to fetch the creator's full name alongside the evaluation data
-        String query = "SELECT e.*, u.name AS creator_name FROM evaluations e " +
-                "JOIN users u ON e.creator_id = u.id WHERE e.id = ?";
+        try {
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/evaluations/details/" + evaluationId))
+                    .GET().build();
 
-        try (java.sql.Connection conn = DatabaseHandler.connect();
-             java.sql.PreparedStatement pstmt = conn.prepareStatement(query)) {
+            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
 
-            pstmt.setString(1, evaluationId);
-            java.sql.ResultSet rs = pstmt.executeQuery();
+            if (response.statusCode() == 200) {
+                com.google.gson.Gson gson = new com.google.gson.Gson();
+                java.lang.reflect.Type type = new com.google.gson.reflect.TypeToken<java.util.Map<String, String>>(){}.getType();
+                java.util.Map<String, String> rs = gson.fromJson(response.body(), type);
 
-            if (rs.next()) {
-                titleLabel.setText(rs.getString("title"));
-                marksLabel.setText("Marks: " + rs.getString("total_marks"));
-                descLabel.setText(rs.getString("description"));
+                titleLabel.setText(rs.get("title"));
+                marksLabel.setText("Marks: " + rs.get("totalMarks"));
+                descLabel.setText(rs.get("description"));
 
-                evaluationType = rs.getString("type");
+                evaluationType = rs.get("type");
+                creatorLink.setText(rs.get("creatorName"));
+                creatorId = rs.get("creatorId");
 
-                // set the creator name and store their id for the profile link
-                creatorLink.setText(rs.getString("creator_name"));
-                creatorId = rs.getString("creator_id");
-
-                // completely hide the opened/due dates if it is a ct
                 if ("CT".equals(evaluationType)) {
                     datesBox.setVisible(false);
                     datesBox.setManaged(false);
@@ -138,22 +146,20 @@ public class EvaluationDetailsController {
                     datesBox.setManaged(true);
                 }
 
-                attachedFilePath = rs.getString("file_path");
+                attachedFilePath = rs.get("file_path");
                 if (attachedFilePath != null && !attachedFilePath.equals("None")) {
                     File f = new File(attachedFilePath);
-                    downloadQuestionBtn.setText("📄 " + f.getName());
+                    downloadQuestionBtn.setText("📄 " + cleanFileName(f.getName())); // 👉 CLEANED!
                 }
 
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-                String startStr = rs.getString("start_date") + " " + rs.getString("start_time");
-                String endStr = rs.getString("deadline_date") + " " + rs.getString("deadline_time");
+                String startStr = rs.get("startDate") + " " + rs.get("startTime");
+                String endStr = rs.get("deadlineDate") + " " + rs.get("deadlineTime");
 
                 try {
                     LocalDateTime startTime = LocalDateTime.parse(startStr, formatter);
                     LocalDateTime endTime = LocalDateTime.parse(endStr, formatter);
-                    evaluationType = rs.getString("type");
 
-                    // 👉 ADDED: Display exact dates beautifully!
                     DateTimeFormatter displayFormat = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy, h:mm a");
                     openedTimeLabel.setText("Opened: " + startTime.format(displayFormat));
                     closedTimeLabel.setText("Due: " + endTime.format(displayFormat));
@@ -161,7 +167,6 @@ public class EvaluationDetailsController {
                     String engineType = (evaluationType.equals("CT") || evaluationType.equals("ONLINE")) ? "ONLINE" : "OFFLINE";
                     TimeEngine.startLiveCountdown(statusClockLabel, engineType, startTime, endTime);
 
-                    // THE UX FIX: Make the lock obvious
                     if (evaluationType.equals("ONLINE") && LocalDateTime.now().isBefore(startTime)) {
                         if (!"TEACHER".equalsIgnoreCase(SessionManager.getCurrentUser().getRole())) {
                             downloadQuestionBtn.setText("🔒 Unlocks at " + startTime.format(DateTimeFormatter.ofPattern("hh:mm a")));
@@ -218,11 +223,13 @@ public class EvaluationDetailsController {
                 if (paths != null && !paths.isEmpty() && studentFilesContainer != null) {
                     for (String path : paths.split(";")) {
                         java.io.File f = new java.io.File(path);
-                        javafx.scene.control.Label fileLbl = new javafx.scene.control.Label("📄 " + f.getName());
+                        // 👉 THE FIX: Wrap f.getName() inside cleanFileName()
+                        javafx.scene.control.Label fileLbl = new javafx.scene.control.Label("📄 " + cleanFileName(f.getName()));
                         fileLbl.setStyle("-fx-text-fill: #3498DB;");
                         studentFilesContainer.getChildren().add(fileLbl);
                     }
                 }
+
             } else {
                 if (submissionStatusLabel != null) {
                     submissionStatusLabel.setText("No submission");
@@ -333,57 +340,121 @@ public class EvaluationDetailsController {
     private void loadTeacherGradingList() {
         gradingListContainer.getChildren().clear();
 
+        // 1. Build the Search Bar & Glowing Container ONCE
+        searchSubmissionsField = new TextField();
+        searchSubmissionsField.setPromptText("🔍 Search by Student Name or Roll...");
+        searchSubmissionsField.setStyle("-fx-background-radius: 20; -fx-border-radius: 20; -fx-padding: 10 15; -fx-border-color: #BDC3C7; -fx-background-color: white; -fx-font-family: 'Inter', sans-serif;");
+        searchSubmissionsField.textProperty().addListener((obs, old, newVal) -> renderSubmissions(newVal));
+
+        submissionsWrapperBox = new VBox(15);
+        // 👉 THE GLOWING LIGHT BLUE BOX!
+        submissionsWrapperBox.setStyle("-fx-background-color: #F4FAFE; -fx-border-color: #85C1E9; -fx-border-width: 2; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(52, 152, 219, 0.3), 15, 0, 0, 0);");
+
+        gradingListContainer.getChildren().addAll(searchSubmissionsField, submissionsWrapperBox);
+
+        // 2. Fetch Data
         try {
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
                     .uri(java.net.URI.create("http://localhost:8080/api/evaluations/" + evaluationId + "/submissions"))
-                    .GET()
-                    .build();
+                    .GET().build();
 
             java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200) {
                 com.google.gson.Gson gson = new com.google.gson.Gson();
-                java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<java.util.Map<String, String>>>(){}.getType();
-                java.util.List<java.util.Map<String, String>> dataList = gson.fromJson(response.body(), listType);
+                java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<List<Map<String, String>>>(){}.getType();
+                allSubmissionsList = gson.fromJson(response.body(), listType);
 
-                int count = dataList.size();
+                int count = allSubmissionsList.size();
                 hasSubmissions = (count > 0);
                 submissionCountLabel.setText("Submissions (" + count + ")");
 
-                if (count == 0) {
-                    gradingListContainer.getChildren().add(new Label("No submissions yet."));
-                    return;
-                }
-
-                for (java.util.Map<String, String> rs : dataList) {
-                    HBox row = new HBox(15);
-                    row.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #ECF0F1; -fx-padding: 15; -fx-border-radius: 6;");
-                    row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-
-                    VBox studentInfo = new VBox(5);
-                    Label nameLbl = new Label(rs.get("name") + " (" + rs.get("roll") + ")");
-                    nameLbl.setStyle("-fx-font-weight: bold; -fx-text-fill: #2C3E50;");
-
-                    String[] files = rs.get("filePath") != null ? rs.get("filePath").split(";") : new String[0];
-                    Label timeLbl = new Label("Submitted " + files.length + " file(s) on " + rs.get("submissionTime"));
-                    timeLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #7F8C8D;");
-                    studentInfo.getChildren().addAll(nameLbl, timeLbl);
-
-                    Region spacer = new Region();
-                    HBox.setHgrow(spacer, Priority.ALWAYS);
-
-                    Label currentGrade = new Label("Grade: " + rs.get("grade"));
-                    currentGrade.setStyle("-fx-font-weight: bold; -fx-text-fill: #D35400;");
-
-                    row.getChildren().addAll(studentInfo, spacer, currentGrade);
-                    gradingListContainer.getChildren().add(row);
-                }
-            } else {
-                gradingListContainer.getChildren().add(new Label("Cloud error fetching submissions."));
+                renderSubmissions(""); // Render all initially
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    // THE FILTERING & RENDERING ENGINE
+    private void renderSubmissions(String query) {
+        submissionsWrapperBox.getChildren().clear();
+
+        if (allSubmissionsList.isEmpty()) {
+            submissionsWrapperBox.getChildren().add(new Label("No submissions yet."));
+            return;
+        }
+
+        String lowerQuery = query.toLowerCase();
+
+        for (Map<String, String> rs : allSubmissionsList) {
+            String stuName = rs.get("name");
+            String stuRoll = rs.get("roll");
+
+            // Search Filter
+            if (!stuName.toLowerCase().contains(lowerQuery) && !stuRoll.toLowerCase().contains(lowerQuery)) continue;
+
+            VBox row = new VBox(10);
+            row.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #ECF0F1; -fx-padding: 15; -fx-border-radius: 8; -fx-background-radius: 8;");
+
+            HBox topRow = new HBox(15);
+            topRow.setAlignment(Pos.CENTER_LEFT);
+
+            VBox studentInfo = new VBox(2);
+            Label nameLbl = new Label(stuName + " (" + stuRoll + ")");
+            nameLbl.setStyle("-fx-font-weight: bold; -fx-text-fill: #2C3E50; -fx-font-size: 14px;");
+
+            // THE BEAUTIFUL DATE FORMATTER v.2
+            String rawDate = rs.get("submissionTime");
+            String niceDate = rawDate;
+            try {
+                LocalDateTime dt;
+                // If it has a 'T', it's a Spring Boot ISO Timestamp. Otherwise, it's a raw SQL string.
+                if (rawDate != null && rawDate.contains("T")) {
+                    dt = LocalDateTime.parse(rawDate);
+                } else {
+                    dt = LocalDateTime.parse(rawDate, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                }
+                niceDate = dt.format(DateTimeFormatter.ofPattern("d MMMM yyyy, hh:mm a"));
+            } catch (Exception ignored) {}
+
+            Label timeLbl = new Label("Submitted on: " + niceDate);
+            timeLbl.setStyle("-fx-font-size: 12px; -fx-text-fill: #7F8C8D;");
+            studentInfo.getChildren().addAll(nameLbl, timeLbl);
+
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS);
+
+            Label currentGrade = new Label("Grade: " + rs.get("grade"));
+            currentGrade.setStyle("-fx-font-weight: bold; -fx-text-fill: #D35400; -fx-font-size: 14px;");
+
+            topRow.getChildren().addAll(studentInfo, spacer, currentGrade);
+            row.getChildren().add(topRow);
+
+            // THE PREMIUM DOWNLOAD BUTTONS FOR FILES
+            String[] files = rs.get("filePath") != null ? rs.get("filePath").split(";") : new String[0];
+            if (files.length > 0 && !files[0].isEmpty()) {
+                HBox filesBox = new HBox(10);
+                filesBox.setStyle("-fx-padding: 10 0 0 0;");
+                for (String filePath : files) {
+                    if (filePath.trim().isEmpty()) continue;
+
+                    String cleanName = cleanFileName(new File(filePath).getName());
+                    Button dlBtn = new Button("⬇ Download: " + cleanName);
+
+                    String baseStyle = "-fx-background-color: transparent; -fx-text-fill: #3498DB; -fx-font-weight: bold; -fx-cursor: hand; -fx-border-color: #3498DB; -fx-border-radius: 20; -fx-padding: 4 12; -fx-font-size: 11px;";
+                    String hoverStyle = baseStyle + " -fx-background-color: #3498DB; -fx-text-fill: white; -fx-effect: dropshadow(three-pass-box, rgba(52, 152, 219, 0.4), 10, 0, 0, 0);";
+
+                    dlBtn.setStyle(baseStyle);
+                    dlBtn.setOnMouseEntered(e -> dlBtn.setStyle(hoverStyle));
+                    dlBtn.setOnMouseExited(e -> dlBtn.setStyle(baseStyle));
+
+                    dlBtn.setOnAction(e -> downloadFile(filePath, cleanName));
+                    filesBox.getChildren().add(dlBtn);
+                }
+                row.getChildren().add(filesBox);
+            }
+
+            submissionsWrapperBox.getChildren().add(row);
         }
     }
 
@@ -539,6 +610,25 @@ public class EvaluationDetailsController {
             return end == -1 ? "" : json.substring(start, end);
         } catch (Exception e) {
             return "";
+        }
+    }
+
+
+    private String cleanFileName(String rawName) {
+        if (rawName == null) return "";
+        return rawName.replaceFirst("^.*?_\\d{13}_", "");
+    }
+
+    private void downloadFile(String sourcePath, String cleanName) {
+        File sourceFile = new File(sourcePath);
+        if (!sourceFile.exists()) return;
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Save Submission");
+        fileChooser.setInitialFileName(cleanName);
+        File destFile = fileChooser.showSaveDialog(titleLabel.getScene().getWindow());
+        if (destFile != null) {
+            try { Files.copy(sourceFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING); }
+            catch (Exception e) { e.printStackTrace(); }
         }
     }
 

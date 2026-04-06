@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.syncron.controllers.CreateAnnouncementController">
+    <VBox spacing="20" style="-fx-padding: 30; -fx-background-color: transparent;">
+
+        <Label text="Create Course Announcement" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2C3E50; -fx-font-family: 'Georgia', serif;"/>
+
+        <VBox spacing="15" style="-fx-background-color: #FFFFFF; -fx-border-color: #EAECEE; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 5);">
+
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <Label text="👤" style="-fx-font-size: 28px; -fx-text-fill: #3498DB;"/>
+                <VBox>
+                    <Label fx:id="authorNameLabel" text="Loading Name..." style="-fx-font-weight: bold; -fx-text-fill: #2C3E50; -fx-font-size: 15px;"/>
+                    <Label text="Instructor" style="-fx-text-fill: #7F8C8D; -fx-font-size: 11px;"/>
+                </VBox>
+            </HBox>
+
+            <TextArea fx:id="postBodyInput" promptText="What's on your mind? Share an update, link, or announcement with the class..." wrapText="true" prefRowCount="6"
+                      style="-fx-font-family: 'Inter', sans-serif; -fx-font-size: 15px; -fx-control-inner-background: #FAFCFC; -fx-background-color: transparent; -fx-border-color: #D5DBDB; -fx-border-radius: 8; -fx-padding: 5;"/>
+
+            <HBox alignment="CENTER_RIGHT" spacing="15" style="-fx-padding: 10 0 0 0;">
+                <Button text="📎 Attach Assessment" onAction="#handleAttachAssessment" style="-fx-background-color: transparent; -fx-text-fill: #E67E22; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 14px;"/>
+                <Region HBox.hgrow="ALWAYS" />
+                <Button text="Cancel" onAction="#handleCancel" style="-fx-background-color: transparent; -fx-text-fill: #95A5A6; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 14px;"/>
+                <Button fx:id="publishBtn" text="Publish Post" onAction="#handlePublish" style="-fx-background-color: #2980B9; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 25; -fx-background-radius: 20; -fx-cursor: hand; -fx-font-size: 14px;"/>
+            </HBox>
+        </VBox>
+    </VBox>
+</ScrollPane>

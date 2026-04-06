@@ -51,4 +51,13 @@ public class SessionManager {
     public static String getLastSidebarTab() { return lastSidebarTab; }
     public static void setLastSidebarTab(String tab) { lastSidebarTab = tab; }
 
+    //
+    private static String currentCourseType;
+    public static String getCurrentCourseType() { return currentCourseType; }
+    public static void setCurrentCourseType(String type) { currentCourseType = type; }
+
+
+    private static String currentAnnouncementId;
+    public static String getCurrentAnnouncementId() { return currentAnnouncementId; }
+    public static void setCurrentAnnouncementId(String id) { currentAnnouncementId = id; }
 }

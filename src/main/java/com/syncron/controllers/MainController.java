@@ -44,7 +44,7 @@ public class MainController {
     private Button activeButton;
 
     // Common sidebar items for both theory and sessional
-    private static final String[] COMMON_BUTTONS = {"Common"};
+    private static final String[] COMMON_BUTTONS = {"Common", "Announcements"};
 
     // Theory-specific sidebar items
     private static final String[] THEORY_BUTTONS = {"CT and Assignments", "Weekly Timeline", "Grades", "Participants"};
@@ -56,6 +56,7 @@ public class MainController {
     private String getFxmlPathForButton(String buttonLabel) {
         return switch (buttonLabel) {
             case "Common" -> "common.fxml";
+            case "Announcements" -> "announcements.fxml"; //
             case "CT and Assignments" -> "ct_assignments.fxml";
             case "Weekly Timeline" -> "weekly_timeline.fxml";
             case "Grades" -> "grades.fxml";
@@ -97,25 +98,6 @@ public class MainController {
     }
 
     /**
-     * Configure the layout for a specific course.
-     * @param courseCode the course code (e.g., "CSE 108")
-     * @param courseType "theory" or "sessional"
-     */
-    public void setCourseContext(String courseCode, String courseType) {
-        setCourseContext(courseCode, "", courseType, "3.0");
-    }
-
-    /**
-     * Configure the layout for a specific course with title.
-     * @param courseCode the course code (e.g., "CSE 108")
-     * @param courseTitle the course title (e.g., "Object Oriented Programming")
-     * @param courseType "theory" or "sessional"
-     */
-    public void setCourseContext(String courseCode, String courseTitle, String courseType) {
-        setCourseContext(courseCode, courseTitle, courseType, "3.0");
-    }
-
-    /**
      * Configure the layout for a specific course with title and credits.
      * @param courseCode the course code (e.g., "CSE 108")
      * @param courseTitle the course title (e.g., "Object Oriented Programming")
@@ -126,6 +108,8 @@ public class MainController {
         this.courseCode = courseCode != null ? courseCode : "";
         this.courseTitle = courseTitle != null ? courseTitle : "";
         this.courseType = courseType != null ? courseType.toLowerCase() : "theory";
+        SessionManager.setCurrentCourseType(courseType);
+
         this.courseCredits = credits != null ? credits : "3.0";
         buildSidebar();
         updateCourseHeader();
@@ -362,6 +346,21 @@ public class MainController {
             contentArea.getChildren().setAll(evaluationsView);
         } catch (java.io.IOException e) {
             e.printStackTrace();
+        }
+    }
+
+
+    /**
+     * Forces the sidebar to highlight a specific button visually without triggering its click event.
+     */
+    public void forceSidebarSelection(String labelText) {
+        for (javafx.scene.Node node : sidebarButtonContainer.getChildren()) {
+            if (node instanceof Button btn) {
+                if (btn.getText().equals(labelText)) {
+                    setActiveButton(btn);
+                    break;
+                }
+            }
         }
     }
 }

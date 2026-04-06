@@ -4,6 +4,7 @@ import com.syncron.models.Course;
 import com.syncron.models.Module;
 import com.syncron.models.User;
 import com.syncron.utils.DatabaseHandler;
+import com.syncron.utils.NavigationManager;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -247,8 +248,12 @@ public class HomeController {
     private void loadUrgentDeadlines() {
         urgentContainer.getChildren().clear();
 
+        // Apply the new glowing red CSS
+        urgentContainer.getStyleClass().clear();
+        urgentContainer.getStyleClass().add("glow-box-red");
+
         Label headerLbl = new Label("🔥 Upcoming Deadlines");
-        headerLbl.getStyleClass().add("kernel-accent-text");
+        headerLbl.setStyle("-fx-text-fill: #C0392B; -fx-font-weight: bold; -fx-font-size: 15px; -fx-padding: 0 0 10 0;");
         urgentContainer.getChildren().add(headerLbl);
 
         try {
@@ -273,24 +278,101 @@ public class HomeController {
                 }
 
                 for (java.util.Map<String, String> task : urgentTasks) {
-                    VBox taskBox = new VBox(2);
+                    VBox taskBox = new VBox(4); // Slightly more spacing
+                    taskBox.setStyle("-fx-padding: 8 0; -fx-cursor: hand;");
 
                     Label titleLabel = new Label("• " + task.get("title"));
-                    titleLabel.setStyle("-fx-text-fill: #2C3E50; -fx-font-weight: bold; -fx-font-size: 12px;");
+                    titleLabel.getStyleClass().add("clean-link");
+                    // BIGGER, PREMIUM FONT
+                    titleLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
                     titleLabel.setWrapText(true);
 
-                    Label dateLabel = new Label("Due: " + task.get("dueDate"));
-                    dateLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #E74C3C; -fx-padding: 0 0 0 10;");
+                    // --- TIME CALCULATION ENGINE ---
+                    String dueText = "Due: " + task.get("dueDate");
+                    try {
+                        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+                        java.time.LocalDateTime deadline = java.time.LocalDateTime.parse(task.get("dueDate") + " " + task.get("dueTime"), formatter);
+
+                        long daysLeft = java.time.temporal.ChronoUnit.DAYS.between(now, deadline);
+                        long hoursLeft = java.time.temporal.ChronoUnit.HOURS.between(now, deadline) % 24;
+
+                        java.time.format.DateTimeFormatter niceDate = java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy");
+
+                        if (daysLeft > 0) {
+                            dueText = deadline.format(niceDate) + " (" + daysLeft + " days Left)";
+                        } else if (hoursLeft > 0) {
+                            dueText = "Today (" + hoursLeft + " hours Left)";
+                        } else {
+                            dueText = "Due Very Soon!";
+                        }
+                    } catch (Exception ignored) {}
+
+                    Label dateLabel = new Label(dueText);
+                    // 👉 BIGGER FONT FOR DATES
+                    dateLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #E74C3C; -fx-padding: 0 0 0 15; -fx-font-weight: bold;");
 
                     taskBox.getChildren().addAll(titleLabel, dateLabel);
+
+                    // THE FIX: SAFE CLICK ROUTING
+// CLICK ROUTING
+                    taskBox.setOnMouseClicked(e -> {
+                        String courseCode = task.get("title").split(" - ")[0].trim();
+                        // Pass the TYPE to the teleporter
+                        openEvaluationDirectly(courseCode, task.get("id"), task.get("type"));
+                    });
+
                     urgentContainer.getChildren().add(taskBox);
                 }
-            } else {
-                urgentContainer.getChildren().add(new Label("Cloud error fetching deadlines."));
             }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    // THE SOLID TELEPORTER
+    private void openEvaluationDirectly(String courseCode, String evaluationId, String assessmentType) {
+        Course targetCourse = null;
+        for (Course c : allCourses) {
+            if (c.getCourseCode().equalsIgnoreCase(courseCode)) {
+                targetCourse = c;
+                break;
+            }
+        }
+        if (targetCourse == null) {
+            targetCourse = new Course(courseCode, "Course", "3.0", "theory");
+        }
+
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
+            Parent root = loader.load();
+
+            SessionManager.setCurrentCourseCode(targetCourse.getCourseCode());
+            SessionManager.setCurrentEvaluationId(evaluationId);
+
+            MainController controller = loader.getController();
+            controller.setCourseContext(targetCourse.getCourseCode(), targetCourse.getCourseTitle(), targetCourse.getType(), targetCourse.getCredits());
+
+            // 1. Calculate the correct parent Tab based on Assessment Type
+            String parentTab = "Common";
+            if ("CT".equalsIgnoreCase(assessmentType) || "ASSIGNMENT".equalsIgnoreCase(assessmentType)) {
+                parentTab = "CT and Assignments";
+            } else if ("ONLINE".equalsIgnoreCase(assessmentType)) {
+                parentTab = "Onlines";
+            } else if ("OFFLINE".equalsIgnoreCase(assessmentType)) {
+                parentTab = "Offlines";
+            }
+
+            // 2. Load the Details Page
+            NavigationManager.switchScreen("evaluation_details.fxml");
+
+            // 3. Fix the UI: Sync Sidebar and Interactive Breadcrumbs!
+            controller.forceSidebarSelection(parentTab);
+            controller.updateBreadcrumb(parentTab + " / Assessment Details");
+
+            Stage stage = (Stage) urgentContainer.getScene().getWindow();
+            stage.getScene().setRoot(root);
+
         } catch (Exception e) {
             e.printStackTrace();
-            urgentContainer.getChildren().add(new Label("Network error."));
         }
     }
 }

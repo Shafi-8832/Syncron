@@ -45,36 +45,38 @@ public class OfflinesController {
             boolean isPast = false;
         }
         java.util.List<EvalCard> cardList = new java.util.ArrayList<>();
-
-        // fetch ONLY 'OFFLINE' evaluations
-        String query = "SELECT id, title, type, start_date, start_time, deadline_date, deadline_time " +
-                "FROM evaluations WHERE course_code = ? AND type = 'OFFLINE'";
-
         java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-        try (java.sql.Connection conn = DatabaseHandler.connect();
-             java.sql.PreparedStatement pstmt = conn.prepareStatement(query)) {
+        // THE CLOUD FETCH
+        try {
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/evaluations/course/" + currentCourse.replace(" ", "%20") + "/OFFLINE"))
+                    .GET().build();
 
-            pstmt.setString(1, currentCourse);
-            java.sql.ResultSet rs = pstmt.executeQuery();
+            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
 
-            while (rs.next()) {
-                EvalCard c = new EvalCard();
-                c.id = rs.getString("id");
-                c.title = rs.getString("title");
-                c.type = rs.getString("type");
-                c.startStr = rs.getString("start_date") + " " + rs.getString("start_time");
-                c.endStr = rs.getString("deadline_date") + " " + rs.getString("deadline_time");
+            if (response.statusCode() == 200) {
+                com.google.gson.Gson gson = new com.google.gson.Gson();
+                java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<java.util.Map<String, String>>>(){}.getType();
+                java.util.List<java.util.Map<String, String>> evals = gson.fromJson(response.body(), listType);
 
-                try {
-                    c.startTime = java.time.LocalDateTime.parse(c.startStr, formatter);
-                    c.endTime = java.time.LocalDateTime.parse(c.endStr, formatter);
-                    if (java.time.LocalDateTime.now().isAfter(c.endTime)) {
-                        c.isPast = true; // flag it as expired
-                    }
-                } catch (Exception e) {}
+                for (java.util.Map<String, String> rs : evals) {
+                    EvalCard c = new EvalCard();
+                    c.id = rs.get("id");
+                    c.title = rs.get("title");
+                    c.type = rs.get("type");
+                    c.startStr = rs.get("startDate") + " " + rs.get("startTime");
+                    c.endStr = rs.get("deadlineDate") + " " + rs.get("deadlineTime");
 
-                cardList.add(c);
+                    try {
+                        c.startTime = java.time.LocalDateTime.parse(c.startStr, formatter);
+                        c.endTime = java.time.LocalDateTime.parse(c.endStr, formatter);
+                        if (java.time.LocalDateTime.now().isAfter(c.endTime)) c.isPast = true;
+                    } catch (Exception ignored) {}
+
+                    cardList.add(c);
+                }
             }
         } catch (Exception e) { e.printStackTrace(); }
 
