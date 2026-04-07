@@ -21,7 +21,8 @@
                     <Label fx:id="timeLabel" text="Loading time..." style="-fx-text-fill: #95A5A6; -fx-font-size: 13px;"/>
                 </VBox>
                 <Region HBox.hgrow="ALWAYS" />
-                <Button fx:id="deleteBtn" text="Delete Post" onAction="#handleDelete" visible="false" managed="false" style="-fx-background-color: transparent; -fx-text-fill: #E74C3C; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                <Button fx:id="editBtn" text="✏ Edit" onAction="#handleEdit" visible="false" managed="false" style="-fx-background-color: transparent; -fx-text-fill: #F39C12; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 14px;"/>
+                <Button fx:id="deleteBtn" text="🗑 Delete" onAction="#handleDelete" visible="false" managed="false" style="-fx-background-color: transparent; -fx-text-fill: #E74C3C; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 14px;"/>
             </HBox>
 
             <Separator style="-fx-opacity: 0.3;"/>

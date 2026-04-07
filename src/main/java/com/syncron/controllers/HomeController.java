@@ -81,8 +81,11 @@ public class HomeController {
         try {
             System.out.println("⏳ Attempting to fetch courses from server...");
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+
+            String role = SessionManager.getCurrentUser().getRole();
+            String name = SessionManager.getCurrentUser().getName().replace(" ", "%20");
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/courses"))
+                    .uri(java.net.URI.create("http://localhost:8080/api/dashboard/courses?role=" + role + "&name=" + name))
                     .GET()
                     .build();
 
@@ -258,10 +261,16 @@ public class HomeController {
 
         try {
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+
+
+            String role = SessionManager.getCurrentUser().getRole();
+            String name = SessionManager.getCurrentUser().getName().replace(" ", "%20");
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/dashboard/urgent"))
+                    .uri(java.net.URI.create("http://localhost:8080/api/dashboard/deadlines?role=" + role + "&name=" + name))
                     .GET()
                     .build();
+
+
 
             java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
 
@@ -287,19 +296,29 @@ public class HomeController {
                     titleLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
                     titleLabel.setWrapText(true);
 
+
                     // --- TIME CALCULATION ENGINE ---
-                    String dueText = "Due: " + task.get("dueDate");
+                    String dDate = task.get("deadlineDate") != null ? task.get("deadlineDate") : task.get("dueDate");
+                    String dTime = task.get("deadlineTime") != null ? task.get("deadlineTime") : task.get("dueTime");
+                    String dueText = "Due: " + dDate;
+                    boolean isPassed = false;
+
                     try {
                         java.time.LocalDateTime now = java.time.LocalDateTime.now();
                         java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-                        java.time.LocalDateTime deadline = java.time.LocalDateTime.parse(task.get("dueDate") + " " + task.get("dueTime"), formatter);
+                        java.time.LocalDateTime deadline = java.time.LocalDateTime.parse(dDate + " " + dTime, formatter);
 
+                        // Calculate total minutes to check if it's strictly in the past
+                        long minutesLeft = java.time.temporal.ChronoUnit.MINUTES.between(now, deadline);
                         long daysLeft = java.time.temporal.ChronoUnit.DAYS.between(now, deadline);
                         long hoursLeft = java.time.temporal.ChronoUnit.HOURS.between(now, deadline) % 24;
 
                         java.time.format.DateTimeFormatter niceDate = java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy");
 
-                        if (daysLeft > 0) {
+                        if (minutesLeft < 0) {
+                            isPassed = true; // The deadline has expired!
+                            dueText = "Deadline Passed";
+                        } else if (daysLeft > 0) {
                             dueText = deadline.format(niceDate) + " (" + daysLeft + " days Left)";
                         } else if (hoursLeft > 0) {
                             dueText = "Today (" + hoursLeft + " hours Left)";
@@ -308,11 +327,14 @@ public class HomeController {
                         }
                     } catch (Exception ignored) {}
 
+                    // THE FIX: If the deadline has passed, skip rendering it entirely
+                    if (isPassed) continue;
+
                     Label dateLabel = new Label(dueText);
-                    // 👉 BIGGER FONT FOR DATES
                     dateLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #E74C3C; -fx-padding: 0 0 0 15; -fx-font-weight: bold;");
 
                     taskBox.getChildren().addAll(titleLabel, dateLabel);
+                    // --- TIME CALCULATION ENGINE END ---
 
                     // THE FIX: SAFE CLICK ROUTING
 // CLICK ROUTING

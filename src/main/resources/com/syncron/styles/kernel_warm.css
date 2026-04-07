@@ -587,3 +587,15 @@
     -fx-text-fill: #3498DB;
     -fx-underline: true;
 }
+
+.editable-profile-field { -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #2C3E50; } .editable-profile-field:hover, .editable-profile-field:focused { -fx-background-color: #F8F9F9; -fx-border-color: #3498DB; -fx-border-radius: 4; }
+
+
+
+.login-root {
+    /* Go up one folder from styles, into assets */
+    -fx-background-image: url("../assets/kernel_login_ui.jpg");
+    -fx-background-size: cover;
+    -fx-background-position: center center;
+    -fx-background-repeat: no-repeat;
+}

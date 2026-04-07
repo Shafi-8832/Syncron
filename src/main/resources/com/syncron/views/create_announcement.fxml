@@ -6,7 +6,7 @@
 <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.syncron.controllers.CreateAnnouncementController">
     <VBox spacing="20" style="-fx-padding: 30; -fx-background-color: transparent;">
 
-        <Label text="Create Course Announcement" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2C3E50; -fx-font-family: 'Georgia', serif;"/>
+        <Label fx:id="pageTitleLabel" text="Create Course Announcement" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2C3E50; -fx-font-family: 'Georgia', serif;"/>
 
         <VBox spacing="15" style="-fx-background-color: #FFFFFF; -fx-border-color: #EAECEE; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 15, 0, 0, 5);">
 

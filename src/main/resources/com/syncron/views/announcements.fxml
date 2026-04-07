@@ -14,7 +14,7 @@
 
     <VBox spacing="20" style="-fx-padding: 30; -fx-background-color: transparent;">
         <HBox alignment="CENTER_LEFT">
-            <Label text="Course Announcements Hub" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2C3E50; -fx-font-family: 'Georgia', serif;"/>
+            <Label text="Course Announcements" style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2C3E50; -fx-font-family: 'Georgia', serif;"/>
             <Region HBox.hgrow="ALWAYS" />
             <Button fx:id="createPostBtn" text="+ Create Course Announcement" onAction="#handleCreatePost" visible="false" managed="false"
                     style="-fx-background-color: #E67E22; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 8 15; -fx-background-radius: 6;"/>

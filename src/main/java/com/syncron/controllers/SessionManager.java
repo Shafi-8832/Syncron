@@ -60,4 +60,9 @@ public class SessionManager {
     private static String currentAnnouncementId;
     public static String getCurrentAnnouncementId() { return currentAnnouncementId; }
     public static void setCurrentAnnouncementId(String id) { currentAnnouncementId = id; }
+
+
+    private static String editAnnouncementId;
+    public static String getEditAnnouncementId() { return editAnnouncementId; }
+    public static void setEditAnnouncementId(String id) { editAnnouncementId = id; }
 }

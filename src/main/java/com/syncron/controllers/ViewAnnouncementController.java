@@ -24,6 +24,8 @@ public class ViewAnnouncementController {
     @FXML private Label timeLabel;
     @FXML private VBox messageBodyContainer;
     @FXML private Button deleteBtn;
+    @FXML private Button editBtn;
+
 
     private String postId;
 
@@ -68,6 +70,8 @@ public class ViewAnnouncementController {
         if ("TEACHER".equals(SessionManager.getCurrentUser().getRole())) {
             deleteBtn.setVisible(true);
             deleteBtn.setManaged(true);
+            editBtn.setVisible(true);
+            editBtn.setManaged(true);
         }
 
         // THE DUAL-MODE SMART LINK PARSER
@@ -153,5 +157,11 @@ public class ViewAnnouncementController {
     @FXML
     private void handleBack() {
         NavigationManager.switchScreen("announcements.fxml");
+    }
+
+    @FXML
+    private void handleEdit() {
+        SessionManager.setEditAnnouncementId(postId);
+        NavigationManager.switchScreen("create_announcement.fxml");
     }
 }
