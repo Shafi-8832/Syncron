@@ -17,6 +17,8 @@ module com.syncron {
     requires java.net.http;
     requires com.google.gson;
 
+
+
     // 4. PERMISSIONS (Crucial for FXML to work)
     opens com.syncron to javafx.fxml;
     exports com.syncron;

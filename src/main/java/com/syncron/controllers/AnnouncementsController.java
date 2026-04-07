@@ -65,10 +65,12 @@ public class AnnouncementsController {
         card.setOnMouseEntered(e -> card.setStyle(hoverStyle));
         card.setOnMouseExited(e -> card.setStyle(baseStyle));
 
-        //ROUTE TO THE FACEBOOK-STYLE POST WHEN CLICKED
+        // ROUTE TO THE FACEBOOK-STYLE POST WHEN CLICKED
         card.setOnMouseClicked(e -> {
             SessionManager.setCurrentAnnouncementId(post.get("id"));
             NavigationManager.switchScreen("view_announcement.fxml");
+
+            MainController.instance.updateBreadcrumb("Announcements / View Post");
         });
 
         HBox header = new HBox(10);

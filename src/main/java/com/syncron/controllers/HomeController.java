@@ -324,8 +324,20 @@ public class HomeController {
 
                     taskBox.getChildren().addAll(titleLabel, dateLabel);
 
+                    // 👇 THE FIX: Unbreakable Course Code Extraction System
                     taskBox.setOnMouseClicked(e -> {
-                        String courseCode = task.get("title").split(" - ")[0].trim();
+                        String courseCode = task.get("courseCode");
+                        if (courseCode == null || courseCode.trim().isEmpty() || courseCode.equals("null")) {
+                            String taskTitle = task.get("title");
+                            if (taskTitle != null && taskTitle.contains("-")) {
+                                courseCode = taskTitle.split("-")[0].trim();
+                            } else {
+                                // Regex fallback to cleanly grab formats like "CSE 108"
+                                java.util.regex.Matcher m = java.util.regex.Pattern.compile("([A-Za-z]+\\s*\\d{3})").matcher(taskTitle != null ? taskTitle : "");
+                                if (m.find()) courseCode = m.group(1);
+                                else courseCode = taskTitle; // Total fallback
+                            }
+                        }
                         openEvaluationDirectly(courseCode, task.get("id"), task.get("type"));
                     });
 
@@ -335,14 +347,18 @@ public class HomeController {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
+    // 👇 THE FIX: Robust Course State Regeneration
     private void openEvaluationDirectly(String courseCode, String evaluationId, String assessmentType) {
         Course targetCourse = null;
         for (Course c : allCourses) {
-            if (c.getCourseCode().equalsIgnoreCase(courseCode)) {
+            // Ignore strict case formatting
+            if (c.getCourseCode().trim().equalsIgnoreCase(courseCode.trim())) {
                 targetCourse = c;
                 break;
             }
         }
+
+        // Anti-Crash mechanism if the course was genuinely not found
         if (targetCourse == null) {
             targetCourse = new Course(courseCode, "Course", "3.0", "theory");
         }
@@ -368,6 +384,7 @@ public class HomeController {
 
             NavigationManager.switchScreen("evaluation_details.fxml");
 
+            // Locks everything visually back in place
             controller.forceSidebarSelection(parentTab);
             controller.updateBreadcrumb(parentTab + " / Assessment Details");
 
@@ -397,17 +414,12 @@ public class HomeController {
         }
     }
 
-
-    // START CHANGE
-
     @FXML
     private void toggleNotifications() {
         if (notificationPanel == null) return;
 
         boolean isVisible = notificationPanel.isVisible();
         notificationPanel.setVisible(!isVisible);
-
-        // THE UI FIX: We removed 'setManaged' so it floats over the UI instead of pushing it down!
 
         if (!isVisible) {
             notificationPanel.toFront();
@@ -437,17 +449,14 @@ public class HomeController {
 
                     javafx.application.Platform.runLater(() -> renderNotificationRows(announcements));
                 } else {
-                    // THE DATA FIX: If the server API is missing or crashes, load the presentation fallback!
                     javafx.application.Platform.runLater(this::loadFallbackNotifications);
                 }
             } catch (Exception e) {
-                // THE DATA FIX: If the server is offline, load the presentation fallback!
                 javafx.application.Platform.runLater(this::loadFallbackNotifications);
             }
         }).start();
     }
 
-    // THE PRESENTATION SAVER: Hardcoded backup data just in case the database connection fails!
     private void loadFallbackNotifications() {
         java.util.List<java.util.Map<String, String>> mockData = new java.util.ArrayList<>();
         mockData.add(java.util.Map.of("courseCode", "CSE 108", "message", "Project Evaluation (ASAN) posted."));
@@ -484,7 +493,6 @@ public class HomeController {
 
             row.getChildren().addAll(title, desc);
 
-            // THE ROUTER
             row.setOnMouseClicked(e -> {
                 try {
                     SessionManager.setCurrentCourseCode(cCode);
@@ -514,8 +522,4 @@ public class HomeController {
             notificationList.getChildren().add(row);
         }
     }
-
-
-
-
 }

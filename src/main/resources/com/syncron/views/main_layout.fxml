@@ -20,7 +20,8 @@
 
             <Region HBox.hgrow="ALWAYS" />
 
-            <Button text="🔔" styleClass="kernel-notification-btn" />
+            <Button fx:id="notificationBtn" text="🔔" minWidth="40" minHeight="40" textOverrun="CLIP" styleClass="kernel-notification-btn" onAction="#showNotifications"/>
+
             <HBox fx:id="profileBtn" alignment="CENTER" spacing="10" styleClass="kernel-profile-box" style="-fx-cursor: hand;">
                 <Label text="Profile" style="-fx-font-family: 'Inter', sans-serif; -fx-font-weight: bold; -fx-text-fill: #4A2C1A;" />
                 <Circle radius="12.0" fill="#A0522D" />

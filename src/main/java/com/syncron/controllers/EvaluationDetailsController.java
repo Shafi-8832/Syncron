@@ -138,6 +138,7 @@ public class EvaluationDetailsController {
                 creatorLink.setText(rs.get("creatorName"));
                 creatorId = rs.get("creatorId");
 
+
                 if ("CT".equals(evaluationType)) {
                     datesBox.setVisible(false);
                     datesBox.setManaged(false);
@@ -146,10 +147,22 @@ public class EvaluationDetailsController {
                     datesBox.setManaged(true);
                 }
 
+                // THE FIX: Robustly check both JSON keys!
                 attachedFilePath = rs.get("file_path");
-                if (attachedFilePath != null && !attachedFilePath.equals("None")) {
+                if (attachedFilePath == null || attachedFilePath.equals("null") || attachedFilePath.isEmpty()) {
+                    attachedFilePath = rs.get("filePath");
+                }
+
+                if (attachedFilePath != null && !attachedFilePath.equals("None") && !attachedFilePath.equals("null") && !attachedFilePath.trim().isEmpty()) {
                     File f = new File(attachedFilePath);
-                    downloadQuestionBtn.setText("📄 " + cleanFileName(f.getName())); // 👉 CLEANED!
+                    downloadQuestionBtn.setText("📄 " + cleanFileName(f.getName()));
+                    downloadQuestionBtn.setDisable(false);
+                    // Premium styling to show it's ready to open
+                    downloadQuestionBtn.setStyle("-fx-text-fill: #2980B9; -fx-font-weight: bold; -fx-cursor: hand; -fx-background-color: #EBF5FB; -fx-background-radius: 5; -fx-padding: 5 10;");
+                } else {
+                    downloadQuestionBtn.setText("No File Attached");
+                    downloadQuestionBtn.setDisable(true);
+                    downloadQuestionBtn.setStyle("-fx-text-fill: #95A5A6; -fx-font-style: italic; -fx-background-color: transparent;");
                 }
 
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -538,23 +551,37 @@ public class EvaluationDetailsController {
         }
     }
 
+    // start change
     @FXML
     private void handleDelete() {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION, "Are you sure you want to delete this evaluation and all its submissions?", javafx.scene.control.ButtonType.YES, javafx.scene.control.ButtonType.NO);
         confirm.showAndWait();
 
         if (confirm.getResult() == javafx.scene.control.ButtonType.YES) {
-            try (java.sql.Connection conn = DatabaseHandler.connect();
-                 java.sql.Statement stmt = conn.createStatement()) {
-                // Delete the evaluation AND all student submissions attached to it!
-                stmt.execute("DELETE FROM evaluations WHERE id = " + evaluationId);
-                stmt.execute("DELETE FROM submissions WHERE evaluation_id = " + evaluationId);
+            try {
+                // THE FIX: Switch from local JDBC to the Spring Boot REST API
+                java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+                java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                        .uri(java.net.URI.create("http://localhost:8080/api/evaluations/" + evaluationId))
+                        .DELETE()
+                        .build();
 
-                new Alert(Alert.AlertType.INFORMATION, "Evaluation deleted.").show();
-                goBack();
-            } catch (Exception e) { e.printStackTrace(); }
+                java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() == 200) {
+                    new Alert(Alert.AlertType.INFORMATION, "Evaluation deleted successfully from the cloud.").show();
+                    goBack();
+                } else {
+                    new Alert(Alert.AlertType.ERROR, "Failed to delete evaluation. Server returned: " + response.statusCode()).show();
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                new Alert(Alert.AlertType.ERROR, "Network error during deletion.").show();
+            }
         }
     }
+// End change
 
     @FXML
     private void goBack() {
