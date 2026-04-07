@@ -51,7 +51,7 @@
             </VBox>
 
             <VBox minWidth="280" spacing="15" style="-fx-background-color: #EBF5FB; -fx-border-color: #3498DB; -fx-border-width: 2; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(52, 152, 219, 0.3), 20, 0, 0, 0);">
-                <HBox alignment="CENTER"><Label text="BUET Grading Scale" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2980B9;"/></HBox>
+                <HBox alignment="CENTER"><Label text="Grading Scale" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2980B9;"/></HBox>
 
                 <VBox spacing="8" style="-fx-padding: 10 0 0 0;">
                     <VBox fx:id="gradingScaleContainer" spacing="6" />
