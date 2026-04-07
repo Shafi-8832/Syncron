@@ -34,14 +34,14 @@
                             <Circle radius="5" fill="#E74C3C" StackPane.alignment="TOP_RIGHT" style="-fx-translate-x: -2; -fx-translate-y: 2;"/>
 
                             <VBox fx:id="notificationPanel" visible="false" managed="false" spacing="0"
-                                  style="-fx-background-color: white; -fx-border-color: #BDC3C7; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 15, 0, 0, 5); -fx-translate-y: 35; -fx-translate-x: 10;"
-                                  prefWidth="300" maxHeight="400">
+                                  style="-fx-background-color: white; -fx-border-color: #BDC3C7; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 15, 0, 0, 5); -fx-translate-y: 35; -fx-translate-x: -280;"
+                                  prefWidth="350" minWidth="350" minHeight="150" maxHeight="400">
 
                                 <HBox style="-fx-background-color: #F8F9F9; -fx-padding: 10; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0; -fx-background-radius: 8 8 0 0;">
                                     <Label text="Notifications" style="-fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
                                 </HBox>
 
-                                <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+                                <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
                                     <VBox fx:id="notificationList" spacing="0" />
                                 </ScrollPane>
                             </VBox>
@@ -73,6 +73,7 @@
 
                 <HBox spacing="25.0">
                     <children>
+
                         <VBox prefWidth="260.0" spacing="20.0">
                             <VBox spacing="10" styleClass="kernel-pinned-box">
                                 <Label text="📌 Pinned Items" styleClass="kernel-pinned-title" />
