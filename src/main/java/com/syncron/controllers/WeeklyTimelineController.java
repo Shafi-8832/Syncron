@@ -1,276 +1,298 @@
 package com.syncron.controllers;
 
-import com.syncron.models.Assessment;
-import com.syncron.utils.DatabaseHandler;
 import com.syncron.utils.NavigationManager;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TitledPane;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.temporal.TemporalAdjusters;
+import java.util.*;
 
-/**
- * Controller for the Weekly Timeline view.
- * Dynamically generates 14 TitledPane components representing course weeks.
- * Fetches live assessment data from the database via DatabaseHandler.
- */
 public class WeeklyTimelineController {
 
-    @FXML
-    private VBox timelineContainer;
+    @FXML private VBox timelineContainer;
+    @FXML private HBox labDayBox;
+    @FXML private ComboBox<String> labDayCombo;
 
-    private static final int TOTAL_WEEKS = 14;
     private static final LocalDate SEMESTER_START = LocalDate.of(2026, 1, 15);
-
-    // Flair definitions: assessmentType -> {background color, text color}
-    private static final Map<String, String[]> FLAIR_DEFS = new LinkedHashMap<>();
-    static {
-        FLAIR_DEFS.put("Online",     new String[]{"#1B5E20", "#A5D6A7"});
-        FLAIR_DEFS.put("Offline",    new String[]{"#E65100", "#FFCC80"});
-        FLAIR_DEFS.put("CT",         new String[]{"#0D47A1", "#90CAF9"});
-        FLAIR_DEFS.put("Assignment", new String[]{"#4A148C", "#CE93D8"});
-        FLAIR_DEFS.put("Quiz",       new String[]{"#BF360C", "#FFAB91"});
-    }
-
-    private List<Assessment> allAssessments;
+    private String currentLabDay = "Thursday"; // Default
 
     @FXML
     public void initialize() {
-        allAssessments = DatabaseHandler.getAssessmentsForCourse("CSE 108");
-        generateTimeline();
-    }
-
-    /**
-     * Dynamically creates 14 TitledPane components and adds them to the timelineContainer.
-     * Each pane represents one week with a styled header and expandable content.
-     */
-    private void generateTimeline() {
-        // Page title
-        Label pageTitle = new Label("Weekly Timeline");
-        pageTitle.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #ECEFF1;");
-        pageTitle.setPadding(new Insets(0, 0, 8, 0));
-        timelineContainer.getChildren().add(pageTitle);
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM d");
-
-        // Pre-group assessments by week number for O(n) lookup
-        Map<Integer, List<Assessment>> assessmentsByWeek = new LinkedHashMap<>();
-        for (Assessment a : allAssessments) {
-            assessmentsByWeek.computeIfAbsent(a.getWeekNumber(), k -> new ArrayList<>()).add(a);
+        String currentCourse = SessionManager.getCurrentCourseCode();
+        if (currentCourse == null || currentCourse.isEmpty()) {
+            NavigationManager.switchScreen("home.fxml");
+            return;
         }
 
-        for (int i = 0; i < TOTAL_WEEKS; i++) {
-            LocalDate weekStart = SEMESTER_START.plusWeeks(i);
-            LocalDate weekEnd = weekStart.plusDays(6);
+        // TEACHER ONLY: Show the Lab Day Editor
+        if ("TEACHER".equals(SessionManager.getCurrentUser().getRole())) {
+            labDayBox.setVisible(true);
+            labDayBox.setManaged(true);
+            labDayCombo.getItems().setAll("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday");
 
-            String weekTitle = "Week " + (i + 1) + ": "
-                    + weekStart.format(formatter) + " - " + weekEnd.format(formatter);
+            labDayCombo.setOnAction(e -> {
+                String selected = labDayCombo.getValue();
+                if (selected != null) updateLabDayToCloud(currentCourse, selected);
+            });
+        }
 
-            int weekNum = i + 1;
-            List<Assessment> weeklyAssessments = assessmentsByWeek.getOrDefault(weekNum, new ArrayList<>());
+        fetchDataAndRender(currentCourse);
+    }
 
-            TitledPane pane = createWeekPane(i, weeklyAssessments, weekTitle);
+    private void updateLabDayToCloud(String courseCode, String labDay) {
+        try {
+            String json = String.format("{\"courseCode\":\"%s\", \"labDay\":\"%s\"}", courseCode, labDay);
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/timeline/settings"))
+                    .header("Content-Type", "application/json")
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(json))
+                    .build();
+            client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+            // Reload seamlessly
+            fetchDataAndRender(courseCode);
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void fetchDataAndRender(String currentCourse) {
+        try {
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            com.google.gson.Gson gson = new com.google.gson.Gson();
+
+            // 1. Fetch Timeline (14 Weeks) + Lab Day Settings
+            java.net.http.HttpRequest req1 = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/timeline/" + currentCourse.replace(" ", "%20")))
+                    .GET().build();
+            String res1 = client.send(req1, java.net.http.HttpResponse.BodyHandlers.ofString()).body();
+
+            java.lang.reflect.Type timelineType = new com.google.gson.reflect.TypeToken<Map<String, Object>>(){}.getType();
+            Map<String, Object> timelineData = gson.fromJson(res1, timelineType);
+
+            currentLabDay = String.valueOf(timelineData.getOrDefault("labDay", "Thursday"));
+            // Silently update combo box without triggering an infinite loop
+            labDayCombo.setOnAction(null);
+            labDayCombo.setValue(currentLabDay);
+            labDayCombo.setOnAction(e -> updateLabDayToCloud(currentCourse, labDayCombo.getValue()));
+
+            List<Map<String, Object>> sections = (List<Map<String, Object>>) timelineData.get("sections");
+
+            // 2. Fetch Assessments
+            java.net.http.HttpRequest req2 = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/evaluations/course/" + currentCourse.replace(" ", "%20")))
+                    .GET().build();
+            String res2 = client.send(req2, java.net.http.HttpResponse.BodyHandlers.ofString()).body();
+
+            java.lang.reflect.Type evalType = new com.google.gson.reflect.TypeToken<List<Map<String, String>>>(){}.getType();
+            List<Map<String, String>> assessments = gson.fromJson(res2, evalType);
+
+            generateDynamicTimeline(sections, assessments);
+
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void generateDynamicTimeline(List<Map<String, Object>> sections, List<Map<String, String>> allAssessments) {
+        timelineContainer.getChildren().clear();
+
+        for (Map<String, Object> sec : sections) {
+            Double weekNumObj = (Double) sec.get("weekNumber");
+            int currentWeek = weekNumObj != null ? weekNumObj.intValue() : 1;
+
+            List<Map<String, String>> weeklyAssessments = new ArrayList<>();
+
+            // 🚀 THE FLAWLESS DATE MATH ENGINE!
+            for (Map<String, String> a : allAssessments) {
+                String dateStr = a.get("startDate");
+                if (dateStr != null && !dateStr.isEmpty() && !dateStr.equals("null")) {
+                    try {
+                        LocalDate assessDate = LocalDate.parse(dateStr);
+                        long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(SEMESTER_START, assessDate);
+
+                        // Exact week calculation (Week 1 is days 0-6, Week 2 is days 7-13)
+                        int targetWeek = (int) (daysBetween / 7) + 1;
+
+                        if (targetWeek < 1) targetWeek = 1;
+                        if (targetWeek > 14) targetWeek = 14;
+
+                        if (targetWeek == currentWeek) {
+                            weeklyAssessments.add(a);
+                        }
+                    } catch (Exception e) { e.printStackTrace(); }
+                }
+            }
+
+            TitledPane pane = createWeekPane(sec, weeklyAssessments);
             timelineContainer.getChildren().add(pane);
         }
     }
 
-    /**
-     * Creates a single TitledPane for a week with header graphic and expandable content.
-     */
-    private TitledPane createWeekPane(int weekIndex, List<Assessment> weeklyAssessments, String weekTitle) {
+    private TitledPane createWeekPane(Map<String, Object> section, List<Map<String, String>> weeklyAssessments) {
         TitledPane pane = new TitledPane();
         pane.setExpanded(false);
         pane.setAnimated(true);
 
-        // --- Header Graphic ---
-        pane.setGraphic(createHeaderGraphic(weeklyAssessments, weekTitle));
-
-        // --- Content ---
-        pane.setContent(createWeekContent(weekIndex, weeklyAssessments));
-
-        // --- Styling ---
-        pane.getStyleClass().add("timeline-pane");
-        applyPaneStyle(pane);
-
-        return pane;
-    }
-
-    /**
-     * Applies dark-themed styling to a TitledPane.
-     */
-    private void applyPaneStyle(TitledPane pane) {
-        pane.setStyle(
-                "-fx-base: #2A2A3D;"
-                        + " -fx-background-color: #2A2A3D;"
-                        + " -fx-text-fill: #ECEFF1;"
-                        + " -fx-border-color: #3C3C55;"
-                        + " -fx-border-width: 1;"
-                        + " -fx-border-radius: 8;"
-                        + " -fx-background-radius: 8;"
-        );
-    }
-
-    /**
-     * Creates the header graphic HBox for a TitledPane.
-     * Contains a week title label and flair labels derived from assessments.
-     */
-    private HBox createHeaderGraphic(List<Assessment> weeklyAssessments, String weekTitle) {
         HBox header = new HBox(12);
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(4, 8, 4, 0));
 
-        // Week title label
-        Label titleLabel = new Label(weekTitle);
-        titleLabel.setStyle(
-                "-fx-font-size: 15px;"
-                        + " -fx-font-weight: bold;"
-                        + " -fx-text-fill: #ECEFF1;"
-        );
+        Label titleLabel = new Label(String.valueOf(section.get("title")));
+        titleLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #117A65;");
 
-        // Spacer to push flairs to the right
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        spacer.setMinWidth(40);
-
-        // Flairs HBox
         HBox flairsBox = new HBox(6);
         flairsBox.setAlignment(Pos.CENTER_RIGHT);
 
-        // Collect unique assessment types in order
+        Map<String, String[]> colorDict = new HashMap<>();
+        colorDict.put("ONLINE", new String[]{"#D5F5E3", "#27AE60"});
+        colorDict.put("OFFLINE", new String[]{"#FDEBD0", "#D35400"});
+        colorDict.put("CT", new String[]{"#D6EAF8", "#2980B9"});
+        colorDict.put("ASSIGNMENT", new String[]{"#E8DAEF", "#8E44AD"});
+
         LinkedHashMap<String, String[]> seenTypes = new LinkedHashMap<>();
-        for (Assessment a : weeklyAssessments) {
-            String type = a.getAssessmentType();
-            if (!seenTypes.containsKey(type)) {
-                String[] colors = FLAIR_DEFS.get(type);
-                if (colors != null) {
-                    seenTypes.put(type, colors);
-                }
+        for (Map<String, String> a : weeklyAssessments) {
+            String type = a.get("type");
+            if (type != null && !seenTypes.containsKey(type)) {
+                seenTypes.put(type, colorDict.getOrDefault(type.toUpperCase(), new String[]{"#ECF0F1", "#7F8C8D"}));
             }
         }
         for (Map.Entry<String, String[]> entry : seenTypes.entrySet()) {
-            flairsBox.getChildren().add(createFlairLabel(entry.getKey(), entry.getValue()[0], entry.getValue()[1]));
+            Label flair = new Label(entry.getKey());
+            flair.setStyle("-fx-background-color: " + entry.getValue()[0] + "; -fx-text-fill: " + entry.getValue()[1] + "; -fx-font-size: 11px; -fx-padding: 2 10; -fx-background-radius: 100; -fx-border-color: " + entry.getValue()[1] + "; -fx-border-radius: 100;");
+            flairsBox.getChildren().add(flair);
         }
 
         header.getChildren().addAll(titleLabel, spacer, flairsBox);
-        return header;
-    }
+        pane.setGraphic(header);
 
-    /**
-     * Creates a small pill-style flair label with rounded borders and distinct colors.
-     */
-    private Label createFlairLabel(String text, String bgColor, String textColor) {
-        Label flair = new Label(text);
-        flair.setStyle(
-                "-fx-background-color: " + bgColor + ";"
-                        + " -fx-text-fill: " + textColor + ";"
-                        + " -fx-font-size: 11px;"
-                        + " -fx-padding: 2 10;"
-                        + " -fx-background-radius: 100;"
-                        + " -fx-border-radius: 100;"
-                        + " -fx-border-color: " + textColor + ";"
-                        + " -fx-border-width: 1;"
-        );
-        return flair;
-    }
-
-    /**
-     * Creates the expandable content VBox for a week.
-     * Contains time/date info, a resources section, and assessment buttons.
-     */
-    private VBox createWeekContent(int weekIndex, List<Assessment> weeklyAssessments) {
-        VBox content = new VBox(12);
+        VBox content = new VBox(15);
         content.setPadding(new Insets(16, 20, 16, 20));
-        content.setStyle("-fx-background-color: #23233A;");
+        content.setStyle("-fx-background-color: #FFFFFF;");
 
-        // --- THE RESTORED TIME AND DATE ---
-        // Rebuilding the dates using your original SEMESTER_START variable
-        java.time.LocalDate weekStart = java.time.LocalDate.of(2026, 1, 15).plusWeeks(weekIndex);
-        java.time.format.DateTimeFormatter fullFormatter = java.time.format.DateTimeFormatter.ofPattern("EEEE, MMM d, yyyy");
+        Double weekNumObj = (Double) section.get("weekNumber");
+        int weekNum = weekNumObj != null ? weekNumObj.intValue() : 1;
 
-        Label timeLabel = new Label("Time and Date: " + weekStart.format(fullFormatter)
-                + "    Room: CSE-" + (301 + weekIndex));
-        timeLabel.setStyle("-fx-text-fill: #B0BEC5; -fx-font-size: 13px;");
-        timeLabel.setWrapText(true);
+        //  THE DYNAMIC LAB DATE ENGINE
+        LocalDate weekStart = SEMESTER_START.plusWeeks(weekNum - 1);
+        DayOfWeek targetDay = DayOfWeek.valueOf(currentLabDay.toUpperCase());
+        LocalDate actualLabDate = weekStart.with(TemporalAdjusters.nextOrSame(targetDay));
 
-        // --- Resources Section ---
-        VBox resourcesSection = new VBox(6);
-        Label resourcesHeader = new Label("Resources");
-        resourcesHeader.setStyle("-fx-text-fill: #ECEFF1; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 8 0 2 0;");
-        Label resourceDesc = new Label("Lecture slides, notes, and reference materials.");
-        resourceDesc.setStyle("-fx-text-fill: #90A4AE; -fx-font-size: 12px;");
-        resourceDesc.setWrapText(true);
-        resourcesSection.getChildren().addAll(resourcesHeader, resourceDesc);
+        Label timeLabel = new Label("Lab Session: " + actualLabDate.format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy")));
+        timeLabel.setStyle("-fx-text-fill: #34495E; -fx-font-size: 13px; -fx-font-weight: bold;");
 
-        // --- Assessment Links ---
+        // --- 🚀 THE RESOURCES UPLOAD BOX ---
+        VBox resourcesSection = new VBox(8);
+        Label resourcesHeader = new Label("Resources & Materials");
+        resourcesHeader.setStyle("-fx-text-fill: #2C3E50; -fx-font-size: 14px; -fx-font-weight: bold;");
+        resourcesSection.getChildren().add(resourcesHeader);
+
+        if ("TEACHER".equals(SessionManager.getCurrentUser().getRole())) {
+            Button addMatBtn = new Button("+ Add Resource Link");
+            addMatBtn.setStyle("-fx-background-color: #27AE60; -fx-text-fill: white; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 5 10; -fx-background-radius: 4;");
+
+            Double secIdObj = (Double) section.get("id");
+            int secId = secIdObj != null ? secIdObj.intValue() : 0;
+
+            addMatBtn.setOnAction(e -> handleAddMaterial(secId));
+            resourcesSection.getChildren().add(addMatBtn);
+        }
+
+        // --- 🚀 THE ASSESSMENTS SECTION (Restored!) ---
         VBox assessmentSection = new VBox(8);
         Label assessmentHeader = new Label("Assessments");
-        assessmentHeader.setStyle("-fx-text-fill: #ECEFF1; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 8 0 2 0;");
+        assessmentHeader.setStyle("-fx-text-fill: #2C3E50; -fx-font-size: 14px; -fx-font-weight: bold;");
         assessmentSection.getChildren().add(assessmentHeader);
 
         HBox linksBox = new HBox(10);
         linksBox.setAlignment(Pos.CENTER_LEFT);
 
-        for (com.syncron.models.Assessment assessment : weeklyAssessments) {
-            String type = assessment.getAssessmentType();
-            String[] colors = FLAIR_DEFS.get(type);
-            String bgColor = colors != null ? colors[0] : "#37474F";
-            String textColor = colors != null ? colors[1] : "#ECEFF1";
-            Button link = createAssessmentButton(assessment, bgColor, textColor);
-            linksBox.getChildren().add(link);
-        }
-        assessmentSection.getChildren().add(linksBox);
+        if (weeklyAssessments.isEmpty()) {
+            Label noAssess = new Label("No assessments scheduled this week.");
+            noAssess.setStyle("-fx-text-fill: #95A5A6; -fx-font-size: 12px; -fx-font-style: italic;");
+            assessmentSection.getChildren().add(noAssess);
+        } else {
+            for (Map<String, String> assessment : weeklyAssessments) {
+                String type = assessment.get("type");
+                String title = assessment.get("title");
+                String id = assessment.get("id");
+                String[] colors = colorDict.getOrDefault(type.toUpperCase(), new String[]{"#ECF0F1", "#7F8C8D"});
 
-        // --- ADD ALL THREE PIECES TO THE SCREEN ---
-        content.getChildren().addAll(timeLabel, resourcesSection, assessmentSection);
-        return content;
-    }
-    /**
-     * Builds a common button style string with the given background and text colors.
-     */
-    private String buildButtonStyle(String bgColor, String textColor) {
-        return "-fx-background-color: " + bgColor + ";"
-                + " -fx-text-fill: " + textColor + ";"
-                + " -fx-font-size: 12px;"
-                + " -fx-padding: 6 16;"
-                + " -fx-background-radius: 6;"
-                + " -fx-border-radius: 6;"
-                + " -fx-cursor: hand;";
-    }
+                String baseStyle = "-fx-background-color: " + colors[0] + "; -fx-text-fill: " + colors[1] + "; -fx-font-size: 12px; -fx-padding: 6 16; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-weight: bold; -fx-border-color: " + colors[1] + "; -fx-border-radius: 6;";
+                Button jumpLink = new Button(type + ": " + title);
+                jumpLink.setStyle(baseStyle);
+                jumpLink.setOnMouseEntered(e -> jumpLink.setStyle(baseStyle + " -fx-effect: dropshadow(three-pass-box, " + colors[1] + "80, 10, 0, 0, 0);"));
+                jumpLink.setOnMouseExited(e -> jumpLink.setStyle(baseStyle));
 
-    /**
-     * Creates a styled Button that acts as an assessment link.
-     * Accepts an Assessment object and navigates to the detail view on click.
-     */
-    private Button createAssessmentButton(Assessment assessment, String bgColor, String textColor) {
-        String text = assessment.getTitle();
-        Button button = new Button(text);
-        button.setStyle(buildButtonStyle(bgColor, textColor));
-        button.setOnMouseEntered(e ->
-                button.setStyle(buildButtonStyle("derive(" + bgColor + ", 20%)", "white")));
-        button.setOnMouseExited(e ->
-                button.setStyle(buildButtonStyle(bgColor, textColor)));
-        button.setOnAction(e -> {
-            AssessmentDetailController detailPage = NavigationManager.switchScreen("assessment_detail.fxml");
+                jumpLink.setOnAction(e -> {
+                    SessionManager.setCurrentEvaluationId(id);
+                    String parentTab = "Common";
+                    if ("CT".equalsIgnoreCase(type) || "ASSIGNMENT".equalsIgnoreCase(type)) parentTab = "CT and Assignments";
+                    else if ("ONLINE".equalsIgnoreCase(type)) parentTab = "Onlines";
+                    else if ("OFFLINE".equalsIgnoreCase(type)) parentTab = "Offlines";
 
-            NavigationManager.updateGlobalBreadcrumb("Weekly Timeline / " + assessment.getTitle());
-
-            if (detailPage != null) {
-                detailPage.initializeView("TEACHER", "ACTIVE");
-                detailPage.setAssessmentData(assessment);
+                    MainController.instance.forceSidebarSelection(parentTab);
+                    MainController.instance.updateBreadcrumb(parentTab + " / " + title);
+                    NavigationManager.switchScreen("evaluation_details.fxml");
+                });
+                linksBox.getChildren().add(jumpLink);
             }
+            assessmentSection.getChildren().add(linksBox);
+        }
+
+        content.getChildren().addAll(timeLabel, resourcesSection, assessmentSection);
+        pane.setContent(content);
+
+        String normalStyle = "-fx-base: #E8F8F5; -fx-background-color: #E8F8F5; -fx-border-color: #A3E4D7; -fx-border-radius: 8; -fx-background-radius: 8;";
+        String hoverStyle = normalStyle + " -fx-effect: dropshadow(three-pass-box, rgba(46, 204, 113, 0.4), 15, 0, 0, 0); -fx-cursor: hand;";
+        pane.setStyle(normalStyle);
+        pane.setOnMouseEntered(e -> pane.setStyle(hoverStyle));
+        pane.setOnMouseExited(e -> pane.setStyle(normalStyle));
+
+        return pane;
+    }
+
+
+    private void handleAddMaterial(int sectionId) {
+        javafx.scene.control.TextInputDialog linkDialog = new javafx.scene.control.TextInputDialog("https://");
+        linkDialog.setTitle("Attach Link");
+        linkDialog.setHeaderText("Paste a Google Drive or YouTube Link:");
+
+        linkDialog.showAndWait().ifPresent(link -> {
+            javafx.scene.control.TextInputDialog titleDialog = new javafx.scene.control.TextInputDialog("Lecture Slides");
+            titleDialog.setHeaderText("What is the title of this resource?");
+
+            titleDialog.showAndWait().ifPresent(title -> {
+                String jsonPayload = String.format(
+                        "{\"sectionId\":\"%d\",\"type\":\"Resource\",\"title\":\"%s\",\"description\":\"\",\"fileLink\":\"%s\",\"dueDate\":\"\"}",
+                        sectionId, title.replace("\"", "\\\""), link.replace("\"", "\\\"")
+                );
+                sendPostRequest("http://localhost:8080/api/modules", jsonPayload);
+            });
         });
-        return button;
+    }
+
+    private void sendPostRequest(String url, String json) {
+        try {
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofString(json))
+                    .build();
+            client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+            // Reload UI seamlessly
+            String currentCourse = SessionManager.getCurrentCourseCode();
+            fetchDataAndRender(currentCourse);
+        } catch (Exception e) { e.printStackTrace(); }
     }
 }

@@ -4,6 +4,7 @@ import com.syncron.models.Course;
 import com.syncron.models.Module;
 import com.syncron.models.User;
 import com.syncron.utils.DatabaseHandler;
+import com.syncron.utils.NavigationManager;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -48,7 +49,7 @@ public class HomeController {
     @FXML
     public void initialize() throws SQLException {
         // 1. Load the real courses once from the database into memory
-        allCourses = DatabaseHandler.getAllCourses();
+        allCourses = fetchCoursesFromServer();
         renderCourses(allCourses);
 
         // 2. 👉 THE SEARCH ENGINE LISTENER
@@ -73,6 +74,52 @@ public class HomeController {
             String FirstName = currentUser.getName().split(" ")[0];
             welcomeLabel.setText("Welcome Back, " + FirstName + "!");
         }
+    }
+
+    private java.util.List<Course> fetchCoursesFromServer() {
+        java.util.List<Course> downloadedCourses = new java.util.ArrayList<>();
+        try {
+            System.out.println("⏳ Attempting to fetch courses from server...");
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+
+            String role = SessionManager.getCurrentUser().getRole();
+            String name = SessionManager.getCurrentUser().getName().replace(" ", "%20");
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/dashboard/courses?role=" + role + "&name=" + name))
+                    .GET()
+                    .build();
+
+            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                System.out.println("✅ Server responded 200 OK! Parsing JSON...");
+
+                com.google.gson.Gson gson = new com.google.gson.Gson();
+                // UPGRADE: Changed String, String to String, Object to prevent Number format crashes!
+                java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<java.util.Map<String, Object>>>(){}.getType();
+                java.util.List<java.util.Map<String, Object>> courseData = gson.fromJson(response.body(), listType);
+
+                for (java.util.Map<String, Object> data : courseData) {
+                    // UPGRADE: Safely force everything to a String so the Course constructor doesn't panic
+                    String cCode = String.valueOf(data.get("courseCode"));
+                    String cTitle = String.valueOf(data.get("courseTitle"));
+                    String cType = String.valueOf(data.get("type"));
+
+                    // Handle numbers like 3.0 gracefully without decimal trailing if needed, or just pass as string
+                    String cCredits = String.valueOf(data.get("credits"));
+
+                    Course c = new Course(cCode, cTitle, cCredits, cType);
+                    downloadedCourses.add(c);
+                }
+                System.out.println("🎯 Successfully rendered " + downloadedCourses.size() + " courses to UI!");
+            } else {
+                System.out.println("❌ Server refused to send courses. HTTP Status: " + response.statusCode());
+            }
+        } catch (Exception e) {
+            System.out.println("❌ CRASH during course fetch/parse:");
+            e.printStackTrace();
+        }
+        return downloadedCourses;
     }
 
     private void loadSemesterData() {
@@ -201,34 +248,153 @@ public class HomeController {
     }
 
     // 4. Load urgent deadlines with this method
-    private void loadUrgentDeadlines() throws SQLException {
-        // 1. Ask the DB for the next 7 days of task.
-        List<com.syncron.models.Module> urgentTasks = DatabaseHandler.getUpcomingDeadlines();
+    private void loadUrgentDeadlines() {
+        urgentContainer.getChildren().clear();
 
-        // 2. If there's no homework
-        if (urgentTasks.isEmpty()) {
-            Label emptyMsg = new Label("No dues left. Relax! ☕");
-            emptyMsg.setStyle("-fx-text-fill: #7F8C8D; -fx-font-style: italic;");
-            urgentContainer.getChildren().add(emptyMsg);
-            return;
+        // Apply the new glowing red CSS
+        urgentContainer.getStyleClass().clear();
+        urgentContainer.getStyleClass().add("glow-box-red");
+
+        Label headerLbl = new Label("🔥 Upcoming Deadlines");
+        headerLbl.setStyle("-fx-text-fill: #C0392B; -fx-font-weight: bold; -fx-font-size: 15px; -fx-padding: 0 0 10 0;");
+        urgentContainer.getChildren().add(headerLbl);
+
+        try {
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+
+
+            String role = SessionManager.getCurrentUser().getRole();
+            String name = SessionManager.getCurrentUser().getName().replace(" ", "%20");
+            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/dashboard/deadlines?role=" + role + "&name=" + name))
+                    .GET()
+                    .build();
+
+
+
+            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                com.google.gson.Gson gson = new com.google.gson.Gson();
+                java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<java.util.Map<String, String>>>(){}.getType();
+                java.util.List<java.util.Map<String, String>> urgentTasks = gson.fromJson(response.body(), listType);
+
+                if (urgentTasks.isEmpty()) {
+                    Label emptyMsg = new Label("No dues left. Relax! ☕");
+                    emptyMsg.setStyle("-fx-text-fill: #7F8C8D; -fx-font-style: italic;");
+                    urgentContainer.getChildren().add(emptyMsg);
+                    return;
+                }
+
+                for (java.util.Map<String, String> task : urgentTasks) {
+                    VBox taskBox = new VBox(4); // Slightly more spacing
+                    taskBox.setStyle("-fx-padding: 8 0; -fx-cursor: hand;");
+
+                    Label titleLabel = new Label("• " + task.get("title"));
+                    titleLabel.getStyleClass().add("clean-link");
+                    // BIGGER, PREMIUM FONT
+                    titleLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+                    titleLabel.setWrapText(true);
+
+
+                    // --- TIME CALCULATION ENGINE ---
+                    String dDate = task.get("deadlineDate") != null ? task.get("deadlineDate") : task.get("dueDate");
+                    String dTime = task.get("deadlineTime") != null ? task.get("deadlineTime") : task.get("dueTime");
+                    String dueText = "Due: " + dDate;
+                    boolean isPassed = false;
+
+                    try {
+                        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+                        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+                        java.time.LocalDateTime deadline = java.time.LocalDateTime.parse(dDate + " " + dTime, formatter);
+
+                        // Calculate total minutes to check if it's strictly in the past
+                        long minutesLeft = java.time.temporal.ChronoUnit.MINUTES.between(now, deadline);
+                        long daysLeft = java.time.temporal.ChronoUnit.DAYS.between(now, deadline);
+                        long hoursLeft = java.time.temporal.ChronoUnit.HOURS.between(now, deadline) % 24;
+
+                        java.time.format.DateTimeFormatter niceDate = java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy");
+
+                        if (minutesLeft < 0) {
+                            isPassed = true; // The deadline has expired!
+                            dueText = "Deadline Passed";
+                        } else if (daysLeft > 0) {
+                            dueText = deadline.format(niceDate) + " (" + daysLeft + " days Left)";
+                        } else if (hoursLeft > 0) {
+                            dueText = "Today (" + hoursLeft + " hours Left)";
+                        } else {
+                            dueText = "Due Very Soon!";
+                        }
+                    } catch (Exception ignored) {}
+
+                    // THE FIX: If the deadline has passed, skip rendering it entirely
+                    if (isPassed) continue;
+
+                    Label dateLabel = new Label(dueText);
+                    dateLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #E74C3C; -fx-padding: 0 0 0 15; -fx-font-weight: bold;");
+
+                    taskBox.getChildren().addAll(titleLabel, dateLabel);
+                    // --- TIME CALCULATION ENGINE END ---
+
+                    // THE FIX: SAFE CLICK ROUTING
+// CLICK ROUTING
+                    taskBox.setOnMouseClicked(e -> {
+                        String courseCode = task.get("title").split(" - ")[0].trim();
+                        // Pass the TYPE to the teleporter
+                        openEvaluationDirectly(courseCode, task.get("id"), task.get("type"));
+                    });
+
+                    urgentContainer.getChildren().add(taskBox);
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    // THE SOLID TELEPORTER
+    private void openEvaluationDirectly(String courseCode, String evaluationId, String assessmentType) {
+        Course targetCourse = null;
+        for (Course c : allCourses) {
+            if (c.getCourseCode().equalsIgnoreCase(courseCode)) {
+                targetCourse = c;
+                break;
+            }
+        }
+        if (targetCourse == null) {
+            targetCourse = new Course(courseCode, "Course", "3.0", "theory");
         }
 
-        // 3. Not empty : Loop through the tasks and build the UI
-        for (Module task : urgentTasks) {
-            VBox taskBox = new VBox(2); // 2px spacing
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
+            Parent root = loader.load();
 
-            // Task Title
-            Label titleLabel = new Label("• " + task.getTitle());
-            titleLabel.setStyle("-fx-text-fill: #2C3E50; -fx-font-weight: bold; -fx-font-size: 12px;");
-            titleLabel.setWrapText(true);
+            SessionManager.setCurrentCourseCode(targetCourse.getCourseCode());
+            SessionManager.setCurrentEvaluationId(evaluationId);
 
-            // Task Date
-            Label dateLabel = new Label("Due: " + task.getDueDate());
-            dateLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #E74C3C; -fx-padding: 0 0 0 10;");
+            MainController controller = loader.getController();
+            controller.setCourseContext(targetCourse.getCourseCode(), targetCourse.getCourseTitle(), targetCourse.getType(), targetCourse.getCredits());
 
-            taskBox.getChildren().addAll(titleLabel, dateLabel);
+            // 1. Calculate the correct parent Tab based on Assessment Type
+            String parentTab = "Common";
+            if ("CT".equalsIgnoreCase(assessmentType) || "ASSIGNMENT".equalsIgnoreCase(assessmentType)) {
+                parentTab = "CT and Assignments";
+            } else if ("ONLINE".equalsIgnoreCase(assessmentType)) {
+                parentTab = "Onlines";
+            } else if ("OFFLINE".equalsIgnoreCase(assessmentType)) {
+                parentTab = "Offlines";
+            }
 
-            urgentContainer.getChildren().add(taskBox);
+            // 2. Load the Details Page
+            NavigationManager.switchScreen("evaluation_details.fxml");
+
+            // 3. Fix the UI: Sync Sidebar and Interactive Breadcrumbs!
+            controller.forceSidebarSelection(parentTab);
+            controller.updateBreadcrumb(parentTab + " / Assessment Details");
+
+            Stage stage = (Stage) urgentContainer.getScene().getWindow();
+            stage.getScene().setRoot(root);
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

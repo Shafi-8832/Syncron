@@ -44,29 +44,21 @@
 
         </VBox>
 
-        <VBox fx:id="studentViewBox" spacing="15" visible="false" managed="false">
-            <Label text="Submission Status" style="-fx-font-family: 'Georgia', serif; -fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;" />
+        <VBox fx:id="studentViewBox" spacing="10" style="-fx-padding: 15; -fx-background-color: #F4F6F8; -fx-background-radius: 8; -fx-border-color: #DCDDE1; -fx-border-radius: 8;">
+            <Label text="Your Submission" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
 
-            <VBox style="-fx-background-color: #FFFFFF; -fx-border-color: #E0D5C7; -fx-border-radius: 8;">
-                <HBox spacing="20" style="-fx-padding: 15; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;">
-                    <Label text="Status" prefWidth="120" style="-fx-font-weight: bold; -fx-text-fill: #7F8C8D;" />
-                    <Label fx:id="submissionStatusLabel" text="No submission" style="-fx-text-fill: #E74C3C; -fx-font-weight: bold;" />
-                </HBox>
-                <HBox spacing="20" style="-fx-padding: 15; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;">
-                    <Label text="Grading" prefWidth="120" style="-fx-font-weight: bold; -fx-text-fill: #7F8C8D;" />
-                    <Label fx:id="gradingStatusLabel" text="Not Graded" style="-fx-text-fill: #2C3E50;" />
-                </HBox>
-                <HBox spacing="20" style="-fx-padding: 15;">
-                    <Label text="Your Files" prefWidth="120" style="-fx-font-weight: bold; -fx-text-fill: #7F8C8D;" />
-                    <VBox fx:id="studentFilesContainer" spacing="5" />
-                </HBox>
-            </VBox>
+            <HBox spacing="15">
+                <Label fx:id="submissionStatusLabel" text="No submission" style="-fx-text-fill: #E74C3C; -fx-font-weight: bold;"/>
+                <Label text="|" style="-fx-text-fill: #BDC3C7;"/>
+                <Label fx:id="studentGradeLabel" text="Not Graded" style="-fx-text-fill: #D35400; -fx-font-weight: bold;"/>
+            </HBox>
 
-            <HBox spacing="15" alignment="CENTER_LEFT">
-                <Button fx:id="selectFilesBtn" text="📎 Select Files" onAction="#handleSelectFiles" style="-fx-background-color: #ECF0F1; -fx-text-fill: #2C3E50; -fx-font-weight: bold; -fx-cursor: hand;" />
-                <Button fx:id="saveChangesBtn" text="Save Changes" onAction="#handleSaveChanges" disable="true" style="-fx-background-color: #2ECC71; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" />
-                <Region HBox.hgrow="ALWAYS" />
-                <Button fx:id="removeSubBtn" text="Remove Submission" onAction="#handleRemoveSubmission" visible="false" style="-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;" />
+            <VBox fx:id="studentFilesContainer" spacing="5"/>
+
+            <HBox spacing="10" alignment="CENTER_LEFT" style="-fx-padding: 10 0 0 0;">
+                <Button fx:id="selectFilesBtn" text="Select Files" onAction="#handleSelectFiles" style="-fx-background-color: #3498DB; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                <Button fx:id="saveChangesBtn" text="Save Changes" onAction="#handleSaveChanges" disable="true" style="-fx-background-color: #2ECC71; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                <Button fx:id="removeSubBtn" text="Remove Submission" onAction="#handleRemoveSubmission" visible="false" style="-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-font-weight: bold; -fx-cursor: hand;"/>
             </HBox>
         </VBox>
 

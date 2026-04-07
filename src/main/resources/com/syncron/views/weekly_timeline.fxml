@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
@@ -8,8 +12,16 @@
             fitToWidth="true"
             style="-fx-background: transparent; -fx-background-color: transparent;">
 
-    <VBox fx:id="timelineContainer" spacing="12"
-          style="-fx-padding: 30; -fx-background-color: transparent;"/>
+    <VBox spacing="15" style="-fx-padding: 30; -fx-background-color: transparent;">
+        <HBox alignment="CENTER_LEFT" spacing="15">
+            <Label text="Weekly Timeline" styleClass="timeline-header-visible"/>
+            <Region HBox.hgrow="ALWAYS" />
+            <HBox fx:id="labDayBox" alignment="CENTER" spacing="10" visible="false" managed="false">
+                <Label text="Course Lab Day:" style="-fx-font-weight: bold; -fx-text-fill: #7F8C8D; -fx-font-size: 13px;"/>
+                <ComboBox fx:id="labDayCombo" styleClass="premium-text-field" prefWidth="130"/>
+            </HBox>
+        </HBox>
 
-
+        <VBox fx:id="timelineContainer" spacing="12"/>
+    </VBox>
 </ScrollPane>

@@ -199,15 +199,14 @@ public class SessionalEvaluationsController {
 
     @FXML
     private void handleCancel() {
-
-        String routeTo = SessionManager.getLastSidebarTab();
-
-        if (currentType.equals(routeTo)) {
+        if ("ONLINE".equals(currentType)) {
             NavigationManager.switchScreen("onlines.fxml");
         } else {
             NavigationManager.switchScreen("offlines.fxml");
         }
     }
+
+
     @FXML
     private void goBack() {handleCancel();}
 
@@ -296,109 +295,67 @@ public class SessionalEvaluationsController {
 
         if (selectedPdfFile != null) {
             try {
-                File uploadDir = new File("uploads");
-                if (!uploadDir.exists()) uploadDir.mkdir();
+                File uploadDir = new File("uploads/assessments");
+                if (!uploadDir.exists()) uploadDir.mkdirs();
 
-                String newFileName = courseCode.replace(" ", "") + "_" + teacherId + "_" + System.currentTimeMillis() + ".pdf";
+                String newFileName = courseCode.replace(" ", "") + "_" + teacherId + "_" + System.currentTimeMillis() + "_" + selectedPdfFile.getName();
                 File destFile = new File(uploadDir, newFileName);
 
                 Files.copy(selectedPdfFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                savedFilePath = destFile.getPath();
+                savedFilePath = destFile.getPath().replace("\\", "\\\\"); // Escape for JSON
             } catch (Exception e) {
                 e.printStackTrace();
-                new Alert(Alert.AlertType.ERROR, "Failed to upload file!").show();
+                new Alert(Alert.AlertType.ERROR, "Failed to process file!").show();
                 return;
             }
         }
 
-        // DATABASE INJECTION & EDIT ROUTING
-        try (java.sql.Connection conn = DatabaseHandler.connect();
-             java.sql.Statement alterStmt = conn.createStatement()) {
+        try {
+            String safeDesc = desc.replace("\"", "\\\"").replace("\n", "\\n");
 
-            // Add the new start_date and start_time columns dynamically if they don't exist yet!
-            try { alterStmt.execute("ALTER TABLE evaluations ADD COLUMN start_date TEXT"); } catch (Exception ignore) {}
-            try { alterStmt.execute("ALTER TABLE evaluations ADD COLUMN start_time TEXT"); } catch (Exception ignore) {}
-            try { alterStmt.execute("ALTER TABLE evaluations ADD COLUMN file_path TEXT"); } catch (Exception ignore) {}
+            String jsonPayload = String.format(
+                    "{\"courseCode\":\"%s\",\"title\":\"%s\",\"type\":\"%s\",\"targetSections\":\"%s\",\"totalMarks\":\"%s\",\"startDate\":\"%s\",\"startTime\":\"%s\",\"deadlineDate\":\"%s\",\"deadlineTime\":\"%s\",\"description\":\"%s\",\"creatorId\":\"%s\",\"filePath\":\"%s\"}",
+                    courseCode, title, currentType, targetSections, marks, startDateStr, startTimeStr, deadlineDateStr, deadlineTimeStr, safeDesc, teacherId, savedFilePath
+            );
+
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest request;
 
             if (editId != null && !editId.isEmpty()) {
-                //  UPDATE EXISTING LOGIC
-                String updateSql;
-                if (selectedPdfFile != null) {
-                    // Update EVERYTHING including the new file
-                    updateSql = "UPDATE evaluations SET title=?, type=?, target_sections=?, total_marks=?, start_date=?, start_time=?, deadline_date=?, deadline_time=?, description=?, file_path=? WHERE id=?";
-                } else {
-                    // Update everything EXCEPT the file (keeps the old PDF safe)
-                    updateSql = "UPDATE evaluations SET title=?, type=?, target_sections=?, total_marks=?, start_date=?, start_time=?, deadline_date=?, deadline_time=?, description=? WHERE id=?";
-                }
-
-                java.sql.PreparedStatement pstmt = conn.prepareStatement(updateSql);
-                pstmt.setString(1, title);
-                pstmt.setString(2, currentType);
-                pstmt.setString(3, targetSections);
-                pstmt.setString(4, marks);
-                pstmt.setString(5, startDateStr);
-                pstmt.setString(6, startTimeStr);
-                pstmt.setString(7, deadlineDateStr);
-                pstmt.setString(8, deadlineTimeStr);
-                pstmt.setString(9, desc);
-
-                if (selectedPdfFile != null) {
-                    pstmt.setString(10, savedFilePath);
-                    pstmt.setString(11, editId);
-                } else {
-                    pstmt.setString(10, editId);
-                }
-
-                pstmt.executeUpdate();
-                new Alert(Alert.AlertType.INFORMATION, "Assessment Updated Successfully!").showAndWait();
-
+                request = java.net.http.HttpRequest.newBuilder()
+                        .uri(java.net.URI.create("http://localhost:8080/api/evaluations/" + editId))
+                        .header("Content-Type", "application/json")
+                        .PUT(java.net.http.HttpRequest.BodyPublishers.ofString(jsonPayload))
+                        .build();
             } else {
-                // INSERT NEW LOGIC
-                String insertSql = "INSERT INTO evaluations (course_code, title, type, target_sections, total_marks, start_date, start_time, deadline_date, deadline_time, description, creator_id, file_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-                java.sql.PreparedStatement pstmt = conn.prepareStatement(insertSql);
-                pstmt.setString(1, courseCode);
-                pstmt.setString(2, title);
-                pstmt.setString(3, currentType);
-                pstmt.setString(4, targetSections);
-                pstmt.setString(5, marks);
-                pstmt.setString(6, startDateStr);
-                pstmt.setString(7, startTimeStr);
-                pstmt.setString(8, deadlineDateStr);
-                pstmt.setString(9, deadlineTimeStr);
-                pstmt.setString(10, desc);
-                pstmt.setString(11, teacherId);
-                pstmt.setString(12, savedFilePath);
-                pstmt.executeUpdate();
-
-                // Auto-Announce ONLY when creating a new assessment
-                String announcementText = "🔔 New " + currentType + " Published: " + title + " (Due: " + deadlineDateStr + " " + deadlineTimeStr + ")";
-                String announceSql = "INSERT INTO announcements (course_code, message, timestamp, creator_id) VALUES (?, ?, ?, ?)";
-                java.sql.PreparedStatement astmt = conn.prepareStatement(announceSql);
-                astmt.setString(1, courseCode);
-                astmt.setString(2, announcementText);
-                astmt.setString(3, LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd MMM yyyy, hh:mm a")));
-                astmt.setString(4, teacherId);
-                astmt.executeUpdate();
-
-                Alert success = new Alert(Alert.AlertType.INFORMATION, "Assessment Published Successfully!");
-                success.showAndWait();
+                request = java.net.http.HttpRequest.newBuilder()
+                        .uri(java.net.URI.create("http://localhost:8080/api/evaluations"))
+                        .header("Content-Type", "application/json")
+                        .POST(java.net.http.HttpRequest.BodyPublishers.ofString(jsonPayload))
+                        .build();
             }
 
-            // Route back
+            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
 
-            String routeTo = SessionManager.getLastSidebarTab();
+            if (response.statusCode() == 200) {
+                new Alert(Alert.AlertType.INFORMATION, "Assessment Published to Cloud Successfully!").showAndWait();
 
-            if ("ONLINE".equals(routeTo)) {
-                NavigationManager.switchScreen("offlines.fxml");
+                // Route back to the correct tab dynamically
+                String routeTo = SessionManager.getLastSidebarTab();
+                if ("ONLINE".equals(routeTo)) {
+                    NavigationManager.switchScreen("onlines.fxml");
+                } else {
+                    NavigationManager.switchScreen("offlines.fxml");
+                }
             } else {
-                NavigationManager.switchScreen("onlines.fxml");
+                new Alert(Alert.AlertType.ERROR, "Cloud Error: Could not publish assessment.").show();
             }
 
         } catch (Exception e) {
             e.printStackTrace();
-            new Alert(Alert.AlertType.ERROR, "Failed to publish assessment. Database error.").show();
+            new Alert(Alert.AlertType.ERROR, "Network Error: Could not connect to Cloud Server.").show();
         }
+
     }
 
 

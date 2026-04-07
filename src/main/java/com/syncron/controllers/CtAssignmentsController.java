@@ -40,35 +40,41 @@ public class CtAssignmentsController {
             boolean isPast = false;
         }
         java.util.List<EvalCard> cardList = new java.util.ArrayList<>();
-
-        String query = "SELECT id, title, type, start_date, start_time, deadline_date, deadline_time " +
-                "FROM evaluations WHERE course_code = ? AND type IN ('CT', 'ASSIGNMENT')";
-
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
-        try (java.sql.Connection conn = DatabaseHandler.connect();
-             java.sql.PreparedStatement pstmt = conn.prepareStatement(query)) {
+        //DOUBLE CLOUD FETCH (CTs + Assignments)
+        try {
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            com.google.gson.Gson gson = new com.google.gson.Gson();
+            java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<java.util.Map<String, String>>>(){}.getType();
 
-            pstmt.setString(1, currentCourse);
-            java.sql.ResultSet rs = pstmt.executeQuery();
+            String[] typesToFetch = {"CT", "ASSIGNMENT"};
+            for (String typeToFetch : typesToFetch) {
+                java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                        .uri(java.net.URI.create("http://localhost:8080/api/evaluations/course/" + currentCourse.replace(" ", "%20") + "/" + typeToFetch))
+                        .GET().build();
 
-            while (rs.next()) {
-                EvalCard c = new EvalCard();
-                c.id = rs.getString("id");
-                c.title = rs.getString("title");
-                c.type = rs.getString("type");
-                c.startStr = rs.getString("start_date") + " " + rs.getString("start_time");
-                c.endStr = rs.getString("deadline_date") + " " + rs.getString("deadline_time");
+                java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
 
-                try {
-                    c.startTime = LocalDateTime.parse(c.startStr, formatter);
-                    c.endTime = LocalDateTime.parse(c.endStr, formatter);
-                    if (LocalDateTime.now().isAfter(c.endTime)) {
-                        c.isPast = true; // Flag it as expired
+                if (response.statusCode() == 200) {
+                    java.util.List<java.util.Map<String, String>> evals = gson.fromJson(response.body(), listType);
+                    for (java.util.Map<String, String> rs : evals) {
+                        EvalCard c = new EvalCard();
+                        c.id = rs.get("id");
+                        c.title = rs.get("title");
+                        c.type = rs.get("type");
+                        c.startStr = rs.get("startDate") + " " + rs.get("startTime");
+                        c.endStr = rs.get("deadlineDate") + " " + rs.get("deadlineTime");
+
+                        try {
+                            c.startTime = LocalDateTime.parse(c.startStr, formatter);
+                            c.endTime = LocalDateTime.parse(c.endStr, formatter);
+                            if (LocalDateTime.now().isAfter(c.endTime)) c.isPast = true;
+                        } catch (Exception ignored) {}
+
+                        cardList.add(c);
                     }
-                } catch (Exception e) {}
-
-                cardList.add(c);
+                }
             }
         } catch (Exception e) { e.printStackTrace(); }
 

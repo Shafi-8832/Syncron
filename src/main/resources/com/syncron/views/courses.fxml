@@ -25,3 +25,5 @@
     </TableView>
 
 </VBox>
+
+<!--this file to be deleted with its controller (CoursesController & CourseDetailsController)-->

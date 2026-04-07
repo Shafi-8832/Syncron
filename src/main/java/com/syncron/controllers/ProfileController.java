@@ -3,343 +3,311 @@ package com.syncron.controllers;
 import com.syncron.models.User;
 import com.syncron.utils.DatabaseHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
+import javafx.scene.image.Image;
+import javafx.scene.paint.ImagePattern;
+import javafx.stage.FileChooser;
+
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.Map;
 
 public class ProfileController {
 
     public static User viewingUser = null;
-    private static final int MIN_PASSWORD_LENGTH = 8;
     private User loadedUser;
+    private String currentPhotoPath = "";
 
-    // Main Boxes
-    @FXML private VBox studentHistoryBox;
-    @FXML private VBox teacherAssignedBox;
-    @FXML private VBox passwordFormBox;
-
-    // Top Profile Header
-    @FXML private Label topHeaderNameLabel;
-    @FXML private Label nameLabel;
-    @FXML private Label roleLabel;
-    @FXML private Label sectionLabel;
-
-    // Chameleon Containers
+    @FXML private VBox passwordFormBox, studentInfoContainer, studentHistoryBox, teacherAssignedBox;
     @FXML private HBox teacherInfoContainer;
-    @FXML private VBox studentInfoContainer;
+    @FXML private Label nameLabel, roleLabel, sectionLabel, teacherIdLabel, teacherEmailLabel, passwordErrorLabel;
+    @FXML private Label studentIdLabel, studentEmailLabel;
 
-    // Teacher Specific Labels
-    @FXML private Label teacherBioLabel;
-    @FXML private Label teacherIdLabel;
-    @FXML private Label teacherResearchLabel;
-    @FXML private Label teacherContactLabel;
-    @FXML private Label teacherGithubLabel;
-    @FXML private Label teacherLinkedinLabel;
-    @FXML private Label teacherFbLabel;
-    @FXML private Label teacherRoomLabel;
-    @FXML private Label teacherEmailLabel;
+    // Teacher Editable Fields
+    @FXML private TextField bioField, contactField, githubField, linkedinField, fbField, roomField;
 
-    // Student Specific Labels
-    @FXML private Label studentBioLabel;
-    @FXML private Label studentIdLabel;
-    @FXML private Label studentSectionLabel;
-    @FXML private Label studentClassroomLabel;
-    @FXML private Label studentEmailLabel;
-    @FXML private Label studentGithubLabel;
-    @FXML private Label studentLinkedinLabel;
-    @FXML private Label semesterBadgeLabel;
+    // Student Editable Fields
+    @FXML private TextField studentBioField, studentGithubField, studentLinkedinField;
 
-    // Password Fields
-    @FXML private PasswordField currentPasswordField;
-    @FXML private PasswordField newPasswordField;
-    @FXML private PasswordField confirmPasswordField;
-    @FXML private Label passwordErrorLabel;
+    @FXML private PasswordField currentPasswordField, newPasswordField, confirmPasswordField;
+    @FXML private Circle profilePhotoCircle;
 
     @FXML
     public void initialize() {
-        User userToLoad = viewingUser != null ? viewingUser : SessionManager.getCurrentUser();
-        if (viewingUser != null) {
-            viewingUser = null;
-        }
-        loadUserData(userToLoad);
+        loadedUser = viewingUser != null ? viewingUser : SessionManager.getCurrentUser();
+        viewingUser = null;
+
         hidePasswordForm();
+        setupAutoSaveEngine();
+        loadUserData(loadedUser);
+    }
+
+    private void setupAutoSaveEngine() {
+        // Any time a field loses focus, it auto-saves to the cloud!
+        TextField[] fields = {bioField, contactField, githubField, linkedinField, fbField, roomField, studentBioField, studentGithubField, studentLinkedinField};
+        for (TextField field : fields) {
+            if (field != null) {
+                field.focusedProperty().addListener((obs, old, isFocused) -> {
+                    if (!isFocused) saveProfileToCloud();
+                });
+            }
+        }
     }
 
     private void loadUserData(User user) {
         if (user == null) return;
-        this.loadedUser = user;
-
-        // Set the universal info
         nameLabel.setText(user.getName());
         roleLabel.setText(user.getRole() != null ? user.getRole().toUpperCase() : "UNKNOWN");
-        String email = user.getEmail() != null ? user.getEmail() : "--";
-        String id = user.getId() != null ? user.getId() : "--";
 
-        if (topHeaderNameLabel != null) {
-            topHeaderNameLabel.setText(user.getName());
-        }
+        if ("TEACHER".equalsIgnoreCase(user.getRole())) {
+            teacherInfoContainer.setVisible(true); teacherInfoContainer.setManaged(true);
+            teacherAssignedBox.setVisible(true); teacherAssignedBox.setManaged(true);
+            studentInfoContainer.setVisible(false); studentInfoContainer.setManaged(false);
+            studentHistoryBox.setVisible(false); studentHistoryBox.setManaged(false);
 
-        // --- THE PIXEL-PERFECT CHAMELEON LOGIC ---
-        if ("STUDENT".equalsIgnoreCase(user.getRole())) {
-
-            // Toggle containers
-            studentInfoContainer.setVisible(true);
-            studentInfoContainer.setManaged(true);
-            teacherInfoContainer.setVisible(false);
-            teacherInfoContainer.setManaged(false);
-
-            studentHistoryBox.setVisible(true);
-            studentHistoryBox.setManaged(true);
-            teacherAssignedBox.setVisible(false);
-            teacherAssignedBox.setManaged(false);
-
-            // Populate student fields
-            studentBioLabel.setText("Bio : Passionate CS student at BUET.");
-            studentIdLabel.setText("Student ID : " + id);
-            studentEmailLabel.setText("Email Address : " + email);
-            studentGithubLabel.setText("GitHub : github.com/" + id);
-            studentLinkedinLabel.setText("LinkedIn : linkedin.com/in/" + id);
-            studentClassroomLabel.setText("Class Room : Room 402");
-
-            if (user instanceof com.syncron.models.Student) {
-                com.syncron.models.Student student = (com.syncron.models.Student) user;
-                String sec = student.getSection() != null ? student.getSection() : "--";
-                String subSec = student.getSubsection() != null ? student.getSubsection() : "--";
-                studentSectionLabel.setText("Section : " + sec);
-                sectionLabel.setText(subSec); // Badge next to name
-            } else {
-                studentSectionLabel.setText("Section : --");
-                sectionLabel.setText("Student");
-            }
-
-            generateDynamicCourseList(studentHistoryBox, false);
-
+            teacherIdLabel.setText(user.getId());
+            teacherEmailLabel.setText(user.getEmail());
+            sectionLabel.setText(user.getId());
         } else {
+            studentInfoContainer.setVisible(true); studentInfoContainer.setManaged(true);
+            studentHistoryBox.setVisible(true); studentHistoryBox.setManaged(true);
+            teacherInfoContainer.setVisible(false); teacherInfoContainer.setManaged(false);
+            teacherAssignedBox.setVisible(false); teacherAssignedBox.setManaged(false);
 
-            // Toggle containers
-            teacherInfoContainer.setVisible(true);
-            teacherInfoContainer.setManaged(true);
-            studentInfoContainer.setVisible(false);
-            studentInfoContainer.setManaged(false);
-
-            teacherAssignedBox.setVisible(true);
-            teacherAssignedBox.setManaged(true);
-            studentHistoryBox.setVisible(false);
-            studentHistoryBox.setManaged(false);
-
-            // Populate teacher fields
-            teacherBioLabel.setText("Bio : ");
-            teacherIdLabel.setText("Teacher ID : " + id);
-            teacherResearchLabel.setText("Research Interest : ");
-            teacherContactLabel.setText("Contact No. : ");
-            teacherGithubLabel.setText("Github Link : ");
-            teacherLinkedinLabel.setText("LinkedIn Link : ");
-            teacherFbLabel.setText("FB Link : ");
-            teacherRoomLabel.setText("Room No : ");
-            teacherEmailLabel.setText("Email Address : " + email);
-            sectionLabel.setText(id); // Badge next to name
-
-
-            generateDynamicCourseList(teacherAssignedBox, true);
-        }
-    }
-
-    // --- The Course Link Routing Method ---
-    @FXML
-    private void handleCourseClick(javafx.scene.input.MouseEvent event) {
-        Label clickedLabel = (Label) event.getSource();
-        String fullText = clickedLabel.getText();
-
-        String courseCode = fullText;
-        if (fullText.contains(" — ")) {
-            courseCode = fullText.split(" — ")[0].trim();
+            studentIdLabel.setText(user.getId());
+            studentEmailLabel.setText(user.getEmail());
+            sectionLabel.setText("Student");
         }
 
-        // 1.Ask the database for the REAL course details
-        com.syncron.models.Course clickedCourse = DatabaseHandler.getCourseByCode(courseCode);
-        if (clickedCourse == null) return;
-
+        // Fetch custom data from Cloud
         try {
-            viewingUser = null;
-            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
-            javafx.scene.Parent root = loader.load();
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/users/" + user.getId() + "/profile")).GET().build();
+            java.net.http.HttpResponse<String> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
 
-            // 2.Update  the Session Memory
-            SessionManager.setCurrentCourseCode(clickedCourse.getCourseCode());
+            if (res.statusCode() == 200) {
+                com.google.gson.Gson gson = new com.google.gson.Gson();
+                Map<String, String> data = gson.fromJson(res.body(), new com.google.gson.reflect.TypeToken<Map<String, String>>(){}.getType());
 
-            // 3. Pass the real data to the layout
-            MainController controller = loader.getController();
-            controller.setCourseContext(clickedCourse.getCourseCode(), clickedCourse.getCourseTitle(), clickedCourse.getType(), clickedCourse.getCredits());
+                // Populate Teacher Fields
+                if (bioField != null) bioField.setText(data.getOrDefault("bio", ""));
+                if (contactField != null) contactField.setText(data.getOrDefault("contact_no", ""));
+                if (githubField != null) githubField.setText(data.getOrDefault("github", ""));
+                if (linkedinField != null) linkedinField.setText(data.getOrDefault("linkedin", ""));
+                if (fbField != null) fbField.setText(data.getOrDefault("fb_link", ""));
+                if (roomField != null) roomField.setText(data.getOrDefault("room_no", ""));
 
-            javafx.stage.Stage stage = (javafx.stage.Stage) passwordFormBox.getScene().getWindow();
-            stage.getScene().setRoot(root);
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
+                // Populate Student Fields
+                if (studentBioField != null) studentBioField.setText(data.getOrDefault("bio", ""));
+                if (studentGithubField != null) studentGithubField.setText(data.getOrDefault("github", ""));
+                if (studentLinkedinField != null) studentLinkedinField.setText(data.getOrDefault("linkedin", ""));
+
+                currentPhotoPath = data.getOrDefault("photo_path", "");
+                if (!currentPhotoPath.isEmpty()) {
+                    File imgFile = new File(currentPhotoPath);
+                    if (imgFile.exists()) profilePhotoCircle.setFill(new ImagePattern(new Image(imgFile.toURI().toString())));
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+
+        loadAssignedCourses();
+    }
+
+
+    private void loadAssignedCourses() {
+        try {
+            String role = loadedUser.getRole();
+            String name = loadedUser.getName().replace(" ", "%20");
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/dashboard/courses?role=" + role + "&name=" + name))
+                    .GET().build();
+            java.net.http.HttpResponse<String> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+            if (res.statusCode() == 200) {
+                com.google.gson.Gson gson = new com.google.gson.Gson();
+                java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<java.util.Map<String, String>>>(){}.getType();
+                java.util.List<java.util.Map<String, String>> courses = gson.fromJson(res.body(), listType);
+
+                if ("TEACHER".equalsIgnoreCase(role)) {
+                    VBox card = (VBox) teacherAssignedBox.getChildren().get(1);
+                    card.getChildren().clear();
+                    if (courses.isEmpty()) {
+                        Label empty = new Label("No courses assigned.");
+                        empty.setStyle("-fx-text-fill: #7F8C8D; -fx-font-style: italic;");
+                        card.getChildren().add(empty);
+                    } else {
+                        for (Map<String, String> c : courses) {
+                            Label lbl = new Label("• " + c.get("courseCode") + " - " + c.get("courseTitle"));
+// THE UPGRADE:blue clickable link
+                            lbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2980B9; -fx-cursor: hand;");
+                            lbl.setOnMouseEntered(e -> lbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #3498DB; -fx-cursor: hand; -fx-underline: true;"));
+                            lbl.setOnMouseExited(e -> lbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2980B9; -fx-cursor: hand;"));
+
+                            lbl.setOnMouseClicked(e -> {
+                                try {
+                                    // Route to the course exactly like the Home Dashboard does!
+                                    SessionManager.setCurrentCourseCode(c.get("courseCode"));
+                                    javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
+                                    javafx.scene.Parent root = loader.load();
+                                    MainController controller = loader.getController();
+                                    controller.setCourseContext(c.get("courseCode"), c.get("courseTitle"), "theory", "3.0"); // Defaults, can fetch real ones if needed
+                                    javafx.stage.Stage stage = (javafx.stage.Stage) nameLabel.getScene().getWindow();
+                                    stage.getScene().setRoot(root);
+                                } catch (Exception ex) { ex.printStackTrace(); }
+                            });
+                            card.getChildren().add(lbl);
+                        }
+                    }
+                } else {
+                    VBox card = (VBox) studentHistoryBox.getChildren().get(1);
+                    card.getChildren().clear();
+                    if (courses.isEmpty()) {
+                        Label empty = new Label("No courses enrolled.");
+                        empty.setStyle("-fx-text-fill: #7F8C8D; -fx-font-style: italic;");
+                        card.getChildren().add(empty);
+                    } else {
+                        for (Map<String, String> c : courses) {
+
+                            Label lbl = new Label("• " + c.get("courseCode") + " - " + c.get("courseTitle"));
+
+                            lbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2980B9; -fx-cursor: hand;");
+                            lbl.setOnMouseEntered(e -> lbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #3498DB; -fx-cursor: hand; -fx-underline: true;"));
+                            lbl.setOnMouseExited(e -> lbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2980B9; -fx-cursor: hand;"));
+
+                            lbl.setOnMouseClicked(e -> {
+                                try {
+                                    // Route to the course exactly like the Home Dashboard does!
+                                    SessionManager.setCurrentCourseCode(c.get("courseCode"));
+                                    javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
+                                    javafx.scene.Parent root = loader.load();
+                                    MainController controller = loader.getController();
+                                    controller.setCourseContext(c.get("courseCode"), c.get("courseTitle"), "theory", "3.0"); // Defaults, can fetch real ones if needed
+                                    javafx.stage.Stage stage = (javafx.stage.Stage) nameLabel.getScene().getWindow();
+                                    stage.getScene().setRoot(root);
+                                } catch (Exception ex) { ex.printStackTrace(); }
+                            });
+                            card.getChildren().add(lbl);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void saveProfileToCloud() {
+        try {
+            boolean isStudent = "STUDENT".equalsIgnoreCase(loadedUser.getRole());
+
+            // Grab from the correct visible fields
+            String bio = isStudent ? studentBioField.getText() : bioField.getText();
+            String contact = isStudent ? "" : contactField.getText();
+            String github = isStudent ? studentGithubField.getText() : githubField.getText();
+            String linkedin = isStudent ? studentLinkedinField.getText() : linkedinField.getText();
+            String fb = isStudent ? "" : fbField.getText();
+            String room = isStudent ? "" : roomField.getText();
+
+            String json = String.format("{\"bio\":\"%s\", \"contact_no\":\"%s\", \"github\":\"%s\", \"linkedin\":\"%s\", \"fb_link\":\"%s\", \"room_no\":\"%s\", \"photo_path\":\"%s\"}",
+                    bio.replace("\"", "\\\"").replace("\n", " "), contact, github, linkedin, fb, room, currentPhotoPath.replace("\\", "\\\\"));
+
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/users/" + loadedUser.getId() + "/profile"))
+                    .header("Content-Type", "application/json")
+                    .PUT(java.net.http.HttpRequest.BodyPublishers.ofString(json)).build();
+            client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    @FXML
+    private void handleUploadPhoto() {
+        FileChooser fc = new FileChooser();
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("Images", "*.png", "*.jpg", "*.jpeg"));
+        File file = fc.showOpenDialog(nameLabel.getScene().getWindow());
+
+        if (file != null) {
+            try {
+                File dir = new File("uploads/profiles");
+                if (!dir.exists()) dir.mkdirs();
+                File dest = new File(dir, loadedUser.getId() + "_" + file.getName());
+                Files.copy(file.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+                currentPhotoPath = dest.getPath();
+                profilePhotoCircle.setFill(new ImagePattern(new Image(dest.toURI().toString())));
+                saveProfileToCloud();
+            } catch (Exception e) { e.printStackTrace(); }
         }
     }
 
     @FXML
-    private void handleShowPasswordForm() {
-        passwordFormBox.setVisible(true);
-        passwordFormBox.setManaged(true);
-        passwordErrorLabel.setText("");
-    }
-
-    @FXML
-    private void handleCancelPasswordChange() {
-        hidePasswordForm();
+    private void handleRemovePhoto() {
+        currentPhotoPath = "";
+        profilePhotoCircle.setFill(javafx.scene.paint.Color.web("#EAECEE"));
+        saveProfileToCloud();
     }
 
     @FXML
     private void handleChangePassword() {
-        String currentPass = currentPasswordField.getText() == null ? "" : currentPasswordField.getText();
-        String newPass = newPasswordField.getText() == null ? "" : newPasswordField.getText();
-        String confirmPass = confirmPasswordField.getText() == null ? "" : confirmPasswordField.getText();
+        String currentPass = currentPasswordField.getText();
+        String newPass = newPasswordField.getText();
+        String confirmPass = confirmPasswordField.getText();
 
         if (currentPass.isBlank() || newPass.isBlank() || confirmPass.isBlank()) {
-            passwordErrorLabel.setStyle("-fx-text-fill: #D32F2F;");
-            passwordErrorLabel.setText("All password fields are required");
-            return;
+            passwordErrorLabel.setText("All fields required"); return;
         }
-
         if (!newPass.equals(confirmPass)) {
-            passwordErrorLabel.setStyle("-fx-text-fill: #D32F2F;");
-            passwordErrorLabel.setText("Passwords do not match");
-            return;
+            passwordErrorLabel.setText("Passwords do not match"); return;
         }
 
-        if (newPass.length() < MIN_PASSWORD_LENGTH) {
-            passwordErrorLabel.setStyle("-fx-text-fill: #D32F2F;");
-            passwordErrorLabel.setText("New password must be at least " + MIN_PASSWORD_LENGTH + " characters");
-            return;
-        }
+        try {
+            String json = String.format("{\"currentPassword\":\"%s\", \"newPassword\":\"%s\"}", currentPass, newPass);
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/users/" + loadedUser.getId() + "/password"))
+                    .header("Content-Type", "application/json")
+                    .PUT(java.net.http.HttpRequest.BodyPublishers.ofString(json)).build();
 
-        if (loadedUser == null || loadedUser.getId() == null || loadedUser.getId().isBlank()) {
-            passwordErrorLabel.setStyle("-fx-text-fill: #D32F2F;");
-            passwordErrorLabel.setText("Unable to change password");
-            return;
-        }
+            java.net.http.HttpResponse<String> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
 
-        boolean updated = DatabaseHandler.updatePassword(loadedUser.getId(), currentPass, newPass);
-        if (updated) {
-            hidePasswordForm();
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setHeaderText(null);
-            alert.setContentText("Password changed successfully.");
-            alert.showAndWait();
-        } else {
-            passwordErrorLabel.setStyle("-fx-text-fill: #D32F2F;");
-            passwordErrorLabel.setText("Current password does not match");
-        }
+            if (res.statusCode() == 200) {
+                hidePasswordForm();
+                new Alert(Alert.AlertType.INFORMATION, "Password changed securely in the Cloud.").show();
+            } else {
+                passwordErrorLabel.setText("Current password incorrect.");
+            }
+        } catch (Exception e) { passwordErrorLabel.setText("Network Error"); }
     }
 
+    @FXML private void handleShowPasswordForm() { passwordFormBox.setVisible(true); passwordFormBox.setManaged(true); }
+    @FXML private void handleCancelPasswordChange() { hidePasswordForm(); }
+    private void hidePasswordForm() { passwordFormBox.setVisible(false); passwordFormBox.setManaged(false); currentPasswordField.clear(); newPasswordField.clear(); confirmPasswordField.clear(); passwordErrorLabel.setText(""); }
+
+    // THE FIX: Native FXML Loaders instead of NavigationManager for root screens!
     @FXML
     private void goBackToDashboard() {
         try {
-            viewingUser = null;
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/home.fxml"));
             javafx.scene.Parent root = loader.load();
-
-            javafx.stage.Stage stage = (javafx.stage.Stage) passwordFormBox.getScene().getWindow();
+            javafx.stage.Stage stage = (javafx.stage.Stage) nameLabel.getScene().getWindow();
             stage.getScene().setRoot(root);
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @FXML
     private void handleLogout() {
+        SessionManager.setCurrentUser(null);
         try {
-            viewingUser = null;
-            SessionManager.setCurrentUser(null);
-
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/login.fxml"));
             javafx.scene.Parent root = loader.load();
-
-            javafx.stage.Stage stage = (javafx.stage.Stage) passwordFormBox.getScene().getWindow();
+            javafx.stage.Stage stage = (javafx.stage.Stage) nameLabel.getScene().getWindow();
             stage.getScene().setRoot(root);
-        } catch (java.io.IOException e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
-    private void generateDynamicCourseList(VBox containerBox, boolean isTeacher) {
-        // 1. Clear any existing children EXCEPT the first label ("Level 1 Term 2")
-        if (containerBox.getChildren().size() > 1) {
-            containerBox.getChildren().remove(1, containerBox.getChildren().size());
-        }
 
-        // 2. Fetch courses. (Eventually: DatabaseHandler.getUserCourses(loadedUser.getId()))
-        // For right now, we grab all courses to prove the UI works!
-        java.util.List<com.syncron.models.Course> courses = DatabaseHandler.getAllCourses();
-
-        // 3. Create the 2-Column Structure
-        HBox mainRow = new HBox(40);
-        VBox theoryCol = new VBox(10);
-        VBox sessionalCol = new VBox(10);
-        javafx.scene.layout.HBox.setHgrow(theoryCol, javafx.scene.layout.Priority.ALWAYS);
-        javafx.scene.layout.HBox.setHgrow(sessionalCol, javafx.scene.layout.Priority.ALWAYS);
-
-        // 4. Create Headers
-        Label tHeader = new Label("THEORY");
-        tHeader.setStyle("-fx-text-fill: #D35400; -fx-font-weight: bold;");
-        Label sHeader = new Label("SESSIONAL");
-        sHeader.setStyle("-fx-text-fill: #D35400; -fx-font-weight: bold;");
-        theoryCol.getChildren().add(tHeader);
-        sessionalCol.getChildren().add(sHeader);
-
-        // 5. Loop through Database courses and build the UI rows!
-        for (com.syncron.models.Course c : courses) {
-            String fullText = c.getCourseCode() + " — " + c.getCourseTitle();
-
-            // Auto-detect if it's a Sessional (BUET theory courses usually end in odd numbers, sessionals in even)
-            boolean isSessional = c.getCourseTitle().toLowerCase().contains("sessional") ||
-                    c.getCourseCode().endsWith("2") || c.getCourseCode().endsWith("4") ||
-                    c.getCourseCode().endsWith("6") || c.getCourseCode().endsWith("8");
-
-            HBox courseRow = new HBox(10);
-            courseRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-
-            Label courseLabel = new Label(fullText);
-
-            // Dynamic Colors: Teacher gets Orange, Students get Dark Blue / Gray
-            String textColor = isTeacher ? "#E67E22" : (isSessional ? "#7F8C8D" : "#2C3E50");
-            courseLabel.setStyle("-fx-text-fill: " + textColor + "; -fx-cursor: hand;");
-
-            // Attach the router!
-            courseLabel.setOnMouseClicked(this::handleCourseClick);
-            courseRow.getChildren().add(courseLabel);
-
-            if (isTeacher) {
-                Label badge = new Label("L1T2");
-                badge.getStyleClass().add("badge-outline-gray");
-                courseRow.getChildren().add(badge);
-            }
-
-            if (isSessional) {
-                sessionalCol.getChildren().add(courseRow);
-            } else {
-                theoryCol.getChildren().add(courseRow);
-            }
-        }
-
-        mainRow.getChildren().addAll(theoryCol, sessionalCol);
-        containerBox.getChildren().add(mainRow);
-    }
-
-    private void hidePasswordForm() {
-        passwordFormBox.setVisible(false);
-        passwordFormBox.setManaged(false);
-        clearPasswordFields();
-        passwordErrorLabel.setText("");
-    }
-
-    private void clearPasswordFields() {
-        currentPasswordField.clear();
-        newPasswordField.clear();
-        confirmPasswordField.clear();
-    }
 }

@@ -33,4 +33,12 @@ public class Section {
     public void addModule(Module m) {
         this.modules.add(m);
     }
+
+    public int getWeekNumber() {
+        return weekNumber;
+    }
+
+    public int getId() {
+        return id;
+    }
 }

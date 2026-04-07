@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.syncron.controllers.ViewAnnouncementController">
+    <VBox spacing="20" style="-fx-padding: 30; -fx-background-color: transparent; -fx-alignment: top-center;">
+
+        <HBox alignment="CENTER_LEFT" spacing="15" maxWidth="800">
+            <Button text="← Back to Feed" onAction="#handleBack" style="-fx-background-color: transparent; -fx-text-fill: #7F8C8D; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 14px; -fx-padding: 0;"/>
+        </HBox>
+
+        <VBox spacing="20" maxWidth="800" style="-fx-background-color: #FFFFFF; -fx-border-color: #EAECEE; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 35; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 20, 0, 0, 5);">
+
+            <HBox alignment="CENTER_LEFT" spacing="15">
+                <StackPane style="-fx-background-color: #EBF5FB; -fx-background-radius: 50; -fx-min-width: 50; -fx-min-height: 50;">
+                    <Label text="👤" style="-fx-font-size: 24px; -fx-text-fill: #3498DB;"/>
+                </StackPane>
+                <VBox spacing="2">
+                    <Label fx:id="authorLabel" text="Loading..." style="-fx-font-weight: bold; -fx-text-fill: #2C3E50; -fx-font-size: 18px;"/>
+                    <Label fx:id="timeLabel" text="Loading time..." style="-fx-text-fill: #95A5A6; -fx-font-size: 13px;"/>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS" />
+                <Button fx:id="editBtn" text="✏ Edit" onAction="#handleEdit" visible="false" managed="false" style="-fx-background-color: transparent; -fx-text-fill: #F39C12; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 14px;"/>
+                <Button fx:id="deleteBtn" text="🗑 Delete" onAction="#handleDelete" visible="false" managed="false" style="-fx-background-color: transparent; -fx-text-fill: #E74C3C; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 14px;"/>
+            </HBox>
+
+            <Separator style="-fx-opacity: 0.3;"/>
+
+            <VBox fx:id="messageBodyContainer" style="-fx-padding: 10 0 10 0;"/>
+
+        </VBox>
+    </VBox>
+</ScrollPane>

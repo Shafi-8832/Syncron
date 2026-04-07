@@ -512,3 +512,90 @@
 .breadcrumb-link:hover {
     -fx-underline: true;
 }
+
+/* Make Timeline Header Visible */
+.timeline-header-visible {
+    -fx-text-fill: #2C3E50;
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-font-family: 'Georgia', serif;
+}
+
+/* Premium Text Fields */
+.premium-text-field {
+    -fx-background-color: #F8F9F9;
+    -fx-border-color: #D5DBDB;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 10 15;
+    -fx-font-family: 'Inter', sans-serif;
+    -fx-font-size: 14px;
+    -fx-text-fill: #2C3E50;
+}
+.premium-text-field:focused {
+    -fx-border-color: #3498DB;
+    -fx-effect: dropshadow(three-pass-box, rgba(52, 152, 219, 0.3), 10, 0, 0, 0);
+}
+
+/* Glowing Boxes */
+.glow-box-red {
+    -fx-background-color: #FDEDEC;
+    -fx-border-color: #FADBD8;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 15;
+    -fx-transition: all 0.3s ease;
+}
+.glow-box-red:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(231, 76, 60, 0.4), 15, 0, 0, 0);
+    -fx-cursor: hand;
+}
+
+.glow-box-green {
+    -fx-background-color: #EAFAF1;
+    -fx-border-color: #D5F5E3;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 15;
+    -fx-transition: all 0.3s ease;
+}
+.glow-box-green:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(46, 204, 113, 0.4), 15, 0, 0, 0);
+    -fx-cursor: hand;
+}
+
+.glow-box-yellow {
+    -fx-background-color: #FEF9E7;
+    -fx-border-color: #FCF3CF;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 15;
+    -fx-transition: all 0.3s ease;
+}
+.glow-box-yellow:hover {
+    -fx-effect: dropshadow(three-pass-box, rgba(241, 196, 15, 0.4), 15, 0, 0, 0);
+    -fx-cursor: hand;
+}
+
+/* Clean Links */
+.clean-link {
+    -fx-text-fill: #34495E;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+.clean-link:hover {
+    -fx-text-fill: #3498DB;
+    -fx-underline: true;
+}
+
+.editable-profile-field { -fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #2C3E50; } .editable-profile-field:hover, .editable-profile-field:focused { -fx-background-color: #F8F9F9; -fx-border-color: #3498DB; -fx-border-radius: 4; }
+
+
+
+.login-root {
+    /* Go up one folder from styles, into assets */
+    -fx-background-image: url("../assets/kernel_login_ui.jpg");
+    -fx-background-size: cover;
+    -fx-background-position: center center;
+    -fx-background-repeat: no-repeat;
+}
