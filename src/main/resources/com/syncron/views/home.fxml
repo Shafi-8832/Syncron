@@ -8,6 +8,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 
@@ -27,7 +28,24 @@
 
                         <Region HBox.hgrow="ALWAYS" />
 
-                        <Button text="🔔" styleClass="kernel-notification-btn" />
+                        <StackPane alignment="TOP_RIGHT">
+                            <Label fx:id="notificationBell" text="🔔" style="-fx-font-size: 22px; -fx-cursor: hand;"
+                                   onMouseEntered="#glowBell" onMouseExited="#unglowBell" onMouseClicked="#toggleNotifications"/>
+                            <Circle radius="5" fill="#E74C3C" StackPane.alignment="TOP_RIGHT" style="-fx-translate-x: -2; -fx-translate-y: 2;"/>
+
+                            <VBox fx:id="notificationPanel" visible="false" managed="false" spacing="0"
+                                  style="-fx-background-color: white; -fx-border-color: #BDC3C7; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 15, 0, 0, 5); -fx-translate-y: 35; -fx-translate-x: 10;"
+                                  prefWidth="300" maxHeight="400">
+
+                                <HBox style="-fx-background-color: #F8F9F9; -fx-padding: 10; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0; -fx-background-radius: 8 8 0 0;">
+                                    <Label text="Notifications" style="-fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                                </HBox>
+
+                                <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;">
+                                    <VBox fx:id="notificationList" spacing="0" />
+                                </ScrollPane>
+                            </VBox>
+                        </StackPane>
                         <HBox fx:id="profileBtn" alignment="CENTER" spacing="10" styleClass="kernel-profile-box" style="-fx-cursor: hand;">
                             <Label fx:id="topHeaderNameLabel" text="Loading..." style="-fx-font-family: 'Inter', sans-serif; -fx-font-weight: bold; -fx-text-fill: #4A2C1A;" />
                             <Circle radius="12.0" fill="#A0522D" />

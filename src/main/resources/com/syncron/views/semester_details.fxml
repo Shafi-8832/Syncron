@@ -1,56 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.Separator?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<ScrollPane fitToWidth="true" style="-fx-background-color: transparent;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.syncron.controllers.SemesterDetailsController">
-    <content>
+<ScrollPane fitToWidth="true" style="-fx-background-color: #FAFCFC; -fx-font-family: 'Inter', sans-serif;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.syncron.controllers.SemesterDetailsController">
+    <VBox alignment="TOP_CENTER" spacing="20" style="-fx-padding: 30 50 50 50;">
 
-        <VBox alignment="TOP_CENTER" spacing="30.0" style="-fx-background-color: white; -fx-padding: 40;">
+        <HBox alignment="CENTER_LEFT" maxWidth="1000">
+            <Button text="← Back to Dashboard" onAction="#goBackToDashboard" style="-fx-background-color: transparent; -fx-text-fill: #3498DB; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0;"/>
+        </HBox>
 
-            <HBox alignment="CENTER_LEFT">
-                <Button fx:id="backBtn" text="← Back to Dashboard" style="-fx-background-color: transparent; -fx-text-fill: #2980B9; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 14px;" />
-            </HBox>
-
-            <VBox alignment="CENTER" spacing="10">
-                <Label text="Term Final Exam" style="-fx-font-size: 24px; -fx-text-fill: #7F8C8D;" />
-                <Label text="12 October 2026" style="-fx-font-size: 18px; -fx-text-fill: #95A5A6;" />
-
-                <Label fx:id="daysLeftLabel" text="--" style="-fx-font-size: 96px; -fx-font-weight: bold; -fx-text-fill: #E74C3C;" />
-                <Label text="DAYS REMAINING" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #E74C3C; -fx-letter-spacing: 2;" />
-            </VBox>
-
-            <Separator />
-
-            <HBox alignment="CENTER" spacing="50">
-                <VBox alignment="CENTER" spacing="5">
-                    <Label text="Preparatory Leave (PL) Starts" style="-fx-text-fill: #7F8C8D;" />
-                    <Label text="28 September 2026" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;" />
-                </VBox>
-
-                <Separator orientation="VERTICAL" />
-
-                <VBox alignment="CENTER" spacing="5">
-                    <Label text="Current Week" style="-fx-text-fill: #7F8C8D;" />
-                    <Label text="Week 9" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;" />
-                </VBox>
-            </HBox>
-
-            <Separator />
-
-            <VBox spacing="15" maxWidth="500">
-                <Label text="Academic Resources" style="-fx-font-size: 18px; -fx-font-weight: bold;" />
-
-                <Button text="📄 Download Class Routine (PDF)" maxWidth="Infinity" style="-fx-background-color: #F4F6F8; -fx-text-fill: #2C3E50; -fx-alignment: CENTER_LEFT; -fx-padding: 15; -fx-cursor: hand; -fx-font-size: 14px;" />
-                <Button text="📅 BUET Academic Calendar" maxWidth="Infinity" style="-fx-background-color: #F4F6F8; -fx-text-fill: #2C3E50; -fx-alignment: CENTER_LEFT; -fx-padding: 15; -fx-cursor: hand; -fx-font-size: 14px;" />
-                <Button text="📚 Semester Syllabus" maxWidth="Infinity" style="-fx-background-color: #F4F6F8; -fx-text-fill: #2C3E50; -fx-alignment: CENTER_LEFT; -fx-padding: 15; -fx-cursor: hand; -fx-font-size: 14px;" />
-            </VBox>
-
+        <VBox alignment="CENTER" spacing="10" style="-fx-padding: 10 0 20 0;">
+            <Label text="Level 1 Term 2 : Academic Schedule" style="-fx-font-family: 'Georgia', serif; -fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+            <Label text="Bangladesh University of Engineering and Technology" style="-fx-font-size: 16px; -fx-text-fill: #7F8C8D;"/>
         </VBox>
-    </content>
+
+        <HBox spacing="40" alignment="TOP_CENTER" maxWidth="1000">
+
+            <VBox spacing="0" HBox.hgrow="ALWAYS" style="-fx-background-color: white; -fx-border-color: #BDC3C7; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 5);">
+
+                <HBox style="-fx-background-color: #2C3E50; -fx-padding: 15; -fx-background-radius: 8 8 0 0;">
+                    <Label text="Academic Event" prefWidth="250" style="-fx-text-fill: white; -fx-font-weight: bold;"/>
+                    <Label text="Date Range" prefWidth="250" style="-fx-text-fill: white; -fx-font-weight: bold;"/>
+                    <Label text="Duration" style="-fx-text-fill: white; -fx-font-weight: bold;"/>
+                </HBox>
+
+                <VBox style="-fx-background-color: #F8F9F9;">
+                    <HBox style="-fx-padding: 12 15; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;"><Label text="Course Registration" prefWidth="250" style="-fx-text-fill: #34495E;"/><Label text="29 Nov – 12 Dec 2025" style="-fx-text-fill: #7F8C8D;"/></HBox>
+                    <HBox style="-fx-padding: 12 15; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;"><Label text="Late Registration" prefWidth="250" style="-fx-text-fill: #34495E;"/><Label text="13 – 18 Dec 2025" style="-fx-text-fill: #7F8C8D;"/></HBox>
+                    <HBox style="-fx-padding: 12 15; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;"><Label text="Course Add/Drop" prefWidth="250" style="-fx-text-fill: #34495E;"/><Label text="19 Dec 2025 – 04 Jan 2026" style="-fx-text-fill: #7F8C8D;"/></HBox>
+                </VBox>
+
+                <VBox>
+                    <HBox style="-fx-padding: 12 15; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;"><Label text="Class (Part 1)" prefWidth="250" style="-fx-font-weight: bold; -fx-text-fill: #27AE60;"/><Label text="29 Nov 2025 – 19 Dec 2025" prefWidth="250" style="-fx-text-fill: #7F8C8D;"/><Label text="3 weeks" style="-fx-text-fill: #7F8C8D;"/></HBox>
+                    <HBox style="-fx-padding: 12 15; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0; -fx-background-color: #FDEDEC;"><Label text="Winter Vacation" prefWidth="250" style="-fx-text-fill: #C0392B;"/><Label text="20 Dec 2025 – 02 Jan 2026" prefWidth="250" style="-fx-text-fill: #C0392B;"/><Label text="2 weeks" style="-fx-text-fill: #C0392B;"/></HBox>
+                    <HBox style="-fx-padding: 12 15; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;"><Label text="Class (Part 2)" prefWidth="250" style="-fx-font-weight: bold; -fx-text-fill: #27AE60;"/><Label text="03 Jan 2026 – 08 Mar 2026" prefWidth="250" style="-fx-text-fill: #7F8C8D;"/><Label text="9 weeks" style="-fx-text-fill: #7F8C8D;"/></HBox>
+                    <HBox style="-fx-padding: 12 15; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0; -fx-background-color: #FDEDEC;"><Label text="Ramadan / Eid Vacation" prefWidth="250" style="-fx-text-fill: #C0392B;"/><Label text="09 Mar 2026 – 27 Mar 2026" prefWidth="250" style="-fx-text-fill: #C0392B;"/><Label text="3 weeks" style="-fx-text-fill: #C0392B;"/></HBox>
+                    <HBox style="-fx-padding: 12 15; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;"><Label text="Class (Part 3)" prefWidth="250" style="-fx-font-weight: bold; -fx-text-fill: #27AE60;"/><Label text="28 Mar 2026 – 10 Apr 2026" prefWidth="250" style="-fx-text-fill: #7F8C8D;"/><Label text="2 weeks" style="-fx-text-fill: #7F8C8D;"/></HBox>
+                    <HBox style="-fx-padding: 12 15; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0; -fx-background-color: #FEF9E7;"><Label text="Preparatory Leave (PL)" prefWidth="250" style="-fx-font-weight: bold; -fx-text-fill: #D35400;"/><Label text="11 Apr 2026 – 24 Apr 2026" prefWidth="250" style="-fx-text-fill: #D35400;"/><Label text="2 weeks" style="-fx-text-fill: #D35400;"/></HBox>
+                    <HBox style="-fx-padding: 12 15; -fx-background-color: #EBF5FB; -fx-background-radius: 0 0 8 8;"><Label text="Term Final Examination" prefWidth="250" style="-fx-font-weight: bold; -fx-text-fill: #2980B9;"/><Label text="25 Apr 2026 – 21 May 2026" prefWidth="250" style="-fx-font-weight: bold; -fx-text-fill: #2980B9;"/><Label text="3w 6d" style="-fx-font-weight: bold; -fx-text-fill: #2980B9;"/></HBox>
+                </VBox>
+            </VBox>
+
+            <VBox spacing="15" minWidth="300">
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="Academic Resources" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                    <Region HBox.hgrow="ALWAYS" />
+                    <Button fx:id="editLinksBtn" text="✏ Edit" onAction="#handleEditLinks" visible="false" style="-fx-background-color: transparent; -fx-text-fill: #3498DB; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                </HBox>
+
+                <Button fx:id="routineBtn" text="📄 Download Class Routine" onAction="#openRoutine" maxWidth="Infinity" alignment="CENTER_LEFT" style="-fx-background-color: #F4F6F6; -fx-text-fill: #34495E; -fx-padding: 15; -fx-border-color: #BDC3C7; -fx-border-radius: 6; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-size: 14px;"/>
+                <Button fx:id="calendarBtn" text="📅 Academic Calendar" onAction="#openCalendar" maxWidth="Infinity" alignment="CENTER_LEFT" style="-fx-background-color: #F4F6F6; -fx-text-fill: #34495E; -fx-padding: 15; -fx-border-color: #BDC3C7; -fx-border-radius: 6; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-size: 14px;"/>
+                <Button fx:id="bookletBtn" text="📘 Undergraduate Booklet" onAction="#openBooklet" maxWidth="Infinity" alignment="CENTER_LEFT" style="-fx-background-color: #F4F6F6; -fx-text-fill: #34495E; -fx-padding: 15; -fx-border-color: #BDC3C7; -fx-border-radius: 6; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-size: 14px;"/>
+            </VBox>
+
+        </HBox>
+    </VBox>
 </ScrollPane>

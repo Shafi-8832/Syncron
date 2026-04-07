@@ -46,13 +46,18 @@ public class HomeController {
     @FXML private TextField searchField;
     private List<Course> allCourses = new ArrayList<>();
 
+    // --- NOTIFICATION FXML VARIABLES ---
+    @FXML private Label notificationBell;
+    @FXML private VBox notificationPanel;
+    @FXML private VBox notificationList;
+
     @FXML
     public void initialize() throws SQLException {
         // 1. Load the real courses once from the database into memory
         allCourses = fetchCoursesFromServer();
         renderCourses(allCourses);
 
-        // 2. 👉 THE SEARCH ENGINE LISTENER
+        // 2. THE SEARCH ENGINE LISTENER
         if (searchField != null) {
             searchField.textProperty().addListener((observable, oldValue, newValue) -> {
                 filterCourses(newValue); // Instantly triggers when you type!
@@ -95,28 +100,22 @@ public class HomeController {
                 System.out.println("✅ Server responded 200 OK! Parsing JSON...");
 
                 com.google.gson.Gson gson = new com.google.gson.Gson();
-                // UPGRADE: Changed String, String to String, Object to prevent Number format crashes!
                 java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<java.util.Map<String, Object>>>(){}.getType();
                 java.util.List<java.util.Map<String, Object>> courseData = gson.fromJson(response.body(), listType);
-
 
                 for (java.util.Map<String, Object> data : courseData) {
                     String cCode = String.valueOf(data.get("courseCode"));
                     String cTitle = String.valueOf(data.get("courseTitle"));
                     String cType = String.valueOf(data.get("type"));
 
-                    // THE SOLID FIX: Smart Fallback Engine for Credits
                     Object creditsObj = data.get("credits");
                     String cCredits;
 
                     if (creditsObj != null && !String.valueOf(creditsObj).equals("null") && !String.valueOf(creditsObj).isEmpty()) {
                         cCredits = String.valueOf(creditsObj);
                     } else {
-                        // BUET Logic: If the title has "Sessional" or course code ends in an even number (0,2,4,6,8), it's 1.5!
                         boolean isSessional = cTitle.toLowerCase().contains("sessional") || cCode.matches(".*[02468]$");
                         cCredits = isSessional ? "1.5" : "3.0";
-
-                        // Force the correct type just in case that was null too!
                         if (cType.equals("null")) cType = isSessional ? "Sessional" : "Theory";
                     }
 
@@ -136,15 +135,11 @@ public class HomeController {
     }
 
     private void loadSemesterData() {
-        // will be updated later
-        semesterTitleLabel.setText("Semester : Level 1 Term 2");
+        semesterTitleLabel.setText("Semester : Level I Term II");
         semesterStatusLabel.setText("PRESENT");
-        termFinalLabel.setText("📅 Term Final: 15 August 2026");
-        daysRemainingLabel.setText("⏳ Days Remaining: 145");
     }
 
     private void filterCourses(String query) {
-        // If the search bar is empty, show everything!
         if (query == null || query.trim().isEmpty()) {
             renderCourses(allCourses);
             return;
@@ -153,7 +148,6 @@ public class HomeController {
         String lowerQuery = query.toLowerCase();
         java.util.List<Course> filteredList = new java.util.ArrayList<>();
 
-        // Search through course codes AND course titles
         for (Course course : allCourses) {
             if (course.getCourseCode().toLowerCase().contains(lowerQuery) ||
                     course.getCourseTitle().toLowerCase().contains(lowerQuery)) {
@@ -177,7 +171,6 @@ public class HomeController {
             HBox card = new HBox();
             card.setSpacing(10);
             card.setPadding(new Insets(18));
-            // Crisp white card to pop against the light-blue background
             card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 10; " +
                     "-fx-border-color: #E0D5C7; -fx-border-radius: 10; " +
                     "-fx-effect: dropshadow(three-pass-box, rgba(74,44,26,0.04), 4, 0, 0, 2); " +
@@ -196,7 +189,7 @@ public class HomeController {
             HBox.setHgrow(spacer, Priority.ALWAYS);
 
             Label arrowLabel = new Label("➜");
-            arrowLabel.setStyle("-fx-text-fill: #3498DB; -fx-font-size: 18px;"); // Beautiful blue arrow to match the theme
+            arrowLabel.setStyle("-fx-text-fill: #3498DB; -fx-font-size: 18px;");
 
             card.getChildren().addAll(infoBox, spacer, arrowLabel);
 
@@ -209,17 +202,14 @@ public class HomeController {
         }
     }
 
-    // pass the full Course object to grab its real Type and Credits
     private void openCoursePortal(Course course) {
         try {
             javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
             Parent root = loader.load();
 
-            // Save the context so the inner tabs (Common, Participants) know where we are!
             SessionManager.setCurrentCourseCode(course.getCourseCode());
 
             MainController controller = loader.getController();
-            // Pass the REAL type and credits from the database!
             controller.setCourseContext(course.getCourseCode(), course.getCourseTitle(), course.getType(), course.getCredits());
 
             Stage stage = (Stage) courseCardContainer.getScene().getWindow();
@@ -230,7 +220,6 @@ public class HomeController {
         }
     }
 
-    // 3. The Navigation Down here
     private void openSemesterDetails() {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/semester_details.fxml"));
@@ -240,16 +229,14 @@ public class HomeController {
             stage.getScene().setRoot(root);
         }
         catch (IOException e) {
-         e.printStackTrace();
+            e.printStackTrace();
         }
     }
 
 
     private void openProfile() {
         try {
-            // Tell the ProfileController to load the logged-in user
             ProfileController.viewingUser = null;
-
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/syncron/views/profile.fxml"));
             Parent root = loader.load();
 
@@ -260,11 +247,8 @@ public class HomeController {
         }
     }
 
-    // 4. Load urgent deadlines with this method
     private void loadUrgentDeadlines() {
         urgentContainer.getChildren().clear();
-
-        // Apply the new glowing red CSS
         urgentContainer.getStyleClass().clear();
         urgentContainer.getStyleClass().add("glow-box-red");
 
@@ -275,15 +259,12 @@ public class HomeController {
         try {
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
 
-
             String role = SessionManager.getCurrentUser().getRole();
             String name = SessionManager.getCurrentUser().getName().replace(" ", "%20");
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
                     .uri(java.net.URI.create("http://localhost:8080/api/dashboard/deadlines?role=" + role + "&name=" + name))
                     .GET()
                     .build();
-
-
 
             java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
 
@@ -300,17 +281,14 @@ public class HomeController {
                 }
 
                 for (java.util.Map<String, String> task : urgentTasks) {
-                    VBox taskBox = new VBox(4); // Slightly more spacing
+                    VBox taskBox = new VBox(4);
                     taskBox.setStyle("-fx-padding: 8 0; -fx-cursor: hand;");
 
                     Label titleLabel = new Label("• " + task.get("title"));
                     titleLabel.getStyleClass().add("clean-link");
-                    // BIGGER, PREMIUM FONT
                     titleLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
                     titleLabel.setWrapText(true);
 
-
-                    // --- TIME CALCULATION ENGINE ---
                     String dDate = task.get("deadlineDate") != null ? task.get("deadlineDate") : task.get("dueDate");
                     String dTime = task.get("deadlineTime") != null ? task.get("deadlineTime") : task.get("dueTime");
                     String dueText = "Due: " + dDate;
@@ -321,7 +299,6 @@ public class HomeController {
                         java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
                         java.time.LocalDateTime deadline = java.time.LocalDateTime.parse(dDate + " " + dTime, formatter);
 
-                        // Calculate total minutes to check if it's strictly in the past
                         long minutesLeft = java.time.temporal.ChronoUnit.MINUTES.between(now, deadline);
                         long daysLeft = java.time.temporal.ChronoUnit.DAYS.between(now, deadline);
                         long hoursLeft = java.time.temporal.ChronoUnit.HOURS.between(now, deadline) % 24;
@@ -329,7 +306,7 @@ public class HomeController {
                         java.time.format.DateTimeFormatter niceDate = java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy");
 
                         if (minutesLeft < 0) {
-                            isPassed = true; // The deadline has expired!
+                            isPassed = true;
                             dueText = "Deadline Passed";
                         } else if (daysLeft > 0) {
                             dueText = deadline.format(niceDate) + " (" + daysLeft + " days Left)";
@@ -340,20 +317,15 @@ public class HomeController {
                         }
                     } catch (Exception ignored) {}
 
-                    // THE FIX: If the deadline has passed, skip rendering it entirely
                     if (isPassed) continue;
 
                     Label dateLabel = new Label(dueText);
                     dateLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #E74C3C; -fx-padding: 0 0 0 15; -fx-font-weight: bold;");
 
                     taskBox.getChildren().addAll(titleLabel, dateLabel);
-                    // --- TIME CALCULATION ENGINE END ---
 
-                    // THE FIX: SAFE CLICK ROUTING
-// CLICK ROUTING
                     taskBox.setOnMouseClicked(e -> {
                         String courseCode = task.get("title").split(" - ")[0].trim();
-                        // Pass the TYPE to the teleporter
                         openEvaluationDirectly(courseCode, task.get("id"), task.get("type"));
                     });
 
@@ -363,7 +335,6 @@ public class HomeController {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // THE SOLID TELEPORTER
     private void openEvaluationDirectly(String courseCode, String evaluationId, String assessmentType) {
         Course targetCourse = null;
         for (Course c : allCourses) {
@@ -386,7 +357,6 @@ public class HomeController {
             MainController controller = loader.getController();
             controller.setCourseContext(targetCourse.getCourseCode(), targetCourse.getCourseTitle(), targetCourse.getType(), targetCourse.getCredits());
 
-            // 1. Calculate the correct parent Tab based on Assessment Type
             String parentTab = "Common";
             if ("CT".equalsIgnoreCase(assessmentType) || "ASSIGNMENT".equalsIgnoreCase(assessmentType)) {
                 parentTab = "CT and Assignments";
@@ -396,10 +366,8 @@ public class HomeController {
                 parentTab = "Offlines";
             }
 
-            // 2. Load the Details Page
             NavigationManager.switchScreen("evaluation_details.fxml");
 
-            // 3. Fix the UI: Sync Sidebar and Interactive Breadcrumbs!
             controller.forceSidebarSelection(parentTab);
             controller.updateBreadcrumb(parentTab + " / Assessment Details");
 
@@ -409,5 +377,146 @@ public class HomeController {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+
+    // ==========================================
+    // --- NOTIFICATION UI ANIMATIONS ---
+    // ==========================================
+    @FXML
+    private void glowBell() {
+        if (notificationBell != null) {
+            notificationBell.setStyle("-fx-font-size: 22px; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, #F1C40F, 15, 0.5, 0, 0);");
+        }
+    }
+
+    @FXML
+    private void unglowBell() {
+        if (notificationBell != null) {
+            notificationBell.setStyle("-fx-font-size: 22px; -fx-cursor: hand;");
+        }
+    }
+
+
+    @FXML
+    private void toggleNotifications() {
+        System.out.println("🔔 Bell Clicked!"); // Diagnostic 1: Did the click register?
+
+        if (notificationPanel == null) {
+            System.out.println("❌ ERROR: notificationPanel is NULL. The FXML fx:id is missing or misspelled!");
+            return;
+        }
+
+        boolean isVisible = notificationPanel.isVisible();
+        notificationPanel.setVisible(!isVisible);
+        notificationPanel.setManaged(!isVisible);
+
+        if (!isVisible) {
+            notificationPanel.toFront(); // THE LAYER FIX: Forces the dropdown to render ON TOP of everything else
+            System.out.println("✅ Panel is now visible. Fetching data...");
+            fetchRealNotifications();
+        } else {
+            System.out.println("✅ Panel hidden.");
+        }
+    }
+
+
+    // ==========================================
+    // --- DYNAMIC NOTIFICATION FETCHER ---
+    // ==========================================
+    private void fetchRealNotifications() {
+        notificationList.getChildren().clear();
+        Label loading = new Label("Fetching latest updates...");
+        loading.setStyle("-fx-padding: 15; -fx-text-fill: #7F8C8D; -fx-font-style: italic;");
+        notificationList.getChildren().add(loading);
+
+        new Thread(() -> {
+            try {
+                java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+                java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
+                        .uri(java.net.URI.create("http://localhost:8080/api/notifications"))
+                        .GET().build();
+
+                java.net.http.HttpResponse<String> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+                if (res.statusCode() == 200) {
+                    com.google.gson.Gson gson = new com.google.gson.Gson();
+                    java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<java.util.Map<String, String>>>(){}.getType();
+                    java.util.List<java.util.Map<String, String>> announcements = gson.fromJson(res.body(), listType);
+
+                    javafx.application.Platform.runLater(() -> {
+                        notificationList.getChildren().clear();
+
+                        if (announcements.isEmpty()) {
+                            Label empty = new Label("No new notifications.");
+                            empty.setStyle("-fx-padding: 15; -fx-text-fill: #BDC3C7;");
+                            notificationList.getChildren().add(empty);
+                            return;
+                        }
+
+                        for (java.util.Map<String, String> ann : announcements) {
+                            String cCode = ann.get("courseCode");
+                            String msg = ann.get("message");
+
+                            VBox row = new VBox(5);
+                            row.setStyle("-fx-padding: 12; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0; -fx-cursor: hand; -fx-background-color: white;");
+
+                            row.setOnMouseEntered(e -> row.setStyle("-fx-padding: 12; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0; -fx-cursor: hand; -fx-background-color: #F4F6F6;"));
+                            row.setOnMouseExited(e -> row.setStyle("-fx-padding: 12; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0; -fx-cursor: hand; -fx-background-color: white;"));
+
+                            Label title = new Label(cCode + " Announcement");
+                            title.setStyle("-fx-font-weight: bold; -fx-text-fill: #2C3E50;");
+                            Label desc = new Label(msg);
+                            desc.setStyle("-fx-text-fill: #7F8C8D; -fx-font-size: 12px;");
+
+                            row.getChildren().addAll(title, desc);
+
+                            // THE MAGIC ROUTER: Clicking routes straight to the course!
+                            row.setOnMouseClicked(e -> {
+                                try {
+                                    SessionManager.setCurrentCourseCode(cCode);
+                                    javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
+                                    javafx.scene.Parent root = loader.load();
+
+                                    MainController controller = loader.getController();
+
+                                    // Search memory for real course details to pass to context
+                                    String cTitle = "Course";
+                                    String cType = "Theory";
+                                    String cCredits = "3.0";
+                                    for(Course c : allCourses) {
+                                        if(c.getCourseCode().equalsIgnoreCase(cCode)) {
+                                            cTitle = c.getCourseTitle();
+                                            cType = c.getType();
+                                            cCredits = c.getCredits();
+                                            break;
+                                        }
+                                    }
+                                    controller.setCourseContext(cCode, cTitle, cType, cCredits);
+
+                                    // 👉 THE SIDEBAR CHANGE
+                                    try { NavigationManager.switchScreen("announcements.fxml"); } catch (Exception ignored) {}
+                                    controller.forceSidebarSelection("Announcements");
+                                    controller.updateBreadcrumb("Announcements");
+
+                                    javafx.stage.Stage stage = (javafx.stage.Stage) notificationBell.getScene().getWindow();
+                                    stage.getScene().setRoot(root);
+                                } catch (Exception ex) { ex.printStackTrace(); }
+                            });
+
+                            notificationList.getChildren().add(row);
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                javafx.application.Platform.runLater(() -> {
+                    notificationList.getChildren().clear();
+                    Label error = new Label("Could not connect to server.");
+                    error.setStyle("-fx-padding: 15; -fx-text-fill: #E74C3C;");
+                    notificationList.getChildren().add(error);
+                });
+            }
+        }).start();
     }
 }

@@ -24,17 +24,19 @@ public class ProfileController {
 
     @FXML private VBox passwordFormBox, studentInfoContainer, studentHistoryBox, teacherAssignedBox;
     @FXML private HBox teacherInfoContainer;
-    @FXML private Label nameLabel, roleLabel, sectionLabel, teacherIdLabel, teacherEmailLabel, passwordErrorLabel;
-    @FXML private Label studentIdLabel, studentEmailLabel;
+    @FXML private Label nameLabel, roleLabel, sectionLabel, teacherIdLabel, passwordErrorLabel;
+    @FXML private Label studentIdLabel;
 
     // Teacher Editable Fields
     @FXML private TextField bioField, contactField, githubField, linkedinField, fbField, roomField;
-
+    @FXML private TextField teacherEmailLabel, studentEmailLabel;
     // Student Editable Fields
     @FXML private TextField studentBioField, studentGithubField, studentLinkedinField;
 
     @FXML private PasswordField currentPasswordField, newPasswordField, confirmPasswordField;
     @FXML private Circle profilePhotoCircle;
+
+
 
     @FXML
     public void initialize() {
