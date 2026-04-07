@@ -99,18 +99,31 @@ public class HomeController {
                 java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<java.util.Map<String, Object>>>(){}.getType();
                 java.util.List<java.util.Map<String, Object>> courseData = gson.fromJson(response.body(), listType);
 
+
                 for (java.util.Map<String, Object> data : courseData) {
-                    // UPGRADE: Safely force everything to a String so the Course constructor doesn't panic
                     String cCode = String.valueOf(data.get("courseCode"));
                     String cTitle = String.valueOf(data.get("courseTitle"));
                     String cType = String.valueOf(data.get("type"));
 
-                    // Handle numbers like 3.0 gracefully without decimal trailing if needed, or just pass as string
-                    String cCredits = String.valueOf(data.get("credits"));
+                    // THE SOLID FIX: Smart Fallback Engine for Credits
+                    Object creditsObj = data.get("credits");
+                    String cCredits;
+
+                    if (creditsObj != null && !String.valueOf(creditsObj).equals("null") && !String.valueOf(creditsObj).isEmpty()) {
+                        cCredits = String.valueOf(creditsObj);
+                    } else {
+                        // BUET Logic: If the title has "Sessional" or course code ends in an even number (0,2,4,6,8), it's 1.5!
+                        boolean isSessional = cTitle.toLowerCase().contains("sessional") || cCode.matches(".*[02468]$");
+                        cCredits = isSessional ? "1.5" : "3.0";
+
+                        // Force the correct type just in case that was null too!
+                        if (cType.equals("null")) cType = isSessional ? "Sessional" : "Theory";
+                    }
 
                     Course c = new Course(cCode, cTitle, cCredits, cType);
                     downloadedCourses.add(c);
                 }
+
                 System.out.println("🎯 Successfully rendered " + downloadedCourses.size() + " courses to UI!");
             } else {
                 System.out.println("❌ Server refused to send courses. HTTP Status: " + response.statusCode());

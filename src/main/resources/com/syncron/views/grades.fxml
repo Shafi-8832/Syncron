@@ -1,11 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.VBox?>
+<ScrollPane fitToWidth="true" style="-fx-background-color: #FAFCFC; -fx-font-family: 'Inter', sans-serif;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.syncron.controllers.GradesController">
+    <VBox spacing="30" style="-fx-padding: 40;">
 
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      spacing="15" style="-fx-padding: 30; -fx-background-color: #F4F7FC;">
-    <Label text="Grades" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
-    <Label text="Grade breakdown and results will appear here."
-           style="-fx-text-fill: #7F8C8D; -fx-font-size: 14px;" wrapText="true"/>
-</VBox>
+        <HBox alignment="CENTER_LEFT" spacing="20">
+            <Label text="Course Evaluation &amp; Grades" style="-fx-font-family: 'Georgia', serif; -fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #4A2C1A;"/>
+            <Region HBox.hgrow="ALWAYS" />
+            <Button text="See Result Details in BIIS ↗" onAction="#openBIIS" style="-fx-background-color: #FFFFFF; -fx-border-color: #3498DB; -fx-text-fill: #3498DB; -fx-border-radius: 20; -fx-background-radius: 20; -fx-padding: 8 20; -fx-font-weight: bold; -fx-cursor: hand; -fx-effect: dropshadow(three-pass-box, rgba(52, 152, 219, 0.2), 10, 0, 0, 2);"/>
+        </HBox>
+
+        <HBox spacing="30">
+
+            <VBox spacing="30" HBox.hgrow="ALWAYS">
+
+                <VBox spacing="15" style="-fx-background-color: #FFFFFF; -fx-border-color: #E0D5C7; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(74,44,26,0.05), 10, 0, 0, 4);">
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="Evaluation Scheme" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #8C7A6B;"/>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Label fx:id="courseInfoBadge" text="Theory • 3.0 Credits • 300 Marks" style="-fx-background-color: #FDF2E9; -fx-text-fill: #D35400; -fx-padding: 5 15; -fx-background-radius: 20; -fx-font-weight: bold; -fx-font-size: 12px;"/>
+                    </HBox>
+                    <VBox fx:id="weightageContainer" spacing="10" />
+                </VBox>
+
+                <VBox spacing="15" style="-fx-background-color: #FFFFFF; -fx-border-color: #E0D5C7; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(74,44,26,0.05), 10, 0, 0, 4);">
+                    <Label text="Current Performance" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #8C7A6B;"/>
+
+                    <VBox style="-fx-border-color: #ECF0F1; -fx-border-radius: 8;">
+                        <HBox style="-fx-background-color: #F8F9F9; -fx-padding: 12; -fx-background-radius: 8 8 0 0; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;">
+                            <Label text="Component" prefWidth="150" style="-fx-font-weight: bold; -fx-text-fill: #7F8C8D;"/>
+                            <Label text="Marks" prefWidth="100" style="-fx-font-weight: bold; -fx-text-fill: #7F8C8D;"/>
+                            <Label text="Weight" prefWidth="100" style="-fx-font-weight: bold; -fx-text-fill: #7F8C8D;"/>
+                            <Label text="Contribution" prefWidth="100" style="-fx-font-weight: bold; -fx-text-fill: #7F8C8D;"/>
+                        </HBox>
+                        <VBox fx:id="performanceTableBody" />
+                    </VBox>
+
+                    <HBox alignment="CENTER_RIGHT" spacing="20" style="-fx-padding: 10 20 0 0;">
+                        <VBox alignment="CENTER_RIGHT" spacing="2">
+                            <Label text="Total Score: 78" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                            <HBox spacing="10" alignment="CENTER_RIGHT">
+                                <Label text="Grade: A" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #27AE60;"/>
+                                <Label text="GPA: 3.75" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #2980B9;"/>
+                            </HBox>
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </VBox>
+
+            <VBox minWidth="280" spacing="15" style="-fx-background-color: #EBF5FB; -fx-border-color: #3498DB; -fx-border-width: 2; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 25; -fx-effect: dropshadow(three-pass-box, rgba(52, 152, 219, 0.3), 20, 0, 0, 0);">
+                <HBox alignment="CENTER"><Label text="BUET Grading Scale" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #2980B9;"/></HBox>
+
+                <VBox spacing="8" style="-fx-padding: 10 0 0 0;">
+                    <VBox fx:id="gradingScaleContainer" spacing="6" />
+                </VBox>
+            </VBox>
+
+        </HBox>
+    </VBox>
+</ScrollPane>
