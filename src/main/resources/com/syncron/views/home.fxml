@@ -29,9 +29,6 @@
                         <Region HBox.hgrow="ALWAYS" />
 
                         <StackPane alignment="TOP_RIGHT">
-                            <Label fx:id="notificationBell" text="🔔" style="-fx-font-size: 22px; -fx-cursor: hand;"
-                                   onMouseEntered="#glowBell" onMouseExited="#unglowBell" onMouseClicked="#toggleNotifications"/>
-                            <Circle radius="5" fill="#E74C3C" StackPane.alignment="TOP_RIGHT" style="-fx-translate-x: -2; -fx-translate-y: 2;"/>
 
                             <VBox fx:id="notificationPanel" visible="false" managed="false" spacing="0"
                                   style="-fx-background-color: white; -fx-border-color: #BDC3C7; -fx-border-radius: 8; -fx-background-radius: 8; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 15, 0, 0, 5); -fx-translate-y: 35; -fx-translate-x: -280;"
