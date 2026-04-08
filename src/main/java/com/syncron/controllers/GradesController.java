@@ -1,8 +1,9 @@
 package com.syncron.controllers;
 
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.Label;
+import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -10,6 +11,8 @@ import javafx.scene.layout.VBox;
 
 import java.awt.Desktop;
 import java.net.URI;
+import java.util.List;
+import java.util.Map;
 
 public class GradesController {
 
@@ -18,19 +21,25 @@ public class GradesController {
     @FXML private VBox performanceTableBody;
     @FXML private Label courseInfoBadge;
 
+    private boolean isTeacher = false;
+    private boolean isSessional = false;
+    private String courseCode;
+
     @FXML
     public void initialize() {
-        String courseCode = SessionManager.getCurrentCourseCode();
-        if (courseCode == null) courseCode = "CSE 105"; // Fallback for testing
+        courseCode = SessionManager.getCurrentCourseCode();
+        if (courseCode == null) courseCode = "CSE 105";
 
-        boolean isSessional = courseCode.toLowerCase().contains("sessional") || courseCode.matches(".*[02468]$");
+        String courseType = SessionManager.getCurrentCourseType();
+        isSessional = "sessional".equalsIgnoreCase(courseType);
+        isTeacher = "TEACHER".equalsIgnoreCase(SessionManager.getCurrentUser().getRole());
 
-        buildEvaluationScheme(isSessional);
-        buildPerformanceTable(isSessional);
+        buildEvaluationScheme();
         buildGradingScale();
+        fetchAndBuildPerformanceTable();
     }
 
-    private void buildEvaluationScheme(boolean isSessional) {
+    private void buildEvaluationScheme() {
         weightageContainer.getChildren().clear();
 
         if (isSessional) {
@@ -50,7 +59,6 @@ public class GradesController {
         }
     }
 
-    // Creates the beautiful boxes with the colored left edge flair
     private HBox createWeightBox(String title, String weight, String edgeColor) {
         HBox box = new HBox();
         box.setAlignment(Pos.CENTER_LEFT);
@@ -69,32 +77,200 @@ public class GradesController {
         return box;
     }
 
-    private void buildPerformanceTable(boolean isSessional) {
+    // =========================================================================
+    // THE REAL PERFORMANCE TABLE — Fetches evaluations from Cloud
+    // =========================================================================
+
+    private void fetchAndBuildPerformanceTable() {
         performanceTableBody.getChildren().clear();
 
-        // Mock Data based on user prompt
-        if (isSessional) {
-            performanceTableBody.getChildren().add(createTableRow("Online 1", "25/30", "30%", "25", true));
-            performanceTableBody.getChildren().add(createTableRow("Online 2", "28/30", "30%", "28", false));
-            performanceTableBody.getChildren().add(createTableRow("Quiz", "18/20", "20%", "18", true));
-            performanceTableBody.getChildren().add(createTableRow("Attendance", "10/10", "10%", "10", false));
-        } else {
-            performanceTableBody.getChildren().add(createTableRow("CT", "18/20", "20%", "18", true));
-            performanceTableBody.getChildren().add(createTableRow("Lab", "25/30", "30%", "25", false));
-            performanceTableBody.getChildren().add(createTableRow("Final", "70/100", "50%", "35", true));
+        try {
+            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+            com.google.gson.Gson gson = new com.google.gson.Gson();
+            java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<List<Map<String, String>>>(){}.getType();
+
+            if (isSessional) {
+                // Fetch ONLINE evaluations
+                List<Map<String, String>> onlines = fetchEvaluations(client, gson, listType, "ONLINE");
+                if (!onlines.isEmpty()) {
+                    performanceTableBody.getChildren().add(createSectionHeader("Online Lab Tests"));
+                    int idx = 1;
+                    for (Map<String, String> eval : onlines) {
+                        performanceTableBody.getChildren().add(createEvalRow("Online " + idx + " — " + eval.get("title"), eval, idx % 2 == 0));
+                        idx++;
+                    }
+                }
+
+                // Fetch OFFLINE evaluations
+                List<Map<String, String>> offlines = fetchEvaluations(client, gson, listType, "OFFLINE");
+                if (!offlines.isEmpty()) {
+                    performanceTableBody.getChildren().add(createSectionHeader("Offline Assignments"));
+                    int idx = 1;
+                    for (Map<String, String> eval : offlines) {
+                        performanceTableBody.getChildren().add(createEvalRow("Offline " + idx + " — " + eval.get("title"), eval, idx % 2 == 0));
+                        idx++;
+                    }
+                }
+            } else {
+                // Theory: Fetch CT evaluations
+                List<Map<String, String>> cts = fetchEvaluations(client, gson, listType, "CT");
+                if (!cts.isEmpty()) {
+                    performanceTableBody.getChildren().add(createSectionHeader("Class Tests"));
+                    int idx = 1;
+                    for (Map<String, String> eval : cts) {
+                        performanceTableBody.getChildren().add(createEvalRow("CT " + idx + " — " + eval.get("title"), eval, idx % 2 == 0));
+                        idx++;
+                    }
+                }
+
+                // Fetch ASSIGNMENT evaluations
+                List<Map<String, String>> assignments = fetchEvaluations(client, gson, listType, "ASSIGNMENT");
+                if (!assignments.isEmpty()) {
+                    performanceTableBody.getChildren().add(createSectionHeader("Assignments"));
+                    int idx = 1;
+                    for (Map<String, String> eval : assignments) {
+                        performanceTableBody.getChildren().add(createEvalRow("Assignment " + idx + " — " + eval.get("title"), eval, idx % 2 == 0));
+                        idx++;
+                    }
+                }
+            }
+
+            // Static rows for non-evaluation components
+            performanceTableBody.getChildren().add(createSectionHeader("Other Components"));
+            performanceTableBody.getChildren().add(createStaticRow("Attendance (10%)", true));
+            if (isSessional) {
+                performanceTableBody.getChildren().add(createStaticRow("Quiz / Viva (20%)", false));
+            } else {
+                performanceTableBody.getChildren().add(createStaticRow("Term Final (70%)", false));
+            }
+
+            if (performanceTableBody.getChildren().isEmpty()) {
+                Label empty = new Label("No evaluations published yet for this course.");
+                empty.setStyle("-fx-text-fill: #95A5A6; -fx-font-style: italic; -fx-padding: 15;");
+                performanceTableBody.getChildren().add(empty);
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            Label err = new Label("Could not load evaluation data.");
+            err.setStyle("-fx-text-fill: #E74C3C; -fx-padding: 15;");
+            performanceTableBody.getChildren().add(err);
         }
     }
 
-    private HBox createTableRow(String comp, String marks, String weight, String contrib, boolean isAlternate) {
-        HBox row = new HBox();
-        row.setStyle("-fx-padding: 12; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;" + (isAlternate ? "" : " -fx-background-color: #FAFCFC;"));
+    private List<Map<String, String>> fetchEvaluations(java.net.http.HttpClient client, com.google.gson.Gson gson,
+                                                       java.lang.reflect.Type listType, String evalType) {
+        try {
+            java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create("http://localhost:8080/api/evaluations/course/" + courseCode.replace(" ", "%20") + "/" + evalType))
+                    .GET().build();
+            java.net.http.HttpResponse<String> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
 
-        Label cLbl = new Label(comp); cLbl.setPrefWidth(150); cLbl.setStyle("-fx-text-fill: #2C3E50; -fx-font-weight: bold;");
-        Label mLbl = new Label(marks); mLbl.setPrefWidth(100); mLbl.setStyle("-fx-text-fill: #7F8C8D;");
-        Label wLbl = new Label(weight); wLbl.setPrefWidth(100); wLbl.setStyle("-fx-text-fill: #7F8C8D;");
-        Label ctLbl= new Label(contrib); ctLbl.setPrefWidth(100); ctLbl.setStyle("-fx-text-fill: #D35400; -fx-font-weight: bold;");
+            if (res.statusCode() == 200) {
+                return gson.fromJson(res.body(), listType);
+            }
+        } catch (Exception ignored) {}
+        return new java.util.ArrayList<>();
+    }
 
-        row.getChildren().addAll(cLbl, mLbl, wLbl, ctLbl);
+    private Label createSectionHeader(String text) {
+        Label header = new Label(text);
+        header.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #7F8C8D; -fx-padding: 15 0 5 5; -fx-border-color: #ECF0F1; -fx-border-width: 0 0 1 0;");
+        header.setMaxWidth(Double.MAX_VALUE);
+        return header;
+    }
+
+    private HBox createEvalRow(String displayTitle, Map<String, String> eval, boolean isAlternate) {
+        HBox row = new HBox(15);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(10, 15, 10, 15));
+        row.setStyle(isAlternate ? "-fx-background-color: #FAFCFC;" : "");
+
+        // Hover
+        String baseRowStyle = row.getStyle();
+        row.setOnMouseEntered(e -> row.setStyle(baseRowStyle + " -fx-background-color: #F0F7FF;"));
+        row.setOnMouseExited(e -> row.setStyle(baseRowStyle));
+
+        // Title (clickable — navigates to evaluation details)
+        Label titleLbl = new Label(displayTitle);
+        titleLbl.setStyle("-fx-text-fill: #2C3E50; -fx-font-weight: bold; -fx-font-size: 13px; -fx-cursor: hand;");
+        titleLbl.setPrefWidth(350);
+        titleLbl.setOnMouseEntered(e -> titleLbl.setStyle("-fx-text-fill: #2980B9; -fx-font-weight: bold; -fx-font-size: 13px; -fx-cursor: hand; -fx-underline: true;"));
+        titleLbl.setOnMouseExited(e -> titleLbl.setStyle("-fx-text-fill: #2C3E50; -fx-font-weight: bold; -fx-font-size: 13px; -fx-cursor: hand;"));
+        titleLbl.setOnMouseClicked(e -> {
+            SessionManager.setCurrentEvaluationId(eval.get("id"));
+            String type = eval.get("type");
+            String parentTab = "Common";
+            if ("CT".equalsIgnoreCase(type) || "ASSIGNMENT".equalsIgnoreCase(type)) parentTab = "CT and Assignments";
+            else if ("ONLINE".equalsIgnoreCase(type)) parentTab = "Onlines";
+            else if ("OFFLINE".equalsIgnoreCase(type)) parentTab = "Offlines";
+
+            MainController.instance.forceSidebarSelection(parentTab);
+            MainController.instance.updateBreadcrumb(parentTab + " / " + eval.get("title"));
+            com.syncron.utils.NavigationManager.switchScreen("evaluation_details.fxml");
+        });
+
+        // Total marks label
+        String totalMarks = eval.get("totalMarks") != null ? eval.get("totalMarks") : "—";
+        Label totalLbl = new Label("/ " + totalMarks);
+        totalLbl.setStyle("-fx-text-fill: #95A5A6; -fx-font-size: 13px;");
+        totalLbl.setPrefWidth(60);
+
+        // Marks input field (teacher only) or display
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        if (isTeacher) {
+            TextField marksField = new TextField();
+            marksField.setPromptText("—");
+            marksField.setPrefWidth(70);
+            marksField.setStyle("-fx-background-color: #F9F9F9; -fx-border-color: #E0E0E0; -fx-border-radius: 6; -fx-padding: 5 8; -fx-font-size: 13px; -fx-alignment: center;");
+
+            // Note: In a full implementation, you'd load existing grades and save on change.
+            // For now, the field is ready for teacher input.
+
+            row.getChildren().addAll(titleLbl, spacer, marksField, totalLbl);
+        } else {
+            Label marksLbl = new Label("—");
+            marksLbl.setStyle("-fx-text-fill: #D35400; -fx-font-weight: bold; -fx-font-size: 14px;");
+            marksLbl.setPrefWidth(50);
+
+            row.getChildren().addAll(titleLbl, spacer, marksLbl, totalLbl);
+        }
+
+        return row;
+    }
+
+    private HBox createStaticRow(String title, boolean isAlternate) {
+        HBox row = new HBox(15);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(10, 15, 10, 15));
+        row.setStyle(isAlternate ? "-fx-background-color: #FAFCFC;" : "");
+
+        Label titleLbl = new Label(title);
+        titleLbl.setStyle("-fx-text-fill: #2C3E50; -fx-font-weight: bold; -fx-font-size: 13px;");
+        titleLbl.setPrefWidth(350);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        if (isTeacher) {
+            TextField marksField = new TextField();
+            marksField.setPromptText("—");
+            marksField.setPrefWidth(70);
+            marksField.setStyle("-fx-background-color: #F9F9F9; -fx-border-color: #E0E0E0; -fx-border-radius: 6; -fx-padding: 5 8; -fx-font-size: 13px; -fx-alignment: center;");
+
+            Label totalLbl = new Label("/ —");
+            totalLbl.setStyle("-fx-text-fill: #95A5A6; -fx-font-size: 13px;");
+            totalLbl.setPrefWidth(60);
+
+            row.getChildren().addAll(titleLbl, spacer, marksField, totalLbl);
+        } else {
+            Label marksLbl = new Label("—");
+            marksLbl.setStyle("-fx-text-fill: #D35400; -fx-font-weight: bold; -fx-font-size: 14px;");
+            row.getChildren().addAll(titleLbl, spacer, marksLbl);
+        }
+
         return row;
     }
 
@@ -123,11 +299,7 @@ public class GradesController {
 
     @FXML
     private void openBIIS() {
-        try {
-            // 👉 Jumps straight to the browser!
-            Desktop.getDesktop().browse(new URI("https://biis.buet.ac.bd/"));
-        } catch (Exception e) {
-            System.out.println("Could not open browser. BIIS Link: https://biis.buet.ac.bd/");
-        }
+        try { Desktop.getDesktop().browse(new URI("https://biis.buet.ac.bd/")); }
+        catch (Exception e) { System.out.println("Could not open BIIS."); }
     }
 }

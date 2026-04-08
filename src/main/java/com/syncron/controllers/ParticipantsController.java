@@ -109,7 +109,7 @@ public class ParticipantsController {
 
             listItem.getChildren().addAll(avatarPane, details, spacer, badge, arrow);
 
-            // --- THE FIX: Route to public_profile.fxml instead of private profile.fxml ---
+            // --- THE FIX: Route to public_profile.fxml.fxml instead of private profile.fxml ---
             listItem.setOnMouseClicked(event -> {
                 SessionManager.setViewProfileId(u.getId());
                 NavigationManager.switchScreen("public_profile.fxml");

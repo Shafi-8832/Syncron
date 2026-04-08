@@ -97,12 +97,14 @@
                             </VBox>
                         </VBox>
 
-                        <VBox prefWidth="260.0" spacing="20.0">
-                            <VBox spacing="10" styleClass="kernel-pinned-box">
-                                <Label text="🕒 Recently Accessed" styleClass="kernel-pinned-title" />
-                                <Label text="• CSE 108 Syllabus" styleClass="kernel-pinned-link" />
-                                <Label text="• Week 12 Project" styleClass="kernel-pinned-link" />
-                            </VBox>
+                        <VBox prefWidth="300.0" spacing="12.0">
+                            <HBox alignment="CENTER_LEFT" spacing="8">
+                                <Label text="🔔 Announcements" style="-fx-font-family: 'Georgia', serif; -fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                            </HBox>
+                            <ScrollPane fitToWidth="true" prefHeight="420" minHeight="300"
+                                        style="-fx-background: transparent; -fx-background-color: transparent; -fx-border-color: #E8E8E8; -fx-border-radius: 12; -fx-background-radius: 12;">
+                                <VBox fx:id="announcementsFeedContainer" spacing="10" style="-fx-padding: 12;"/>
+                            </ScrollPane>
                         </VBox>
 
                     </children>

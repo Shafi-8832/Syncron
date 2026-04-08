@@ -80,12 +80,36 @@ public class HomeController {
         if (profileBtn != null) profileBtn.setOnMouseClicked(e -> openProfile());
         if (detailsBtn != null) detailsBtn.setOnAction(e -> openSemesterDetails());
 
+
+        // nick name fetching from server
         User currentUser = SessionManager.getCurrentUser();
         if (currentUser != null && topHeaderNameLabel != null && welcomeLabel != null) {
             topHeaderNameLabel.setText(currentUser.getName());
-            String FirstName = currentUser.getName().split(" ")[0];
-            welcomeLabel.setText("Welcome Back, " + FirstName + "!");
+
+            // Fetch nickname from Cloud for the welcome message
+            String displayName = currentUser.getName().split(" ")[0]; // Fallback: first name
+            try {
+                java.net.http.HttpClient nickClient = java.net.http.HttpClient.newHttpClient();
+                java.net.http.HttpRequest nickReq = java.net.http.HttpRequest.newBuilder()
+                        .uri(java.net.URI.create("http://localhost:8080/api/users/" + currentUser.getId() + "/profile"))
+                        .GET().build();
+                java.net.http.HttpResponse<String> nickRes = nickClient.send(nickReq, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+                if (nickRes.statusCode() == 200) {
+                    com.google.gson.Gson g = new com.google.gson.Gson();
+                    java.util.Map<String, String> profileData = g.fromJson(nickRes.body(),
+                            new com.google.gson.reflect.TypeToken<java.util.Map<String, String>>(){}.getType());
+
+                    String nickname = profileData.getOrDefault("nickname", "");
+                    if (nickname != null && !nickname.trim().isEmpty()) {
+                        displayName = nickname;
+                    }
+                }
+            } catch (Exception ignored) {}
+
+            welcomeLabel.setText("Welcome Back, " + displayName + "!");
         }
+
     }
 
     private void loadAnnouncementsFeed() {

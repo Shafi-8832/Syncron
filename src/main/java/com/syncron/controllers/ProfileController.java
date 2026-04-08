@@ -1,7 +1,6 @@
 package com.syncron.controllers;
 
 import com.syncron.models.User;
-import com.syncron.utils.DatabaseHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -33,10 +32,17 @@ public class ProfileController {
     // Student Editable Fields
     @FXML private TextField studentBioField, studentGithubField, studentLinkedinField;
 
+    // start change — Nickname field for both roles
+    @FXML private TextField nicknameField;
+    @FXML private TextField studentNicknameField;
+    // end change
+
     @FXML private PasswordField currentPasswordField, newPasswordField, confirmPasswordField;
     @FXML private Circle profilePhotoCircle;
 
-
+    // start change — Save feedback
+    @FXML private Label saveStatusLabel;
+    // end change
 
     @FXML
     public void initialize() {
@@ -44,20 +50,7 @@ public class ProfileController {
         viewingUser = null;
 
         hidePasswordForm();
-        setupAutoSaveEngine();
         loadUserData(loadedUser);
-    }
-
-    private void setupAutoSaveEngine() {
-        // Any time a field loses focus, it auto-saves to the cloud!
-        TextField[] fields = {bioField, contactField, githubField, linkedinField, fbField, roomField, studentBioField, studentGithubField, studentLinkedinField};
-        for (TextField field : fields) {
-            if (field != null) {
-                field.focusedProperty().addListener((obs, old, isFocused) -> {
-                    if (!isFocused) saveProfileToCloud();
-                });
-            }
-        }
     }
 
     private void loadUserData(User user) {
@@ -109,6 +102,12 @@ public class ProfileController {
                 if (studentGithubField != null) studentGithubField.setText(data.getOrDefault("github", ""));
                 if (studentLinkedinField != null) studentLinkedinField.setText(data.getOrDefault("linkedin", ""));
 
+                // start change — Nickname
+                String nickname = data.getOrDefault("nickname", "");
+                if (nicknameField != null) nicknameField.setText(nickname);
+                if (studentNicknameField != null) studentNicknameField.setText(nickname);
+                // end change
+
                 currentPhotoPath = data.getOrDefault("photo_path", "");
                 if (!currentPhotoPath.isEmpty()) {
                     File imgFile = new File(currentPhotoPath);
@@ -119,7 +118,6 @@ public class ProfileController {
 
         loadAssignedCourses();
     }
-
 
     private void loadAssignedCourses() {
         try {
@@ -136,86 +134,89 @@ public class ProfileController {
                 java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<java.util.Map<String, String>>>(){}.getType();
                 java.util.List<java.util.Map<String, String>> courses = gson.fromJson(res.body(), listType);
 
+                VBox targetBox;
                 if ("TEACHER".equalsIgnoreCase(role)) {
-                    VBox card = (VBox) teacherAssignedBox.getChildren().get(1);
-                    card.getChildren().clear();
-                    if (courses.isEmpty()) {
-                        Label empty = new Label("No courses assigned.");
-                        empty.setStyle("-fx-text-fill: #7F8C8D; -fx-font-style: italic;");
-                        card.getChildren().add(empty);
-                    } else {
-                        for (Map<String, String> c : courses) {
-                            Label lbl = new Label("• " + c.get("courseCode") + " - " + c.get("courseTitle"));
-// THE UPGRADE:blue clickable link
-                            lbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2980B9; -fx-cursor: hand;");
-                            lbl.setOnMouseEntered(e -> lbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #3498DB; -fx-cursor: hand; -fx-underline: true;"));
-                            lbl.setOnMouseExited(e -> lbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2980B9; -fx-cursor: hand;"));
-
-                            lbl.setOnMouseClicked(e -> {
-                                try {
-                                    // Route to the course exactly like the Home Dashboard does!
-                                    SessionManager.setCurrentCourseCode(c.get("courseCode"));
-                                    javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
-                                    javafx.scene.Parent root = loader.load();
-                                    MainController controller = loader.getController();
-                                    controller.setCourseContext(c.get("courseCode"), c.get("courseTitle"), "theory", "3.0"); // Defaults, can fetch real ones if needed
-                                    javafx.stage.Stage stage = (javafx.stage.Stage) nameLabel.getScene().getWindow();
-                                    stage.getScene().setRoot(root);
-                                } catch (Exception ex) { ex.printStackTrace(); }
-                            });
-                            card.getChildren().add(lbl);
-                        }
-                    }
+                    targetBox = (VBox) teacherAssignedBox.getChildren().get(1);
                 } else {
-                    VBox card = (VBox) studentHistoryBox.getChildren().get(1);
-                    card.getChildren().clear();
-                    if (courses.isEmpty()) {
-                        Label empty = new Label("No courses enrolled.");
-                        empty.setStyle("-fx-text-fill: #7F8C8D; -fx-font-style: italic;");
-                        card.getChildren().add(empty);
-                    } else {
-                        for (Map<String, String> c : courses) {
+                    targetBox = (VBox) studentHistoryBox.getChildren().get(1);
+                }
 
-                            Label lbl = new Label("• " + c.get("courseCode") + " - " + c.get("courseTitle"));
+                targetBox.getChildren().clear();
+                if (courses.isEmpty()) {
+                    Label empty = new Label("No courses " + ("TEACHER".equalsIgnoreCase(role) ? "assigned." : "enrolled."));
+                    empty.setStyle("-fx-text-fill: #7F8C8D; -fx-font-style: italic;");
+                    targetBox.getChildren().add(empty);
+                } else {
+                    for (java.util.Map<String, String> c : courses) {
+                        Label lbl = new Label("• " + c.get("courseCode") + " - " + c.get("courseTitle"));
+                        lbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2980B9; -fx-cursor: hand;");
+                        lbl.setOnMouseEntered(e -> lbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #3498DB; -fx-cursor: hand; -fx-underline: true;"));
+                        lbl.setOnMouseExited(e -> lbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2980B9; -fx-cursor: hand;"));
 
-                            lbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2980B9; -fx-cursor: hand;");
-                            lbl.setOnMouseEntered(e -> lbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #3498DB; -fx-cursor: hand; -fx-underline: true;"));
-                            lbl.setOnMouseExited(e -> lbl.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #2980B9; -fx-cursor: hand;"));
+                        lbl.setOnMouseClicked(e -> {
+                            try {
+                                String courseCode = c.get("courseCode");
+                                String courseTitle = c.get("courseTitle");
+                                boolean isSessional = (courseTitle != null && courseTitle.toLowerCase().contains("sessional")) || (courseCode != null && courseCode.matches(".*[02468]$"));
 
-                            lbl.setOnMouseClicked(e -> {
-                                try {
-                                    // Route to the course exactly like the Home Dashboard does!
-                                    SessionManager.setCurrentCourseCode(c.get("courseCode"));
-                                    javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
-                                    javafx.scene.Parent root = loader.load();
-                                    MainController controller = loader.getController();
-                                    controller.setCourseContext(c.get("courseCode"), c.get("courseTitle"), "theory", "3.0"); // Defaults, can fetch real ones if needed
-                                    javafx.stage.Stage stage = (javafx.stage.Stage) nameLabel.getScene().getWindow();
-                                    stage.getScene().setRoot(root);
-                                } catch (Exception ex) { ex.printStackTrace(); }
-                            });
-                            card.getChildren().add(lbl);
-                        }
+                                SessionManager.setCurrentCourseCode(courseCode);
+                                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
+                                javafx.scene.Parent root = loader.load();
+                                MainController controller = loader.getController();
+                                controller.setCourseContext(courseCode, courseTitle, isSessional ? "sessional" : "theory", isSessional ? "1.5" : "3.0");
+                                javafx.stage.Stage stage = (javafx.stage.Stage) nameLabel.getScene().getWindow();
+                                stage.getScene().setRoot(root);
+                            } catch (Exception ex) { ex.printStackTrace(); }
+                        });
+                        targetBox.getChildren().add(lbl);
                     }
                 }
             }
         } catch (Exception e) { e.printStackTrace(); }
     }
 
+    // start change — Explicit Save Changes button handler
+    @FXML
+    private void handleSaveChanges() {
+        saveProfileToCloud();
+
+        // Show success feedback
+        if (saveStatusLabel != null) {
+            saveStatusLabel.setText("✓ Changes saved successfully!");
+            saveStatusLabel.setStyle("-fx-text-fill: #27AE60; -fx-font-weight: bold; -fx-font-size: 13px;");
+            saveStatusLabel.setVisible(true);
+            saveStatusLabel.setManaged(true);
+
+            // Fade out after 3 seconds
+            new Thread(() -> {
+                try { Thread.sleep(3000); } catch (InterruptedException ignored) {}
+                javafx.application.Platform.runLater(() -> {
+                    saveStatusLabel.setVisible(false);
+                    saveStatusLabel.setManaged(false);
+                });
+            }).start();
+        }
+    }
+    // end change
+
     private void saveProfileToCloud() {
         try {
             boolean isStudent = "STUDENT".equalsIgnoreCase(loadedUser.getRole());
 
-            // Grab from the correct visible fields
-            String bio = isStudent ? studentBioField.getText() : bioField.getText();
-            String contact = isStudent ? "" : contactField.getText();
-            String github = isStudent ? studentGithubField.getText() : githubField.getText();
-            String linkedin = isStudent ? studentLinkedinField.getText() : linkedinField.getText();
-            String fb = isStudent ? "" : fbField.getText();
-            String room = isStudent ? "" : roomField.getText();
+            String bio = isStudent ? (studentBioField != null ? studentBioField.getText() : "") : (bioField != null ? bioField.getText() : "");
+            String contact = isStudent ? "" : (contactField != null ? contactField.getText() : "");
+            String github = isStudent ? (studentGithubField != null ? studentGithubField.getText() : "") : (githubField != null ? githubField.getText() : "");
+            String linkedin = isStudent ? (studentLinkedinField != null ? studentLinkedinField.getText() : "") : (linkedinField != null ? linkedinField.getText() : "");
+            String fb = isStudent ? "" : (fbField != null ? fbField.getText() : "");
+            String room = isStudent ? "" : (roomField != null ? roomField.getText() : "");
 
-            String json = String.format("{\"bio\":\"%s\", \"contact_no\":\"%s\", \"github\":\"%s\", \"linkedin\":\"%s\", \"fb_link\":\"%s\", \"room_no\":\"%s\", \"photo_path\":\"%s\"}",
-                    bio.replace("\"", "\\\"").replace("\n", " "), contact, github, linkedin, fb, room, currentPhotoPath.replace("\\", "\\\\"));
+            // start change — include nickname
+            String nickname = isStudent ? (studentNicknameField != null ? studentNicknameField.getText() : "") : (nicknameField != null ? nicknameField.getText() : "");
+            // end change
+
+            String json = String.format("{\"bio\":\"%s\", \"contact_no\":\"%s\", \"github\":\"%s\", \"linkedin\":\"%s\", \"fb_link\":\"%s\", \"room_no\":\"%s\", \"photo_path\":\"%s\", \"nickname\":\"%s\"}",
+                    bio.replace("\"", "\\\"").replace("\n", " "), contact, github, linkedin, fb, room,
+                    currentPhotoPath.replace("\\", "\\\\"), nickname.replace("\"", "\\\""));
 
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
@@ -289,7 +290,6 @@ public class ProfileController {
     @FXML private void handleCancelPasswordChange() { hidePasswordForm(); }
     private void hidePasswordForm() { passwordFormBox.setVisible(false); passwordFormBox.setManaged(false); currentPasswordField.clear(); newPasswordField.clear(); confirmPasswordField.clear(); passwordErrorLabel.setText(""); }
 
-    // THE FIX: Native FXML Loaders instead of NavigationManager for root screens!
     @FXML
     private void goBackToDashboard() {
         try {
@@ -310,6 +310,4 @@ public class ProfileController {
             stage.getScene().setRoot(root);
         } catch (Exception e) { e.printStackTrace(); }
     }
-
-
 }
