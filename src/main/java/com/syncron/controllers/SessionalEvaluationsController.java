@@ -1,8 +1,8 @@
 package com.syncron.controllers;
 
 import com.syncron.models.User;
-import com.syncron.utils.DatabaseHandler;
 import com.syncron.utils.NavigationManager;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -14,14 +14,11 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 public class SessionalEvaluationsController {
 
@@ -31,15 +28,13 @@ public class SessionalEvaluationsController {
     @FXML private TextField titleInput;
     @FXML private DatePicker datePicker;
 
-    //
     @FXML private ComboBox<String> startHour, startMin, startAmPm;
 
-    @FXML private VBox durationBox;        // Replaced endTimeBox
-    @FXML private TextField durationInput; // The new 45 mins input
+    @FXML private VBox durationBox;
+    @FXML private TextField durationInput;
 
     @FXML private Button cancelBtn;
     @FXML private Button publishBtn;
-    //
 
     @FXML private TextField marksInput;
     @FXML private TextArea descriptionInput;
@@ -47,7 +42,7 @@ public class SessionalEvaluationsController {
     @FXML private Label dateLabel;
     @FXML private Label timeLabel;
 
-    @FXML private VBox endTimeBox;           // NEW: The container for Closing Time
+    @FXML private VBox endTimeBox;
     @FXML private VBox targetSectionContainer;
     @FXML private HBox sectionBox;
 
@@ -56,12 +51,20 @@ public class SessionalEvaluationsController {
     private String currentType = "OFFLINE";
     private File selectedPdfFile = null;
 
+    // start change — track existing file path for edits (was missing before)
+    private String existingFilePath = "None";
+    private Button removeFileBtn;
+    // end change
+
     private String editId = null;
 
 
     @FXML
     public void initialize() {
         setupTimeSpinners();
+        // start change — add modern file upload UI
+        setupModernUploadUI();
+        // end change
 
         User currentUser = SessionManager.getCurrentUser();
         if (currentUser == null || !"TEACHER".equalsIgnoreCase(currentUser.getRole())) {
@@ -81,66 +84,150 @@ public class SessionalEvaluationsController {
         else setOfflineMode();
     }
 
-    @FXML
-    private void loadExistingDataForEdit() {
-        try (java.sql.Connection conn = DatabaseHandler.connect();
-             java.sql.PreparedStatement pstmt = conn.prepareStatement("SELECT * FROM evaluations WHERE id = ?")) {
+    // =========================================================================
+    // start change — MODERN FILE UPLOAD UI (matching TheoryEvaluationsController)
+    // =========================================================================
 
-            pstmt.setString(1, editId);
-            java.sql.ResultSet rs = pstmt.executeQuery();
+    private void setupModernUploadUI() {
+        if (fileNameLabel == null) return;
 
-            if (rs.next()) {
-                // 1. load basic text fields
-                titleInput.setText(rs.getString("title"));
-                marksInput.setText(rs.getString("total_marks"));
-                descriptionInput.setText(rs.getString("description"));
+        HBox parent = (HBox) fileNameLabel.getParent();
 
-                String type = rs.getString("type");
+        removeFileBtn = new Button("✖ Remove");
+        String removeBase = "-fx-background-color: transparent; -fx-text-fill: #E74C3C; -fx-font-weight: bold; -fx-cursor: hand; -fx-border-color: #E74C3C; -fx-border-radius: 20; -fx-padding: 3 10; -fx-font-size: 11px;";
+        String removeHover = removeBase + " -fx-background-color: #E74C3C; -fx-text-fill: white; -fx-effect: dropshadow(three-pass-box, rgba(231, 76, 60, 0.4), 10, 0, 0, 0);";
 
-                // 2. set the mode
-                if ("ONLINE".equals(type)) {
-                    setOnlineMode();
-                } else {
-                    setOfflineMode();
-                }
+        removeFileBtn.setStyle(removeBase);
+        removeFileBtn.setOnMouseEntered(e -> removeFileBtn.setStyle(removeHover));
+        removeFileBtn.setOnMouseExited(e -> removeFileBtn.setStyle(removeBase));
 
-                // 3. smartly load the dates and times back into the calendar and dropdowns
-                try {
-                    String dateStr = "ONLINE".equals(type) ? rs.getString("start_date") : rs.getString("deadline_date");
-                    if (dateStr != null && !dateStr.isEmpty() && datePicker != null) {
-                        datePicker.setValue(java.time.LocalDate.parse(dateStr));
-                    }
+        removeFileBtn.setVisible(false);
+        removeFileBtn.setManaged(false);
 
-                    String timeStr = "ONLINE".equals(type) ? rs.getString("start_time") : rs.getString("deadline_time");
-                    if (timeStr != null && !timeStr.isEmpty()) {
-                        java.time.LocalTime time = java.time.LocalTime.parse(timeStr);
-                        int hour = time.getHour();
-                        String amPm = hour >= 12 ? "PM" : "AM";
+        removeFileBtn.setOnAction(e -> {
+            selectedPdfFile = null;
+            existingFilePath = "None";
+            updateFileLabelUI();
+        });
 
-                        if (hour == 0) hour = 12;
-                        else if (hour > 12) hour -= 12;
+        parent.getChildren().add(removeFileBtn);
+    }
 
-                        if (startHour != null) startHour.setValue(String.format("%02d", hour));
-                        if (startMin != null) startMin.setValue(String.format("%02d", time.getMinute()));
-                        if (startAmPm != null) startAmPm.setValue(amPm);
-                    }
-
-                    // 4. calculate duration safely for online lab tests
-                    if ("ONLINE".equals(type) && durationInput != null) {
-                        java.time.format.DateTimeFormatter fmt = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-                        java.time.LocalDateTime sTime = java.time.LocalDateTime.parse(rs.getString("start_date") + " " + rs.getString("start_time"), fmt);
-                        java.time.LocalDateTime eTime = java.time.LocalDateTime.parse(rs.getString("deadline_date") + " " + rs.getString("deadline_time"), fmt);
-                        long mins = java.time.temporal.ChronoUnit.MINUTES.between(sTime, eTime);
-                        durationInput.setText(String.valueOf(mins));
-                    }
-                } catch (Exception timeEx) {
-                    System.out.println("could not parse dates perfectly, skipping auto-fill for time");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+    private void updateFileLabelUI() {
+        if (selectedPdfFile != null) {
+            fileNameLabel.setText("📄 " + selectedPdfFile.getName());
+            fileNameLabel.setStyle("-fx-text-fill: #2ECC71; -fx-font-weight: bold; -fx-font-size: 13px;");
+            removeFileBtn.setVisible(true);
+            removeFileBtn.setManaged(true);
+        } else if (!existingFilePath.equals("None") && !existingFilePath.isEmpty()) {
+            String cleanName = new File(existingFilePath).getName().replaceFirst("^.*?_\\d{13}_", "");
+            fileNameLabel.setText("📄 " + cleanName + " (Existing)");
+            fileNameLabel.setStyle("-fx-text-fill: #3498DB; -fx-font-weight: bold; -fx-font-size: 13px;");
+            removeFileBtn.setVisible(true);
+            removeFileBtn.setManaged(true);
+        } else {
+            fileNameLabel.setText("No file attached");
+            fileNameLabel.setStyle("-fx-text-fill: #95A5A6; -fx-font-style: italic;");
+            removeFileBtn.setVisible(false);
+            removeFileBtn.setManaged(false);
         }
     }
+
+    // end change
+    // =========================================================================
+
+    // =========================================================================
+    // start change — COMPLETE REWRITE: Use REST API instead of broken local DB
+    // =========================================================================
+
+    @FXML
+    private void loadExistingDataForEdit() {
+        new Thread(() -> {
+            try {
+                java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+                java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                        .uri(java.net.URI.create("http://localhost:8080/api/evaluations/details/" + editId))
+                        .GET().build();
+
+                java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() == 200) {
+                    com.google.gson.Gson gson = new com.google.gson.Gson();
+                    java.lang.reflect.Type type = new com.google.gson.reflect.TypeToken<Map<String, String>>(){}.getType();
+                    Map<String, String> rs = gson.fromJson(response.body(), type);
+
+                    Platform.runLater(() -> {
+                        // 1. Restore text fields
+                        titleInput.setText(rs.get("title") != null ? rs.get("title") : "");
+                        marksInput.setText(rs.get("totalMarks") != null ? rs.get("totalMarks") : "");
+
+                        // Safely unescape description
+                        String desc = rs.get("description");
+                        if (desc != null) {
+                            desc = desc.replace("\\n", "\n").replace("\\\"", "\"");
+                            descriptionInput.setText(desc);
+                        }
+
+                        // Restore attached file path
+                        String fetchedPath = rs.get("file_path");
+                        if (fetchedPath == null || fetchedPath.isEmpty() || fetchedPath.equals("null")) {
+                            fetchedPath = rs.get("filePath");
+                        }
+                        if (fetchedPath != null && !fetchedPath.equals("null") && !fetchedPath.equals("None")) {
+                            existingFilePath = fetchedPath;
+                            updateFileLabelUI();
+                        }
+
+                        // 2. Set mode correctly
+                        String assessmentType = rs.get("type");
+                        if ("ONLINE".equals(assessmentType)) {
+                            setOnlineMode();
+                        } else {
+                            setOfflineMode();
+                        }
+
+                        // 3. Restore dates and times
+                        try {
+                            String dateStr = "ONLINE".equals(assessmentType) ? rs.get("startDate") : rs.get("deadlineDate");
+                            if (dateStr != null && !dateStr.isEmpty() && !dateStr.equals("null")) {
+                                datePicker.setValue(LocalDate.parse(dateStr));
+                            }
+
+                            String timeStr = "ONLINE".equals(assessmentType) ? rs.get("startTime") : rs.get("deadlineTime");
+                            if (timeStr != null && !timeStr.isEmpty() && !timeStr.equals("null")) {
+                                LocalTime time = LocalTime.parse(timeStr);
+                                int hour = time.getHour();
+                                String amPm = hour >= 12 ? "PM" : "AM";
+
+                                if (hour == 0) hour = 12;
+                                else if (hour > 12) hour -= 12;
+
+                                if (startHour != null) startHour.setValue(String.format("%02d", hour));
+                                if (startMin != null) startMin.setValue(String.format("%02d", time.getMinute()));
+                                if (startAmPm != null) startAmPm.setValue(amPm);
+                            }
+
+                            // Calculate duration for online lab tests
+                            if ("ONLINE".equals(assessmentType) && durationInput != null) {
+                                DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+                                LocalDateTime sTime = LocalDateTime.parse(rs.get("startDate") + " " + rs.get("startTime"), fmt);
+                                LocalDateTime eTime = LocalDateTime.parse(rs.get("deadlineDate") + " " + rs.get("deadlineTime"), fmt);
+                                long mins = java.time.temporal.ChronoUnit.MINUTES.between(sTime, eTime);
+                                durationInput.setText(String.valueOf(mins));
+                            }
+                        } catch (Exception timeEx) {
+                            System.out.println("Could not parse dates properly, skipping autofill.");
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    // end change
+    // =========================================================================
 
 
     @FXML
@@ -152,13 +239,11 @@ public class SessionalEvaluationsController {
         dateLabel.setText("Deadline Date");
         timeLabel.setText("Due Time");
 
-        // Hide Sections & End Time for Offlines
         targetSectionContainer.setVisible(false);
         targetSectionContainer.setManaged(false);
-        //
+
         durationBox.setVisible(false);
         durationBox.setManaged(false);
-        //
     }
 
     @FXML
@@ -170,13 +255,11 @@ public class SessionalEvaluationsController {
         dateLabel.setText("Exam Date");
         timeLabel.setText("Opening Time");
 
-        // Show Sections & End Time for Onlines
         targetSectionContainer.setVisible(true);
         targetSectionContainer.setManaged(true);
-        //
+
         durationBox.setVisible(true);
         durationBox.setManaged(true);
-        //
     }
 
     @FXML
@@ -188,13 +271,9 @@ public class SessionalEvaluationsController {
         Stage stage = (Stage) titleInput.getScene().getWindow();
         selectedPdfFile = fileChooser.showOpenDialog(stage);
 
-        if (selectedPdfFile != null) {
-            fileNameLabel.setText(selectedPdfFile.getName());
-            fileNameLabel.setStyle("-fx-text-fill: #2ECC71; -fx-font-weight: bold;");
-        } else {
-            fileNameLabel.setText("No file selected");
-            fileNameLabel.setStyle("-fx-text-fill: #95A5A6; -fx-font-style: italic;");
-        }
+        // start change — use the modern UI updater
+        updateFileLabelUI();
+        // end change
     }
 
     @FXML
@@ -239,7 +318,6 @@ public class SessionalEvaluationsController {
         if (title.isEmpty()) missingFields.append("• Assessment Title\n");
         if (date == null) missingFields.append("• Deadline Date\n");
 
-        // Check if any of the three start time dropdowns are unselected
         boolean isStartMissing = startHour.getValue() == null || startMin.getValue() == null || startAmPm.getValue() == null;
         if (isStartMissing) {
             missingFields.append(currentType.equals("OFFLINE") ? "• Due Time\n" : "• Opening Time\n");
@@ -264,7 +342,6 @@ public class SessionalEvaluationsController {
             return;
         }
 
-        // NEW TIME LOGIC ENGINE (Auto-Calculates Deadlines)
         String startDateStr;
         String startTimeStr;
         String deadlineDateStr;
@@ -279,19 +356,20 @@ public class SessionalEvaluationsController {
             startDateStr = date.toString();
             startTimeStr = get24HourTime(startHour.getValue(), startMin.getValue(), startAmPm.getValue());
 
-            // Add the duration to calculate exact closing time
             LocalDateTime startDT = LocalDateTime.of(date, LocalTime.parse(startTimeStr));
             int durationMins = Integer.parseInt(durationInput.getText());
             LocalDateTime endDT = startDT.plusMinutes(durationMins);
 
-            // This safely handles if a 45-min exam crosses midnight into the next day
             deadlineDateStr = endDT.toLocalDate().toString();
             deadlineTimeStr = endDT.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm"));
         }
 
         String courseCode = SessionManager.getCurrentCourseCode();
         String teacherId = SessionManager.getCurrentUser().getId();
-        String savedFilePath = "None";
+
+        // start change — preserve existing file path during edits
+        String savedFilePath = existingFilePath.replace("\\", "\\\\");
+        // end change
 
         if (selectedPdfFile != null) {
             try {
@@ -302,7 +380,7 @@ public class SessionalEvaluationsController {
                 File destFile = new File(uploadDir, newFileName);
 
                 Files.copy(selectedPdfFile.toPath(), destFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                savedFilePath = destFile.getPath().replace("\\", "\\\\"); // Escape for JSON
+                savedFilePath = destFile.getPath().replace("\\", "\\\\");
             } catch (Exception e) {
                 e.printStackTrace();
                 new Alert(Alert.AlertType.ERROR, "Failed to process file!").show();
@@ -340,7 +418,6 @@ public class SessionalEvaluationsController {
             if (response.statusCode() == 200) {
                 new Alert(Alert.AlertType.INFORMATION, "Assessment Published to Cloud Successfully!").showAndWait();
 
-                // Route back to the correct tab dynamically
                 String routeTo = SessionManager.getLastSidebarTab();
                 if ("ONLINE".equals(routeTo)) {
                     NavigationManager.switchScreen("onlines.fxml");
@@ -359,7 +436,6 @@ public class SessionalEvaluationsController {
     }
 
 
-    // INJECTS DATA INTO DROPDOWNS
     private void setupTimeSpinners() {
         for (int i = 1; i <= 12; i++) {
             String h = String.format("%02d", i);
@@ -373,7 +449,6 @@ public class SessionalEvaluationsController {
         startHour.setValue("11"); startMin.setValue("59"); startAmPm.setValue("PM");
     }
 
-    // CONVERTS 1:53 PM to 13:53 FOR THE DATABASE
     private String get24HourTime(String h, String m, String amPm) {
         int hour = Integer.parseInt(h);
         if (amPm.equals("PM") && hour != 12) hour += 12;

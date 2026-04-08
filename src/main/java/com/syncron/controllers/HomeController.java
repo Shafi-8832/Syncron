@@ -8,6 +8,7 @@ import com.syncron.utils.NavigationManager;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class HomeController {
 
@@ -51,6 +53,8 @@ public class HomeController {
     @FXML private VBox notificationPanel;
     @FXML private VBox notificationList;
 
+    @FXML private VBox announcementsFeedContainer;
+
     @FXML
     public void initialize() throws SQLException {
         // 1. Load the real courses once from the database into memory
@@ -70,6 +74,9 @@ public class HomeController {
         // 4. Load current semester's data
         loadSemesterData();
 
+        // 5. load announcement feed box
+        loadAnnouncementsFeed();
+
         if (profileBtn != null) profileBtn.setOnMouseClicked(e -> openProfile());
         if (detailsBtn != null) detailsBtn.setOnAction(e -> openSemesterDetails());
 
@@ -79,6 +86,158 @@ public class HomeController {
             String FirstName = currentUser.getName().split(" ")[0];
             welcomeLabel.setText("Welcome Back, " + FirstName + "!");
         }
+    }
+
+    private void loadAnnouncementsFeed() {
+        if (announcementsFeedContainer == null) return;
+        announcementsFeedContainer.getChildren().clear();
+
+        javafx.scene.control.Label loading = new javafx.scene.control.Label("Loading announcements...");
+        loading.setStyle("-fx-text-fill: #95A5A6; -fx-font-style: italic; -fx-font-size: 12px;");
+        announcementsFeedContainer.getChildren().add(loading);
+
+        new Thread(() -> {
+            java.util.List<java.util.Map<String, String>> allAnnouncements = new java.util.ArrayList<>();
+
+            try {
+                java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+
+                // Fetch the user's courses first
+                String role = SessionManager.getCurrentUser().getRole();
+                String name = SessionManager.getCurrentUser().getName().replace(" ", "%20");
+                java.net.http.HttpRequest coursesReq = java.net.http.HttpRequest.newBuilder()
+                        .uri(java.net.URI.create("http://localhost:8080/api/dashboard/courses?role=" + role + "&name=" + name))
+                        .GET().build();
+                java.net.http.HttpResponse<String> coursesRes = client.send(coursesReq, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+                if (coursesRes.statusCode() == 200) {
+                    com.google.gson.Gson gson = new com.google.gson.Gson();
+                    java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<java.util.Map<String, String>>>(){}.getType();
+                    java.util.List<java.util.Map<String, String>> courses = gson.fromJson(coursesRes.body(), listType);
+
+                    // For each course, fetch announcements
+                    for (java.util.Map<String, String> course : courses) {
+                        String courseCode = course.get("courseCode");
+                        String courseTitle = course.get("courseTitle");
+
+                        if (courseCode == null || courseCode.equals("null")) continue;
+
+                        try {
+                            java.net.http.HttpRequest annReq = java.net.http.HttpRequest.newBuilder()
+                                    .uri(java.net.URI.create("http://localhost:8080/api/announcements/" + courseCode.replace(" ", "%20")))
+                                    .GET().build();
+                            java.net.http.HttpResponse<String> annRes = client.send(annReq, java.net.http.HttpResponse.BodyHandlers.ofString());
+
+                            if (annRes.statusCode() == 200) {
+                                java.util.List<java.util.Map<String, String>> posts = gson.fromJson(annRes.body(), listType);
+                                for (java.util.Map<String, String> post : posts) {
+                                    post.put("courseCode", courseCode);
+                                    post.put("courseTitle", courseTitle != null ? courseTitle : "Course");
+                                    allAnnouncements.add(post);
+                                }
+                            }
+                        } catch (Exception ignored) {}
+                    }
+                }
+            } catch (Exception e) { e.printStackTrace(); }
+
+            // Sort by timestamp (newest first) — timestamps are strings like "07 Apr 2026"
+            // We'll just keep the order from the API (already newest-first per course)
+
+            java.util.List<java.util.Map<String, String>> finalList = allAnnouncements;
+
+            javafx.application.Platform.runLater(() -> {
+                announcementsFeedContainer.getChildren().clear();
+
+                if (finalList.isEmpty()) {
+                    javafx.scene.control.Label empty = new javafx.scene.control.Label("No announcements yet.");
+                    empty.setStyle("-fx-text-fill: #BDC3C7; -fx-font-style: italic; -fx-font-size: 12px;");
+                    announcementsFeedContainer.getChildren().add(empty);
+                    return;
+                }
+
+                // Show at most 20 announcements
+                int limit = Math.min(finalList.size(), 20);
+                for (int i = 0; i < limit; i++) {
+                    java.util.Map<String, String> post = finalList.get(i);
+                    announcementsFeedContainer.getChildren().add(buildAnnouncementCard(post));
+                }
+            });
+        }).start();
+    }
+
+    private javafx.scene.layout.VBox buildAnnouncementCard(java.util.Map<String, String> post) {
+        javafx.scene.layout.VBox card = new javafx.scene.layout.VBox(6);
+        card.setPadding(new javafx.geometry.Insets(12, 14, 12, 14));
+
+        String baseStyle = "-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #ECF0F1; -fx-border-radius: 10; -fx-border-width: 1; -fx-cursor: hand;";
+        String hoverStyle = "-fx-background-color: #F0F7FF; -fx-background-radius: 10; -fx-border-color: #3498DB; -fx-border-radius: 10; -fx-border-width: 1; -fx-cursor: hand;";
+        card.setStyle(baseStyle);
+        card.setOnMouseEntered(e -> card.setStyle(hoverStyle));
+        card.setOnMouseExited(e -> card.setStyle(baseStyle));
+
+        // Course badge
+        String courseCode = post.get("courseCode");
+        javafx.scene.control.Label courseBadge = new javafx.scene.control.Label(courseCode != null ? courseCode : "");
+        courseBadge.setStyle("-fx-background-color: #EBF5FB; -fx-text-fill: #2980B9; -fx-font-weight: bold; -fx-padding: 2 8; -fx-background-radius: 10; -fx-font-size: 10px;");
+
+        // Author + time
+        String author = post.get("author") != null ? post.get("author") : "";
+        String timestamp = post.get("timestamp") != null ? post.get("timestamp") : "";
+        javafx.scene.control.Label metaLabel = new javafx.scene.control.Label(author + " • " + timestamp);
+        metaLabel.setStyle("-fx-text-fill: #95A5A6; -fx-font-size: 10px;");
+
+        javafx.scene.layout.HBox topRow = new javafx.scene.layout.HBox(8);
+        topRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        topRow.getChildren().addAll(courseBadge, metaLabel);
+
+        // Message preview (truncated, with smart-tag cleanup)
+        String rawMsg = post.get("message") != null ? post.get("message") : "";
+        String cleanMsg = rawMsg.replaceAll("\\[ASSESSMENT:\\d+:([^\\]]+)\\]", "\uD83D\uDCCC $1");
+        if (cleanMsg.length() > 120) cleanMsg = cleanMsg.substring(0, 117) + "...";
+
+        javafx.scene.control.Label msgLabel = new javafx.scene.control.Label(cleanMsg);
+        msgLabel.setStyle("-fx-text-fill: #2C3E50; -fx-font-size: 12px; -fx-font-weight: bold;");
+        msgLabel.setWrapText(true);
+        msgLabel.setMaxWidth(260);
+
+        card.getChildren().addAll(topRow, msgLabel);
+
+        // Click → navigate to the specific announcement inside the course
+        card.setOnMouseClicked(e -> {
+            String cc = post.get("courseCode");
+            String ct = post.get("courseTitle");
+            String annId = post.get("id");
+
+            if (cc == null || annId == null) return;
+
+            try {
+                // Determine course type
+                boolean isSessional = (ct != null && ct.toLowerCase().contains("sessional")) || (cc != null && cc.matches(".*[02468]$"));
+                String courseType = isSessional ? "sessional" : "theory";
+                String credits = isSessional ? "1.5" : "3.0";
+
+                javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
+                javafx.scene.Parent root = loader.load();
+
+                SessionManager.setCurrentCourseCode(cc);
+                SessionManager.setCurrentAnnouncementId(annId);
+
+                MainController controller = loader.getController();
+                controller.setCourseContext(cc, ct != null ? ct : "Course", courseType, credits);
+
+                // Navigate to the specific announcement post
+                com.syncron.utils.NavigationManager.switchScreen("view_announcement.fxml");
+                controller.forceSidebarSelection("Announcements");
+                controller.updateBreadcrumb("Announcements / View Post");
+
+                javafx.stage.Stage stage = (javafx.stage.Stage) announcementsFeedContainer.getScene().getWindow();
+                stage.getScene().setRoot(root);
+
+            } catch (Exception ex) { ex.printStackTrace(); }
+        });
+
+        return card;
     }
 
     private java.util.List<Course> fetchCoursesFromServer() {
@@ -281,14 +440,8 @@ public class HomeController {
                 }
 
                 for (java.util.Map<String, String> task : urgentTasks) {
-                    VBox taskBox = new VBox(4);
-                    taskBox.setStyle("-fx-padding: 8 0; -fx-cursor: hand;");
 
-                    Label titleLabel = new Label("• " + task.get("title"));
-                    titleLabel.getStyleClass().add("clean-link");
-                    titleLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
-                    titleLabel.setWrapText(true);
-
+                    // --- Time calculation ---
                     String dDate = task.get("deadlineDate") != null ? task.get("deadlineDate") : task.get("dueDate");
                     String dTime = task.get("deadlineTime") != null ? task.get("deadlineTime") : task.get("dueTime");
                     String dueText = "Due: " + dDate;
@@ -307,44 +460,140 @@ public class HomeController {
 
                         if (minutesLeft < 0) {
                             isPassed = true;
-                            dueText = "Deadline Passed";
                         } else if (daysLeft > 0) {
-                            dueText = deadline.format(niceDate) + " (" + daysLeft + " days Left)";
+                            dueText = deadline.format(niceDate) + " (" + daysLeft + "d " + hoursLeft + "h left)";
                         } else if (hoursLeft > 0) {
-                            dueText = "Today (" + hoursLeft + " hours Left)";
+                            long minsLeft = java.time.temporal.ChronoUnit.MINUTES.between(now, deadline) % 60;
+                            dueText = "Today (" + hoursLeft + "h " + minsLeft + "m left)";
                         } else {
-                            dueText = "Due Very Soon!";
+                            long minsLeft = java.time.temporal.ChronoUnit.MINUTES.between(now, deadline);
+                            dueText = "⚡ Due in " + minsLeft + " minutes!";
                         }
                     } catch (Exception ignored) {}
 
                     if (isPassed) continue;
 
-                    Label dateLabel = new Label(dueText);
-                    dateLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #E74C3C; -fx-padding: 0 0 0 15; -fx-font-weight: bold;");
+                    // --- Build the card ---
+                    VBox taskBox = new VBox(5);
+                    taskBox.setStyle("-fx-padding: 10 12; -fx-background-color: #FFFFFF; -fx-background-radius: 8; -fx-border-color: #F5D5D5; -fx-border-radius: 8; -fx-border-width: 1;");
 
-                    taskBox.getChildren().addAll(titleLabel, dateLabel);
+                    // Row 1: Course name (clickable blue link → takes to course Common tab)
+                    String courseCode = task.get("courseCode");
+                    String courseTitle = task.get("courseTitle");
 
-                    // 👇 THE FIX: Unbreakable Course Code Extraction System
-                    taskBox.setOnMouseClicked(e -> {
-                        String courseCode = task.get("courseCode");
-                        if (courseCode == null || courseCode.trim().isEmpty() || courseCode.equals("null")) {
+                    // Build display text for the course badge
+                    String courseDisplay = (courseCode != null && !courseCode.equals("null")) ? courseCode : "";
+                    if (courseTitle != null && !courseTitle.equals("null") && !courseTitle.isEmpty()) {
+                        courseDisplay += " — " + courseTitle;
+                    }
+
+                    if (!courseDisplay.isEmpty()) {
+                        Label courseLink = new Label(courseDisplay);
+                        courseLink.setStyle("-fx-text-fill: #2980B9; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-underline: false;");
+                        courseLink.setOnMouseEntered(e -> courseLink.setStyle("-fx-text-fill: #3498DB; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-underline: true;"));
+                        courseLink.setOnMouseExited(e -> courseLink.setStyle("-fx-text-fill: #2980B9; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-underline: false;"));
+                        courseLink.setWrapText(true);
+
+                        // Click → open the course's Common section
+                        final String fCourseCode = courseCode;
+                        courseLink.setOnMouseClicked(e -> openCourseCommon(fCourseCode));
+
+                        taskBox.getChildren().add(courseLink);
+                    }
+
+                    // Row 2: Assessment title (clickable → takes to evaluation details)
+                    String assessmentType = task.get("type");
+                    String typeEmoji = "📝";
+                    if ("CT".equalsIgnoreCase(assessmentType)) typeEmoji = "📋";
+                    else if ("ASSIGNMENT".equalsIgnoreCase(assessmentType)) typeEmoji = "📎";
+                    else if ("OFFLINE".equalsIgnoreCase(assessmentType)) typeEmoji = "💾";
+                    else if ("ONLINE".equalsIgnoreCase(assessmentType)) typeEmoji = "🖥";
+
+                    Label titleLabel = new Label(typeEmoji + " " + task.get("title"));
+                    titleLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #2C3E50; -fx-cursor: hand;");
+                    titleLabel.setWrapText(true);
+                    titleLabel.setOnMouseEntered(e -> titleLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #D35400; -fx-cursor: hand; -fx-underline: true;"));
+                    titleLabel.setOnMouseExited(e -> titleLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #2C3E50; -fx-cursor: hand;"));
+
+                    // Click → open evaluation details directly
+                    final String fCourseCode2 = courseCode;
+                    titleLabel.setOnMouseClicked(e -> {
+                        String cc = fCourseCode2;
+                        if (cc == null || cc.trim().isEmpty() || cc.equals("null")) {
                             String taskTitle = task.get("title");
                             if (taskTitle != null && taskTitle.contains("-")) {
-                                courseCode = taskTitle.split("-")[0].trim();
+                                cc = taskTitle.split("-")[0].trim();
                             } else {
-                                // Regex fallback to cleanly grab formats like "CSE 108"
                                 java.util.regex.Matcher m = java.util.regex.Pattern.compile("([A-Za-z]+\\s*\\d{3})").matcher(taskTitle != null ? taskTitle : "");
-                                if (m.find()) courseCode = m.group(1);
-                                else courseCode = taskTitle; // Total fallback
+                                if (m.find()) cc = m.group(1);
+                                else cc = taskTitle;
                             }
                         }
-                        openEvaluationDirectly(courseCode, task.get("id"), task.get("type"));
+                        openEvaluationDirectly(cc, task.get("id"), task.get("type"));
                     });
+
+                    // Row 3: Type badge + Time remaining
+                    javafx.scene.layout.HBox metaRow = new javafx.scene.layout.HBox(8);
+                    metaRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+                    Label typeBadge = new Label(assessmentType != null ? assessmentType : "TASK");
+                    String badgeColor = "#7F8C8D";
+                    if ("CT".equalsIgnoreCase(assessmentType)) badgeColor = "#E67E22";
+                    else if ("ASSIGNMENT".equalsIgnoreCase(assessmentType)) badgeColor = "#27AE60";
+                    else if ("OFFLINE".equalsIgnoreCase(assessmentType)) badgeColor = "#8E44AD";
+                    else if ("ONLINE".equalsIgnoreCase(assessmentType)) badgeColor = "#2980B9";
+
+                    typeBadge.setStyle("-fx-background-color: " + badgeColor + "; -fx-text-fill: white; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2 8; -fx-background-radius: 10;");
+
+                    Label dateLabel = new Label(dueText);
+                    dateLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #E74C3C; -fx-font-weight: bold;");
+
+                    metaRow.getChildren().addAll(typeBadge, dateLabel);
+
+                    taskBox.getChildren().addAll(titleLabel, metaRow);
+
+                    // Hover effect on the whole card
+                    taskBox.setOnMouseEntered(e -> taskBox.setStyle("-fx-padding: 10 12; -fx-background-color: #FEF5F5; -fx-background-radius: 8; -fx-border-color: #E74C3C; -fx-border-radius: 8; -fx-border-width: 1;"));
+                    taskBox.setOnMouseExited(e -> taskBox.setStyle("-fx-padding: 10 12; -fx-background-color: #FFFFFF; -fx-background-radius: 8; -fx-border-color: #F5D5D5; -fx-border-radius: 8; -fx-border-width: 1;"));
 
                     urgentContainer.getChildren().add(taskBox);
                 }
             }
         } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    // --- Opens a course's Common section with correct breadcrumb/sidebar ---
+    private void openCourseCommon(String courseCode) {
+        if (courseCode == null || courseCode.trim().isEmpty() || courseCode.equals("null")) return;
+
+        Course targetCourse = null;
+        for (Course c : allCourses) {
+            if (c.getCourseCode().trim().equalsIgnoreCase(courseCode.trim())) {
+                targetCourse = c;
+                break;
+            }
+        }
+        if (targetCourse == null) {
+            targetCourse = new Course(courseCode, "Course", "3.0", "theory");
+        }
+
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
+            Parent root = loader.load();
+
+            SessionManager.setCurrentCourseCode(targetCourse.getCourseCode());
+
+            MainController controller = loader.getController();
+            controller.setCourseContext(targetCourse.getCourseCode(), targetCourse.getCourseTitle(), targetCourse.getType(), targetCourse.getCredits());
+
+            // setCourseContext already navigates to common.fxml and sets sidebar to "Common"
+
+            Stage stage = (Stage) urgentContainer.getScene().getWindow();
+            stage.getScene().setRoot(root);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // 👇 THE FIX: Robust Course State Regeneration
