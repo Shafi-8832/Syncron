@@ -75,11 +75,6 @@
                     <children>
 
                         <VBox prefWidth="260.0" spacing="20.0">
-                            <VBox spacing="10" styleClass="kernel-pinned-box">
-                                <Label text="📌 Pinned Items" styleClass="kernel-pinned-title" />
-                                <Label text="• Academic Calendar" styleClass="kernel-pinned-link" />
-                                <Label text="• Exam Routine" styleClass="kernel-pinned-link" />
-                            </VBox>
 
                             <VBox fx:id="urgentContainer" spacing="10" styleClass="kernel-pinned-box">
                                 <Label text="🔥 Upcoming" styleClass="kernel-accent-text" />
