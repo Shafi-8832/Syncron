@@ -267,6 +267,7 @@ MIT License — see [LICENSE](LICENSE) for details.
 **Ahnaf Ahmed Shafi** — CSE, BUET
 **Shabab Ahmed** — CSE, BUET
 
-## Supervisors
-**Md. Nurul Muttakin — Lecturer, CSE, BUET**
+## Supervisor
+**Md. Nurul Muttakin** 
+**Lecturer CSE, BUET**
 Course: CSE 108 (Object Oriented Programming Sessional)
