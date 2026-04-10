@@ -77,6 +77,35 @@
                     </ScrollPane>
                 </VBox>
 
+                <!-- Teacher-Course Assignment Manager -->
+                <VBox fx:id="assignmentsView" spacing="25" visible="false" managed="false">
+                    <Label text="Manage Teacher-Course Assignments" style="-fx-font-size: 26px; -fx-font-weight: bold; -fx-text-fill: #F8FAFC;"/>
+                    <Label text="Select a course, then assign or remove teachers. Changes take effect immediately across the entire system." style="-fx-text-fill: #94A3B8; -fx-font-size: 13px; -fx-wrap-text: true;" wrapText="true"/>
+
+                    <!-- Course Selector -->
+                    <VBox spacing="8">
+                        <Label text="Select Course" style="-fx-text-fill: #94A3B8; -fx-font-weight: bold; -fx-font-size: 12px;"/>
+                        <ComboBox fx:id="courseSelector" prefWidth="500" style="-fx-background-color: #1E293B; -fx-border-color: #38BDF8; -fx-border-radius: 6; -fx-text-fill: white;"/>
+                    </VBox>
+
+                    <!-- Currently Assigned Teachers -->
+                    <VBox spacing="12" style="-fx-background-color: #1E293B; -fx-border-color: #334155; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 20;">
+                        <Label text="Currently Assigned Teachers" style="-fx-text-fill: #38BDF8; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+                        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" prefHeight="250">
+                            <VBox fx:id="assignedTeachersContainer" spacing="10"/>
+                        </ScrollPane>
+                    </VBox>
+
+                    <!-- Add New Assignment -->
+                    <VBox spacing="10" style="-fx-background-color: #1E293B; -fx-border-color: #10B981; -fx-border-width: 1; -fx-border-radius: 10; -fx-background-radius: 10; -fx-padding: 20;">
+                        <Label text="Assign a Teacher" style="-fx-text-fill: #10B981; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+                        <HBox spacing="15" alignment="CENTER_LEFT">
+                            <ComboBox fx:id="teacherSelector" prefWidth="350" promptText="Select a teacher..." style="-fx-background-color: #0F172A; -fx-border-color: #334155; -fx-border-radius: 6;"/>
+                            <Button text="+ Assign to Course" onAction="#handleAssignTeacher" style="-fx-background-color: #10B981; -fx-text-fill: #0F172A; -fx-font-weight: bold; -fx-padding: 10 20; -fx-background-radius: 6; -fx-cursor: hand;"/>
+                        </HBox>
+                    </VBox>
+                </VBox>
+
             </StackPane>
         </VBox>
     </center>

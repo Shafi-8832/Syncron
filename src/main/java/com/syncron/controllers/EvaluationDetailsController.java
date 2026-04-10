@@ -3,6 +3,7 @@ package com.syncron.controllers;
 import com.syncron.models.User;
 import com.syncron.utils.DatabaseHandler;
 import com.syncron.utils.NavigationManager;
+import com.syncron.utils.ServerConfig;
 import com.syncron.utils.TimeEngine;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -120,7 +121,7 @@ public class EvaluationDetailsController {
         try {
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/evaluations/details/" + evaluationId))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/evaluations/details/" + evaluationId))
                     .GET().build();
 
             java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
@@ -214,7 +215,7 @@ public class EvaluationDetailsController {
         try {
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/submissions/" + evaluationId + "/" + studentId))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/submissions/" + evaluationId + "/" + studentId))
                     .GET()
                     .build();
 
@@ -305,7 +306,7 @@ public class EvaluationDetailsController {
 
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/submissions"))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/submissions"))
                     .header("Content-Type", "application/json")
                     .POST(java.net.http.HttpRequest.BodyPublishers.ofString(jsonPayload))
                     .build();
@@ -331,7 +332,7 @@ public class EvaluationDetailsController {
         try {
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/submissions/" + evaluationId + "/" + studentId))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/submissions/" + evaluationId + "/" + studentId))
                     .DELETE()
                     .build();
 
@@ -369,7 +370,7 @@ public class EvaluationDetailsController {
         try {
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/evaluations/" + evaluationId + "/submissions"))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/evaluations/" + evaluationId + "/submissions"))
                     .GET().build();
 
             java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
@@ -508,7 +509,7 @@ public class EvaluationDetailsController {
 
                 java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
                 java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create("http://localhost:8080/api/submissions/grades"))
+                        .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/submissions/grades"))
                         .header("Content-Type", "application/json")
                         .PUT(java.net.http.HttpRequest.BodyPublishers.ofString(jsonArray.toString()))
                         .build();
@@ -562,7 +563,7 @@ public class EvaluationDetailsController {
                 // THE FIX: Switch from local JDBC to the Spring Boot REST API
                 java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
                 java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create("http://localhost:8080/api/evaluations/" + evaluationId))
+                        .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/evaluations/" + evaluationId))
                         .DELETE()
                         .build();
 

@@ -5,6 +5,7 @@ import com.syncron.models.Module;
 import com.syncron.models.User;
 import com.syncron.utils.DatabaseHandler;
 import com.syncron.utils.NavigationManager;
+import com.syncron.utils.ServerConfig;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -91,7 +92,7 @@ public class HomeController {
             try {
                 java.net.http.HttpClient nickClient = java.net.http.HttpClient.newHttpClient();
                 java.net.http.HttpRequest nickReq = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create("http://localhost:8080/api/users/" + currentUser.getId() + "/profile"))
+                        .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/users/" + currentUser.getId() + "/profile"))
                         .GET().build();
                 java.net.http.HttpResponse<String> nickRes = nickClient.send(nickReq, java.net.http.HttpResponse.BodyHandlers.ofString());
 
@@ -130,7 +131,7 @@ public class HomeController {
                 String role = SessionManager.getCurrentUser().getRole();
                 String name = SessionManager.getCurrentUser().getName().replace(" ", "%20");
                 java.net.http.HttpRequest coursesReq = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create("http://localhost:8080/api/dashboard/courses?role=" + role + "&name=" + name))
+                        .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/dashboard/courses?role=" + role + "&name=" + name))
                         .GET().build();
                 java.net.http.HttpResponse<String> coursesRes = client.send(coursesReq, java.net.http.HttpResponse.BodyHandlers.ofString());
 
@@ -148,7 +149,7 @@ public class HomeController {
 
                         try {
                             java.net.http.HttpRequest annReq = java.net.http.HttpRequest.newBuilder()
-                                    .uri(java.net.URI.create("http://localhost:8080/api/announcements/" + courseCode.replace(" ", "%20")))
+                                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/announcements/" + courseCode.replace(" ", "%20")))
                                     .GET().build();
                             java.net.http.HttpResponse<String> annRes = client.send(annReq, java.net.http.HttpResponse.BodyHandlers.ofString());
 
@@ -273,7 +274,7 @@ public class HomeController {
             String role = SessionManager.getCurrentUser().getRole();
             String name = SessionManager.getCurrentUser().getName().replace(" ", "%20");
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/dashboard/courses?role=" + role + "&name=" + name))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/dashboard/courses?role=" + role + "&name=" + name))
                     .GET()
                     .build();
 
@@ -445,7 +446,7 @@ public class HomeController {
             String role = SessionManager.getCurrentUser().getRole();
             String name = SessionManager.getCurrentUser().getName().replace(" ", "%20");
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/dashboard/deadlines?role=" + role + "&name=" + name))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/dashboard/deadlines?role=" + role + "&name=" + name))
                     .GET()
                     .build();
 
@@ -710,7 +711,7 @@ public class HomeController {
             try {
                 java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
                 java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create("http://localhost:8080/api/notifications"))
+                        .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/notifications"))
                         .GET().build();
 
                 java.net.http.HttpResponse<String> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
@@ -793,6 +794,18 @@ public class HomeController {
             });
 
             notificationList.getChildren().add(row);
+        }
+    }
+
+    @FXML
+    private void openCalendar() {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/calendar.fxml"));
+            javafx.scene.Parent root = loader.load();
+            javafx.stage.Stage stage = (javafx.stage.Stage) courseCardContainer.getScene().getWindow();
+            stage.getScene().setRoot(root);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

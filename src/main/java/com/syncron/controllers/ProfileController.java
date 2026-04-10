@@ -1,6 +1,7 @@
 package com.syncron.controllers;
 
 import com.syncron.models.User;
+import com.syncron.utils.ServerConfig;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -82,7 +83,7 @@ public class ProfileController {
         try {
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/users/" + user.getId() + "/profile")).GET().build();
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/users/" + user.getId() + "/profile")).GET().build();
             java.net.http.HttpResponse<String> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
 
             if (res.statusCode() == 200) {
@@ -125,7 +126,7 @@ public class ProfileController {
             String name = loadedUser.getName().replace(" ", "%20");
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/dashboard/courses?role=" + role + "&name=" + name))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/dashboard/courses?role=" + role + "&name=" + name))
                     .GET().build();
             java.net.http.HttpResponse<String> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
 
@@ -220,7 +221,7 @@ public class ProfileController {
 
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/users/" + loadedUser.getId() + "/profile"))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/users/" + loadedUser.getId() + "/profile"))
                     .header("Content-Type", "application/json")
                     .PUT(java.net.http.HttpRequest.BodyPublishers.ofString(json)).build();
             client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
@@ -271,7 +272,7 @@ public class ProfileController {
             String json = String.format("{\"currentPassword\":\"%s\", \"newPassword\":\"%s\"}", currentPass, newPass);
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/users/" + loadedUser.getId() + "/password"))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/users/" + loadedUser.getId() + "/password"))
                     .header("Content-Type", "application/json")
                     .PUT(java.net.http.HttpRequest.BodyPublishers.ofString(json)).build();
 

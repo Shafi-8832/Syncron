@@ -1,6 +1,7 @@
 package com.syncron.controllers;
 
 import com.syncron.utils.NavigationManager;
+import com.syncron.utils.ServerConfig;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -177,7 +178,7 @@ public class MainController {
         try {
             String role = SessionManager.getCurrentUser().getRole().toLowerCase();
             String id = SessionManager.getCurrentUser().getId();
-            String url = "http://localhost:8080/api/dashboard/" + role + "/" + id;
+            String url = ServerConfig.getBaseUrl() + "/api/dashboard/" + role + "/" + id;
 
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder().uri(java.net.URI.create(url)).GET().build();
@@ -200,7 +201,7 @@ public class MainController {
                         String type = course.get("type") != null ? String.valueOf(course.get("type")) : "theory";
 
                         java.net.http.HttpRequest aReq = java.net.http.HttpRequest.newBuilder()
-                                .uri(java.net.URI.create("http://localhost:8080/api/announcements/" + code.replace(" ", "%20")))
+                                .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/announcements/" + code.replace(" ", "%20")))
                                 .GET().build();
                         java.net.http.HttpResponse<String> aRes = client.send(aReq, java.net.http.HttpResponse.BodyHandlers.ofString());
 

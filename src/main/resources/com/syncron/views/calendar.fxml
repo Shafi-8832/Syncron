@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+
+<ScrollPane fitToWidth="true" styleClass="kernel-root" stylesheets="@../styles/kernel_warm.css"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.syncron.controllers.CalendarController">
+    <content>
+        <VBox spacing="20" style="-fx-padding: 30 40;">
+
+            <!-- Header -->
+            <HBox alignment="CENTER_LEFT" spacing="15" style="-fx-background-color: transparent;">
+                <Label text="KERNEL" style="-fx-font-family: 'Georgia', serif; -fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #8A3B2B;"/>
+                <Circle radius="3.0" fill="#8C7A6B"/>
+                <Label text="CSE - BUET" style="-fx-font-size: 14px; -fx-text-fill: #8C7A6B;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="← Back to Dashboard" onAction="#goBackToDashboard"
+                        style="-fx-background-color: transparent; -fx-text-fill: #A0522D; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-size: 14px;"/>
+            </HBox>
+
+            <!-- Month Navigation -->
+            <HBox alignment="CENTER" spacing="20" style="-fx-padding: 10 0;">
+                <Button fx:id="prevMonthBtn" text="◀" onAction="#handlePrevMonth"
+                        style="-fx-background-color: #FFFFFF; -fx-border-color: #E0D5C7; -fx-border-radius: 50; -fx-background-radius: 50; -fx-min-width: 40; -fx-min-height: 40; -fx-cursor: hand; -fx-font-size: 16px; -fx-text-fill: #4A2C1A;"/>
+                <Label fx:id="monthYearLabel" text="April 2026"
+                       style="-fx-font-family: 'Georgia', serif; -fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;"/>
+                <Button fx:id="nextMonthBtn" text="▶" onAction="#handleNextMonth"
+                        style="-fx-background-color: #FFFFFF; -fx-border-color: #E0D5C7; -fx-border-radius: 50; -fx-background-radius: 50; -fx-min-width: 40; -fx-min-height: 40; -fx-cursor: hand; -fx-font-size: 16px; -fx-text-fill: #4A2C1A;"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="Today" onAction="#handleGoToToday"
+                        style="-fx-background-color: #D35400; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 8 20; -fx-background-radius: 20; -fx-cursor: hand;"/>
+            </HBox>
+
+            <!-- Legend -->
+            <HBox fx:id="legendBox" alignment="CENTER" spacing="20" style="-fx-padding: 0 0 5 0;"/>
+
+            <!-- Day-of-Week Headers -->
+            <GridPane fx:id="dayHeaderGrid" hgap="4" vgap="0" style="-fx-padding: 0;"/>
+
+            <!-- Calendar Grid -->
+            <GridPane fx:id="calendarGrid" hgap="4" vgap="4" style="-fx-padding: 0;"/>
+
+            <!-- Selected Day Detail Panel -->
+            <VBox fx:id="dayDetailPanel" spacing="10" visible="false" managed="false"
+                  style="-fx-background-color: #FFFFFF; -fx-border-color: #E0D5C7; -fx-border-radius: 12; -fx-background-radius: 12; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(74,44,26,0.08), 12, 0, 0, 4);">
+            </VBox>
+
+        </VBox>
+    </content>
+</ScrollPane>

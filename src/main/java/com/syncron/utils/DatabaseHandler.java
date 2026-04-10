@@ -206,7 +206,7 @@ public class DatabaseHandler {
             String safeCode = java.net.URLEncoder.encode(courseCode, StandardCharsets.UTF_8.toString());
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/sections/" + safeCode))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/sections/" + safeCode))
                     .GET()
                     .build();
 
@@ -266,7 +266,7 @@ public class DatabaseHandler {
 
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/assessments/" + safeCode))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/assessments/" + safeCode))
                     .GET()
                     .build();
 
@@ -601,7 +601,7 @@ public class DatabaseHandler {
             String safeCode = java.net.URLEncoder.encode(courseCode, java.nio.charset.StandardCharsets.UTF_8.toString());
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/courses/" + safeCode + "/teachers"))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/courses/" + safeCode + "/teachers"))
                     .GET()
                     .build();
 

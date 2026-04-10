@@ -1,5 +1,6 @@
 package com.syncron.controllers;
 
+import com.syncron.utils.ServerConfig;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -28,7 +29,7 @@ public class PendingController {
             try {
                 java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
                 java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create("http://localhost:8080/api/courses"))
+                        .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/courses"))
                         .GET().build();
                 java.net.http.HttpResponse<String> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
 
@@ -54,7 +55,7 @@ public class PendingController {
             try {
                 java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
                 java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create("http://localhost:8080/api/admin/all-users"))
+                        .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/admin/all-users"))
                         .GET().build();
                 java.net.http.HttpResponse<String> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
 

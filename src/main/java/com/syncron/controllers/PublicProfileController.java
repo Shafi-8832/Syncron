@@ -1,6 +1,7 @@
 package com.syncron.controllers;
 
 import com.syncron.utils.NavigationManager;
+import com.syncron.utils.ServerConfig;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -48,13 +49,13 @@ public class PublicProfileController {
 
             // Fetch basic user info + profile extras
             java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/users/" + targetUserId + "/profile"))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/users/" + targetUserId + "/profile"))
                     .GET().build();
             java.net.http.HttpResponse<String> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
 
             // Also fetch user identity (name, role, email) from the admin endpoint
             java.net.http.HttpRequest identityReq = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/admin/all-users"))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/admin/all-users"))
                     .GET().build();
             java.net.http.HttpResponse<String> identityRes = client.send(identityReq, java.net.http.HttpResponse.BodyHandlers.ofString());
 
@@ -206,7 +207,7 @@ public class PublicProfileController {
 
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/dashboard/courses?role=" + role + "&name=" + name))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/dashboard/courses?role=" + role + "&name=" + name))
                     .GET().build();
             java.net.http.HttpResponse<String> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
 

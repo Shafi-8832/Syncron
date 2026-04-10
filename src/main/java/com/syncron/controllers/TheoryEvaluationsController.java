@@ -2,6 +2,7 @@ package com.syncron.controllers;
 
 import com.syncron.models.User;
 import com.syncron.utils.NavigationManager;
+import com.syncron.utils.ServerConfig;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.*;
@@ -174,7 +175,7 @@ public class TheoryEvaluationsController {
             try {
                 java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
                 java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create("http://localhost:8080/api/evaluations/details/" + editId))
+                        .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/evaluations/details/" + editId))
                         .GET().build();
 
                 java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
@@ -424,13 +425,13 @@ public class TheoryEvaluationsController {
 
             if (editId != null && !editId.isEmpty()) {
                 request = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create("http://localhost:8080/api/evaluations/" + editId))
+                        .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/evaluations/" + editId))
                         .header("Content-Type", "application/json")
                         .PUT(java.net.http.HttpRequest.BodyPublishers.ofString(jsonPayload))
                         .build();
             } else {
                 request = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create("http://localhost:8080/api/evaluations"))
+                        .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/evaluations"))
                         .header("Content-Type", "application/json")
                         .POST(java.net.http.HttpRequest.BodyPublishers.ofString(jsonPayload))
                         .build();

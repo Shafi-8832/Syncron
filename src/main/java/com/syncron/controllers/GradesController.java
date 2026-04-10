@@ -1,5 +1,6 @@
 package com.syncron.controllers;
 
+import com.syncron.utils.ServerConfig;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -162,7 +163,7 @@ public class GradesController {
                                                        java.lang.reflect.Type listType, String evalType) {
         try {
             java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/evaluations/course/" + courseCode.replace(" ", "%20") + "/" + evalType))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/evaluations/course/" + courseCode.replace(" ", "%20") + "/" + evalType))
                     .GET().build();
             java.net.http.HttpResponse<String> res = client.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
 

@@ -1,6 +1,7 @@
 package com.syncron.controllers;
 
 import com.syncron.models.User;
+import com.syncron.utils.ServerConfig;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
@@ -128,7 +129,7 @@ public class LoginController {
             String jsonPayload = String.format("{\"email\":\"%s\",\"password\":\"%s\"}", loginId, password);
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/login"))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/login"))
                     .header("Content-Type", "application/json")
                     .POST(java.net.http.HttpRequest.BodyPublishers.ofString(jsonPayload)).build();
 
@@ -207,7 +208,7 @@ public class LoginController {
             String jsonPayload = String.format("{\"id\":\"%s\",\"name\":\"%s\",\"email\":\"%s\",\"role\":\"%s\"}", id, name, email, currentSignupRole);
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/signup"))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/signup"))
                     .header("Content-Type", "application/json")
                     .POST(java.net.http.HttpRequest.BodyPublishers.ofString(jsonPayload)).build();
 
@@ -270,7 +271,7 @@ public class LoginController {
                 String json = String.format("{\"email\":\"%s\", \"newPassword\":\"%s\"}", result[0], result[1]);
                 java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
                 java.net.http.HttpRequest req = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create("http://localhost:8080/api/reset-password"))
+                        .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/reset-password"))
                         .header("Content-Type", "application/json")
                         .POST(java.net.http.HttpRequest.BodyPublishers.ofString(json)).build();
 

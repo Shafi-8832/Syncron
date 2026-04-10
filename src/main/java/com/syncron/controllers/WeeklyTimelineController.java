@@ -1,6 +1,7 @@
 package com.syncron.controllers;
 
 import com.syncron.utils.NavigationManager;
+import com.syncron.utils.ServerConfig;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -63,7 +64,7 @@ public class WeeklyTimelineController {
             String json = String.format("{\"courseCode\":\"%s\", \"labDay\":\"%s\"}", courseCode, labDay);
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/timeline/settings"))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/timeline/settings"))
                     .header("Content-Type", "application/json")
                     .POST(java.net.http.HttpRequest.BodyPublishers.ofString(json))
                     .build();
@@ -78,7 +79,7 @@ public class WeeklyTimelineController {
             com.google.gson.Gson gson = new com.google.gson.Gson();
 
             java.net.http.HttpRequest req1 = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/timeline/" + currentCourse.replace(" ", "%20")))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/timeline/" + currentCourse.replace(" ", "%20")))
                     .GET().build();
             String res1 = client.send(req1, java.net.http.HttpResponse.BodyHandlers.ofString()).body();
 
@@ -96,7 +97,7 @@ public class WeeklyTimelineController {
             List<Map<String, Object>> sections = (List<Map<String, Object>>) timelineData.get("sections");
 
             java.net.http.HttpRequest req2 = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/evaluations/course/" + currentCourse.replace(" ", "%20")))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/evaluations/course/" + currentCourse.replace(" ", "%20")))
                     .GET().build();
             String res2 = client.send(req2, java.net.http.HttpResponse.BodyHandlers.ofString()).body();
 
@@ -324,7 +325,7 @@ public class WeeklyTimelineController {
             String json = String.format("{\"sectionId\":\"%d\", \"title\":\"%s\"}", sectionId, newTitle.replace("\"", "\\\""));
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/sections/rename"))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/sections/rename"))
                     .header("Content-Type", "application/json")
                     .PUT(java.net.http.HttpRequest.BodyPublishers.ofString(json))
                     .build();
@@ -346,7 +347,7 @@ public class WeeklyTimelineController {
                         "{\"sectionId\":\"%d\",\"type\":\"Resource\",\"title\":\"%s\",\"description\":\"\",\"fileLink\":\"%s\",\"dueDate\":\"\"}",
                         sectionId, title.replace("\"", "\\\""), link.replace("\"", "\\\"")
                 );
-                sendPostRequest("http://localhost:8080/api/modules", jsonPayload);
+                sendPostRequest(ServerConfig.getBaseUrl() + "/api/modules", jsonPayload);
             });
         });
     }

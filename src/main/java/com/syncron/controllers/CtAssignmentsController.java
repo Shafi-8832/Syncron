@@ -2,6 +2,7 @@ package com.syncron.controllers;
 
 import com.syncron.utils.DatabaseHandler;
 import com.syncron.utils.NavigationManager;
+import com.syncron.utils.ServerConfig;
 import com.syncron.utils.TimeEngine;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -51,7 +52,7 @@ public class CtAssignmentsController {
             String[] typesToFetch = {"CT", "ASSIGNMENT"};
             for (String typeToFetch : typesToFetch) {
                 java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create("http://localhost:8080/api/evaluations/course/" + currentCourse.replace(" ", "%20") + "/" + typeToFetch))
+                        .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/evaluations/course/" + currentCourse.replace(" ", "%20") + "/" + typeToFetch))
                         .GET().build();
 
                 java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());

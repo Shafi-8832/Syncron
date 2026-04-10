@@ -56,6 +56,12 @@
                             <Label fx:id="semesterTitleLabel" text="Loading Semester..." styleClass="kernel-semester-title" />
                             <Label fx:id="semesterStatusLabel" text="LOADING" styleClass="kernel-semester-pill" />
                             <Region HBox.hgrow="ALWAYS" />
+                            <Button text="📅 Deadline Calendar" onAction="#openCalendar"
+                                        style="-fx-background-color: #2980B9; -fx-text-fill: white;
+                                               -fx-font-weight: bold; -fx-padding: 8 20;
+                                               -fx-background-radius: 20; -fx-cursor: hand;
+                                               -fx-font-size: 13px;"/>
+
                             <Button fx:id="detailsBtn" text="See Semester Details →" style="-fx-background-color: transparent; -fx-text-fill: #A0522D; -fx-font-family: 'Inter', sans-serif; -fx-cursor: hand;" />
                         </HBox>
 

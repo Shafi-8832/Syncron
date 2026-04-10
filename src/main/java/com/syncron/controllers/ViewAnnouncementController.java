@@ -1,6 +1,7 @@
 package com.syncron.controllers;
 
 import com.syncron.utils.NavigationManager;
+import com.syncron.utils.ServerConfig;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -43,7 +44,7 @@ public class ViewAnnouncementController {
         try {
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:8080/api/announcements/" + courseCode.replace(" ", "%20")))
+                    .uri(URI.create(ServerConfig.getBaseUrl() + "/api/announcements/" + courseCode.replace(" ", "%20")))
                     .GET().build();
 
             java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
@@ -146,7 +147,7 @@ public class ViewAnnouncementController {
             try {
                 java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
                 java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                        .uri(URI.create("http://localhost:8080/api/announcements/" + postId))
+                        .uri(URI.create(ServerConfig.getBaseUrl() + "/api/announcements/" + postId))
                         .DELETE().build();
                 client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
                 handleBack();

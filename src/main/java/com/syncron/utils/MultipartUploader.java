@@ -48,7 +48,7 @@ public class MultipartUploader {
 
             // 6. Shoot it over the Wi-Fi!
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create("http://localhost:8080/api/upload"))
+                    .uri(URI.create(ServerConfig.getBaseUrl() + "/api/upload"))
                     .header("Content-Type", "multipart/form-data; boundary=" + boundary)
                     .POST(HttpRequest.BodyPublishers.ofByteArray(requestBody))
                     .build();

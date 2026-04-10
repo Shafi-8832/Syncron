@@ -1,6 +1,7 @@
 package com.syncron.controllers;
 
 import com.syncron.utils.NavigationManager;
+import com.syncron.utils.ServerConfig;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Bounds;
@@ -52,7 +53,7 @@ public class CreateAnnouncementController {
         try {
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/announcements/" + courseCode.replace(" ", "%20")))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/announcements/" + courseCode.replace(" ", "%20")))
                     .GET().build();
 
             java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
@@ -80,7 +81,7 @@ public class CreateAnnouncementController {
                 String courseCode = SessionManager.getCurrentCourseCode();
                 java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
                 java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create("http://localhost:8080/api/evaluations/course/" + courseCode.replace(" ", "%20")))
+                        .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/evaluations/course/" + courseCode.replace(" ", "%20")))
                         .GET().build();
 
                 java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
@@ -144,14 +145,14 @@ public class CreateAnnouncementController {
             if (editId != null && !editId.isEmpty()) {
                 String json = String.format("{\"message\":\"%s\"}", message.replace("\"", "\\\"").replace("\n", "\\n"));
                 request = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create("http://localhost:8080/api/announcements/" + editId))
+                        .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/announcements/" + editId))
                         .header("Content-Type", "application/json")
                         .PUT(java.net.http.HttpRequest.BodyPublishers.ofString(json)).build();
             } else {
                 String json = String.format("{\"courseCode\":\"%s\", \"message\":\"%s\", \"creatorId\":\"%s\"}",
                         SessionManager.getCurrentCourseCode(), message.replace("\"", "\\\"").replace("\n", "\\n"), SessionManager.getCurrentUser().getId());
                 request = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create("http://localhost:8080/api/announcements"))
+                        .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/announcements"))
                         .header("Content-Type", "application/json")
                         .POST(java.net.http.HttpRequest.BodyPublishers.ofString(json)).build();
             }

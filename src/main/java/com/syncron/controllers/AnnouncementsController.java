@@ -1,6 +1,7 @@
 package com.syncron.controllers;
 
 import com.syncron.utils.NavigationManager;
+import com.syncron.utils.ServerConfig;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -33,7 +34,7 @@ public class AnnouncementsController {
         try {
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/announcements/" + courseCode.replace(" ", "%20")))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/announcements/" + courseCode.replace(" ", "%20")))
                     .GET().build();
 
             java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
@@ -124,7 +125,7 @@ public class AnnouncementsController {
 
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/announcements"))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/announcements"))
                     .header("Content-Type", "application/json")
                     .POST(java.net.http.HttpRequest.BodyPublishers.ofString(json))
                     .build();
@@ -140,7 +141,7 @@ public class AnnouncementsController {
             try {
                 java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
                 java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create("http://localhost:8080/api/announcements/" + id))
+                        .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/announcements/" + id))
                         .DELETE().build();
                 client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
                 loadAnnouncements(SessionManager.getCurrentCourseCode());

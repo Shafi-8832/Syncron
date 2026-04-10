@@ -1,6 +1,7 @@
 package com.syncron.controllers;
 
 import com.syncron.models.User;
+import com.syncron.utils.ServerConfig;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -50,7 +51,7 @@ public class CommonController {
         try {
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/resources/" + currentCourse.replace(" ", "%20")))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/resources/" + currentCourse.replace(" ", "%20")))
                     .GET().build();
 
             java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
@@ -502,7 +503,7 @@ public class CommonController {
 
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/resources"))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/resources"))
                     .header("Content-Type", "application/json")
                     .POST(java.net.http.HttpRequest.BodyPublishers.ofString(json)).build();
 
@@ -561,7 +562,7 @@ public class CommonController {
         try {
             java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
             java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create("http://localhost:8080/api/resources/" + id))
+                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/resources/" + id))
                     .DELETE().build();
 
             java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
