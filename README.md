@@ -265,11 +265,10 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ## Development Team
 
-**Authors**
-* **Ahnaf Ahmed Shafi (2405146) ** – CSE, BUET
-* **Shabab Ahmed (2405143) ** – CSE, BUET
+* **Ahnaf Ahmed Shafi** (2405146) – CSE, BUET
+* **Shabab Ahmed** (2405143) – CSE, BUET
 
-**Project Supervisor**
-* **Md. Nurul Muttakin** Lecturer, Dept. of CSE, BUET
+## Supervisor
 
-**Course** CSE 108: Object Oriented Programming Sessional
+**Md. Nurul Muttakin** Lecturer, Dept. of CSE, BUET  
+*Course: CSE 108 (Object Oriented Programming Sessional)*
