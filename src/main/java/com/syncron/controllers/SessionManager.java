@@ -65,4 +65,9 @@ public class SessionManager {
     private static String editAnnouncementId;
     public static String getEditAnnouncementId() { return editAnnouncementId; }
     public static void setEditAnnouncementId(String id) { editAnnouncementId = id; }
+
+
+    private static boolean cameFromCalendar = false;
+    public static boolean isCameFromCalendar() { return cameFromCalendar; }
+    public static void setCameFromCalendar(boolean val) { cameFromCalendar = val; }
 }

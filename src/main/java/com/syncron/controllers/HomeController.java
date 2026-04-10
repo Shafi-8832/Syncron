@@ -440,153 +440,144 @@ public class HomeController {
         headerLbl.setStyle("-fx-text-fill: #C0392B; -fx-font-weight: bold; -fx-font-size: 15px; -fx-padding: 0 0 10 0;");
         urgentContainer.getChildren().add(headerLbl);
 
-        try {
-            java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+        new Thread(() -> {
+            try {
+                java.net.http.HttpClient client = java.net.http.HttpClient.newHttpClient();
+                String role = SessionManager.getCurrentUser().getRole();
+                String name = SessionManager.getCurrentUser().getName().replace(" ", "%20");
 
-            String role = SessionManager.getCurrentUser().getRole();
-            String name = SessionManager.getCurrentUser().getName().replace(" ", "%20");
-            java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                    .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/dashboard/deadlines?role=" + role + "&name=" + name))
-                    .GET()
-                    .build();
+                java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
+                        .uri(java.net.URI.create("http://localhost:8080/api/dashboard/deadlines?role=" + role + "&name=" + name))
+                        .GET().build();
 
-            java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
+                java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
 
-            if (response.statusCode() == 200) {
-                com.google.gson.Gson gson = new com.google.gson.Gson();
-                java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<java.util.Map<String, String>>>(){}.getType();
-                java.util.List<java.util.Map<String, String>> urgentTasks = gson.fromJson(response.body(), listType);
+                if (response.statusCode() == 200) {
+                    com.google.gson.Gson gson = new com.google.gson.Gson();
+                    java.lang.reflect.Type listType = new com.google.gson.reflect.TypeToken<java.util.List<java.util.Map<String, String>>>(){}.getType();
+                    java.util.List<java.util.Map<String, String>> tasks = gson.fromJson(response.body(), listType);
 
-                if (urgentTasks.isEmpty()) {
-                    Label emptyMsg = new Label("No dues left. Relax! ☕");
-                    emptyMsg.setStyle("-fx-text-fill: #7F8C8D; -fx-font-style: italic;");
-                    urgentContainer.getChildren().add(emptyMsg);
-                    return;
-                }
-
-                for (java.util.Map<String, String> task : urgentTasks) {
-
-                    // --- Time calculation ---
-                    String dDate = task.get("deadlineDate") != null ? task.get("deadlineDate") : task.get("dueDate");
-                    String dTime = task.get("deadlineTime") != null ? task.get("deadlineTime") : task.get("dueTime");
-                    String dueText = "Due: " + dDate;
-                    boolean isPassed = false;
-
-                    try {
-                        java.time.LocalDateTime now = java.time.LocalDateTime.now();
-                        java.time.format.DateTimeFormatter formatter = java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-                        java.time.LocalDateTime deadline = java.time.LocalDateTime.parse(dDate + " " + dTime, formatter);
-
-                        long minutesLeft = java.time.temporal.ChronoUnit.MINUTES.between(now, deadline);
-                        long daysLeft = java.time.temporal.ChronoUnit.DAYS.between(now, deadline);
-                        long hoursLeft = java.time.temporal.ChronoUnit.HOURS.between(now, deadline) % 24;
-
-                        java.time.format.DateTimeFormatter niceDate = java.time.format.DateTimeFormatter.ofPattern("dd MMMM yyyy");
-
-                        if (minutesLeft < 0) {
-                            isPassed = true;
-                        } else if (daysLeft > 0) {
-                            dueText = deadline.format(niceDate) + " (" + daysLeft + "d " + hoursLeft + "h left)";
-                        } else if (hoursLeft > 0) {
-                            long minsLeft = java.time.temporal.ChronoUnit.MINUTES.between(now, deadline) % 60;
-                            dueText = "Today (" + hoursLeft + "h " + minsLeft + "m left)";
-                        } else {
-                            long minsLeft = java.time.temporal.ChronoUnit.MINUTES.between(now, deadline);
-                            dueText = "⚡ Due in " + minsLeft + " minutes!";
+                    javafx.application.Platform.runLater(() -> {
+                        if (tasks.isEmpty()) {
+                            Label emptyMsg = new Label("No upcoming deadlines! ☕");
+                            emptyMsg.setStyle("-fx-text-fill: #7F8C8D; -fx-font-style: italic; -fx-font-size: 12px;");
+                            urgentContainer.getChildren().add(emptyMsg);
+                            return;
                         }
-                    } catch (Exception ignored) {}
 
-                    if (isPassed) continue;
+                        for (java.util.Map<String, String> task : tasks) {
+                            VBox card = new VBox(4);
+                            card.setPadding(new Insets(10, 12, 10, 12));
 
-                    // --- Build the card ---
-                    VBox taskBox = new VBox(5);
-                    taskBox.setStyle("-fx-padding: 10 12; -fx-background-color: #FFFFFF; -fx-background-radius: 8; -fx-border-color: #F5D5D5; -fx-border-radius: 8; -fx-border-width: 1;");
+                            // Type color
+                            String type = task.get("type") != null ? task.get("type").toUpperCase() : "CT";
+                            String cardBg = "#FFFFFF";
+                            String accentColor = "#7F8C8D";
+                            if ("CT".equals(type)) { cardBg = "#FFF8F0"; accentColor = "#D35400"; }
+                            else if ("ASSIGNMENT".equals(type)) { cardBg = "#F0FFF4"; accentColor = "#27AE60"; }
+                            else if ("OFFLINE".equals(type)) { cardBg = "#F8F0FF"; accentColor = "#8E44AD"; }
+                            else if ("ONLINE".equals(type)) { cardBg = "#F0F8FF"; accentColor = "#2980B9"; }
 
-                    // Row 1: Course name (clickable blue link → takes to course Common tab)
-                    String courseCode = task.get("courseCode");
-                    String courseTitle = task.get("courseTitle");
+                            String baseStyle = "-fx-background-color: " + cardBg + "; -fx-background-radius: 8; -fx-border-color: " + accentColor + "30; -fx-border-radius: 8; -fx-border-width: 1; -fx-cursor: hand;";
+                            String hoverStyle = baseStyle + " -fx-effect: dropshadow(three-pass-box, " + accentColor + "40, 8, 0, 0, 2);";
+                            card.setStyle(baseStyle);
+                            card.setOnMouseEntered(e -> card.setStyle(hoverStyle));
+                            card.setOnMouseExited(e -> card.setStyle(baseStyle));
 
-                    // Build display text for the course badge
-                    String courseDisplay = (courseCode != null && !courseCode.equals("null")) ? courseCode : "";
-                    if (courseTitle != null && !courseTitle.equals("null") && !courseTitle.isEmpty()) {
-                        courseDisplay += " — " + courseTitle;
-                    }
+                            // Course code badge
+                            String courseCode = task.get("courseCode") != null ? task.get("courseCode") : "";
+                            Label courseBadge = new Label(courseCode);
+                            courseBadge.setStyle("-fx-text-fill: " + accentColor + "; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-color: " + accentColor + "15; -fx-padding: 1 6; -fx-background-radius: 6;");
 
-                    if (!courseDisplay.isEmpty()) {
-                        Label courseLink = new Label(courseDisplay);
-                        courseLink.setStyle("-fx-text-fill: #2980B9; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-underline: false;");
-                        courseLink.setOnMouseEntered(e -> courseLink.setStyle("-fx-text-fill: #3498DB; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-underline: true;"));
-                        courseLink.setOnMouseExited(e -> courseLink.setStyle("-fx-text-fill: #2980B9; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-underline: false;"));
-                        courseLink.setWrapText(true);
+                            // Title
+                            String title = task.get("title") != null ? task.get("title") : "Assessment";
+                            Label titleLbl = new Label(title);
+                            titleLbl.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #2C3E50;");
+                            titleLbl.setWrapText(true);
+                            titleLbl.setMaxWidth(200);
 
-                        // Click → open the course's Common section
-                        final String fCourseCode = courseCode;
-                        courseLink.setOnMouseClicked(e -> openCourseCommon(fCourseCode));
-
-                        taskBox.getChildren().add(courseLink);
-                    }
-
-                    // Row 2: Assessment title (clickable → takes to evaluation details)
-                    String assessmentType = task.get("type");
-                    String typeEmoji = "📝";
-                    if ("CT".equalsIgnoreCase(assessmentType)) typeEmoji = "📋";
-                    else if ("ASSIGNMENT".equalsIgnoreCase(assessmentType)) typeEmoji = "📎";
-                    else if ("OFFLINE".equalsIgnoreCase(assessmentType)) typeEmoji = "💾";
-                    else if ("ONLINE".equalsIgnoreCase(assessmentType)) typeEmoji = "🖥";
-
-                    Label titleLabel = new Label(typeEmoji + " " + task.get("title"));
-                    titleLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #2C3E50; -fx-cursor: hand;");
-                    titleLabel.setWrapText(true);
-                    titleLabel.setOnMouseEntered(e -> titleLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #D35400; -fx-cursor: hand; -fx-underline: true;"));
-                    titleLabel.setOnMouseExited(e -> titleLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #2C3E50; -fx-cursor: hand;"));
-
-                    // Click → open evaluation details directly
-                    final String fCourseCode2 = courseCode;
-                    titleLabel.setOnMouseClicked(e -> {
-                        String cc = fCourseCode2;
-                        if (cc == null || cc.trim().isEmpty() || cc.equals("null")) {
-                            String taskTitle = task.get("title");
-                            if (taskTitle != null && taskTitle.contains("-")) {
-                                cc = taskTitle.split("-")[0].trim();
-                            } else {
-                                java.util.regex.Matcher m = java.util.regex.Pattern.compile("([A-Za-z]+\\s*\\d{3})").matcher(taskTitle != null ? taskTitle : "");
-                                if (m.find()) cc = m.group(1);
-                                else cc = taskTitle;
+                            // Countdown
+                            String dDate = task.get("deadlineDate");
+                            String dTime = task.get("deadlineTime") != null ? task.get("deadlineTime") : "23:59";
+                            String countdownText = "";
+                            try {
+                                java.time.LocalDate deadline = java.time.LocalDate.parse(dDate);
+                                long daysLeft = java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), deadline);
+                                if (daysLeft == 0) countdownText = "Due today!";
+                                else if (daysLeft == 1) countdownText = "Due tomorrow";
+                                else countdownText = daysLeft + " days left";
+                            } catch (Exception ignored) {
+                                countdownText = dDate != null ? dDate : "TBD";
                             }
+
+                            Label countdownLbl = new Label(countdownText + " • " + formatTimeShort(dTime));
+                            String urgencyColor = "#95A5A6";
+                            try {
+                                long dl = java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), java.time.LocalDate.parse(dDate));
+                                if (dl <= 1) urgencyColor = "#E74C3C";
+                                else if (dl <= 3) urgencyColor = "#E67E22";
+                            } catch (Exception ignored) {}
+                            countdownLbl.setStyle("-fx-text-fill: " + urgencyColor + "; -fx-font-size: 11px; -fx-font-weight: bold;");
+
+                            card.getChildren().addAll(courseBadge, titleLbl, countdownLbl);
+
+                            // Click → navigate to the evaluation
+                            final String evalId = task.get("id");
+                            final String evalType = type;
+                            final String evalCourseCode = courseCode;
+                            final String courseTitle = task.get("courseTitle") != null ? task.get("courseTitle") : "";
+
+                            card.setOnMouseClicked(e -> {
+                                try {
+                                    boolean isSessional = courseTitle.toLowerCase().contains("sessional") || evalCourseCode.matches(".*[02468]$");
+                                    String cType = isSessional ? "sessional" : "theory";
+                                    String credits = isSessional ? "1.5" : "3.0";
+
+                                    javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/com/syncron/views/main_layout.fxml"));
+                                    javafx.scene.Parent root = loader.load();
+
+                                    SessionManager.setCurrentCourseCode(evalCourseCode);
+                                    SessionManager.setCurrentEvaluationId(evalId);
+
+                                    MainController controller = loader.getController();
+                                    controller.setCourseContext(evalCourseCode, courseTitle, cType, credits);
+                                    NavigationManager.switchScreen("evaluation_details.fxml");
+
+                                    String parentTab = "Common";
+                                    if ("CT".equals(evalType) || "ASSIGNMENT".equals(evalType)) parentTab = "CT and Assignments";
+                                    else if ("ONLINE".equals(evalType)) parentTab = "Onlines";
+                                    else if ("OFFLINE".equals(evalType)) parentTab = "Offlines";
+
+                                    controller.forceSidebarSelection(parentTab);
+                                    controller.updateBreadcrumb(parentTab + " / " + title);
+
+                                    javafx.stage.Stage stage = (javafx.stage.Stage) urgentContainer.getScene().getWindow();
+                                    stage.getScene().setRoot(root);
+                                } catch (Exception ex) { ex.printStackTrace(); }
+                            });
+
+                            urgentContainer.getChildren().add(card);
                         }
-                        openEvaluationDirectly(cc, task.get("id"), task.get("type"));
                     });
-
-                    // Row 3: Type badge + Time remaining
-                    javafx.scene.layout.HBox metaRow = new javafx.scene.layout.HBox(8);
-                    metaRow.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-
-                    Label typeBadge = new Label(assessmentType != null ? assessmentType : "TASK");
-                    String badgeColor = "#7F8C8D";
-                    if ("CT".equalsIgnoreCase(assessmentType)) badgeColor = "#E67E22";
-                    else if ("ASSIGNMENT".equalsIgnoreCase(assessmentType)) badgeColor = "#27AE60";
-                    else if ("OFFLINE".equalsIgnoreCase(assessmentType)) badgeColor = "#8E44AD";
-                    else if ("ONLINE".equalsIgnoreCase(assessmentType)) badgeColor = "#2980B9";
-
-                    typeBadge.setStyle("-fx-background-color: " + badgeColor + "; -fx-text-fill: white; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2 8; -fx-background-radius: 10;");
-
-                    Label dateLabel = new Label(dueText);
-                    dateLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #E74C3C; -fx-font-weight: bold;");
-
-                    metaRow.getChildren().addAll(typeBadge, dateLabel);
-
-                    taskBox.getChildren().addAll(titleLabel, metaRow);
-
-                    // Hover effect on the whole card
-                    taskBox.setOnMouseEntered(e -> taskBox.setStyle("-fx-padding: 10 12; -fx-background-color: #FEF5F5; -fx-background-radius: 8; -fx-border-color: #E74C3C; -fx-border-radius: 8; -fx-border-width: 1;"));
-                    taskBox.setOnMouseExited(e -> taskBox.setStyle("-fx-padding: 10 12; -fx-background-color: #FFFFFF; -fx-background-radius: 8; -fx-border-color: #F5D5D5; -fx-border-radius: 8; -fx-border-width: 1;"));
-
-                    urgentContainer.getChildren().add(taskBox);
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                javafx.application.Platform.runLater(() -> {
+                    Label err = new Label("Could not load deadlines.");
+                    err.setStyle("-fx-text-fill: #E74C3C; -fx-font-size: 11px;");
+                    urgentContainer.getChildren().add(err);
+                });
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        }).start();
     }
 
+    private String formatTimeShort(String time24) {
+        if (time24 == null || time24.isEmpty()) return "";
+        try {
+            java.time.LocalTime t = java.time.LocalTime.parse(time24);
+            return t.format(java.time.format.DateTimeFormatter.ofPattern("h:mm a"));
+        } catch (Exception e) { return time24; }
+    }
     // --- Opens a course's Common section with correct breadcrumb/sidebar ---
     private void openCourseCommon(String courseCode) {
         if (courseCode == null || courseCode.trim().isEmpty() || courseCode.equals("null")) return;

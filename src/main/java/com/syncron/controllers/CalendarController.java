@@ -366,6 +366,7 @@ public class CalendarController {
                     getClass().getResource("/com/syncron/views/main_layout.fxml"));
             javafx.scene.Parent root = loader.load();
 
+            SessionManager.setCameFromCalendar(true);
             SessionManager.setCurrentCourseCode(courseCode);
             SessionManager.setCurrentEvaluationId(evalId);
 
