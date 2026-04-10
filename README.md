@@ -13,3 +13,5 @@ Installation Guidelines:
 9. Sample Student- ID 2405143 Pass buet123
 10. Sample Teacher - Email T101 Pass buet123
 11. Admin - ID Admin pass admin69
+12. Syncron-netwrok link- https://github.com/Shafi-8832/Syncron/tree/network
+13. kernel-server link - https://github.com/Shafi-8832/kernel-server
