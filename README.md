@@ -263,11 +263,13 @@ When a teacher creates an assessment, the frontend sends a POST request to the s
 
 MIT License — see [LICENSE](LICENSE) for details.
 
-## Developers
-**Ahnaf Ahmed Shafi** — CSE, BUET
-**Shabab Ahmed** — CSE, BUET
+## Development Team
 
-## Supervisor
-**Md. Nurul Muttakin** 
-**Lecturer CSE, BUET**
-Course: CSE 108 (Object Oriented Programming Sessional)
+**Authors**
+* **Ahnaf Ahmed Shafi** – Dept. of CSE, BUET
+* **Shabab Ahmed** – Dept. of CSE, BUET
+
+**Project Supervisor**
+* **Md. Nurul Muttakin** Lecturer, Dept. of CSE, BUET
+
+**Course** CSE 108: Object Oriented Programming Sessional
