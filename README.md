@@ -266,8 +266,8 @@ MIT License — see [LICENSE](LICENSE) for details.
 ## Development Team
 
 **Authors**
-* **Ahnaf Ahmed Shafi** – Dept. of CSE, BUET
-* **Shabab Ahmed** – Dept. of CSE, BUET
+* **Ahnaf Ahmed Shafi (2405146) ** – CSE, BUET
+* **Shabab Ahmed (2405143) ** – CSE, BUET
 
 **Project Supervisor**
 * **Md. Nurul Muttakin** Lecturer, Dept. of CSE, BUET
