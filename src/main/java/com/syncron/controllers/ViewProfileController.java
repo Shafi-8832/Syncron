@@ -1,9 +1,19 @@
 package com.syncron.controllers;
 
-import com.syncron.utils.DatabaseHandler;
 import com.syncron.utils.NavigationManager;
+import com.syncron.utils.ServerConfig;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+
+import java.lang.reflect.Type;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.List;
+import java.util.Map;
 
 public class ViewProfileController {
 
@@ -25,29 +35,40 @@ public class ViewProfileController {
     }
 
     private void loadUserData(String userId) {
-        String query = "SELECT name, role, email FROM users WHERE id = ?";
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+            Gson gson = new Gson();
+            Type mapListType = new TypeToken<List<Map<String, Object>>>() {}.getType();
 
-        try (java.sql.Connection conn = DatabaseHandler.connect();
-             java.sql.PreparedStatement pstmt = conn.prepareStatement(query)) {
+            HttpRequest req = HttpRequest.newBuilder()
+                    .uri(URI.create(ServerConfig.getBaseUrl() + "/api/admin/all-users"))
+                    .GET()
+                    .build();
+            HttpResponse<String> res = client.send(req, HttpResponse.BodyHandlers.ofString());
+            if (res.statusCode() != 200) {
+                nameLabel.setText("Error loading profile");
+                return;
+            }
 
-            pstmt.setString(1, userId);
-            java.sql.ResultSet rs = pstmt.executeQuery();
+            List<Map<String, Object>> users = gson.fromJson(res.body(), mapListType);
+            for (Map<String, Object> user : users) {
+                if (!userId.equals(getText(user, "id"))) continue;
 
-            if (rs.next()) {
-                nameLabel.setText(rs.getString("name"));
+                String name = getText(user, "name");
+                String role = getText(user, "role");
+                String email = getText(user, "email");
 
-                String role = rs.getString("role");
-                roleTag.setText(role.toUpperCase());
-
-                // style the tag differently if they are a student
+                nameLabel.setText(name.isBlank() ? "Unknown User" : name);
+                roleTag.setText(role.isBlank() ? "UNKNOWN" : role.toUpperCase());
                 if ("STUDENT".equalsIgnoreCase(role)) {
                     roleTag.setStyle("-fx-background-color: #3498DB; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 4 12; -fx-background-radius: 12; -fx-font-size: 12px;");
                 }
 
-                String email = rs.getString("email");
-                emailLabel.setText("Email: " + (email != null ? email : "Not provided"));
+                emailLabel.setText("Email: " + (email.isBlank() ? "Not provided" : email));
+                return;
             }
 
+            nameLabel.setText("User Not Found");
         } catch (Exception e) {
             e.printStackTrace();
             nameLabel.setText("Error loading profile");
@@ -56,7 +77,11 @@ public class ViewProfileController {
 
     @FXML
     private void goBack() {
-        // route back to the assessment details page safely
         NavigationManager.switchScreen("evaluation_details.fxml");
+    }
+
+    private String getText(Map<String, Object> row, String key) {
+        Object value = row.get(key);
+        return value == null ? "" : String.valueOf(value);
     }
 }

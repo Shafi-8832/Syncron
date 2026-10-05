@@ -447,7 +447,7 @@ public class HomeController {
                 String name = SessionManager.getCurrentUser().getName().replace(" ", "%20");
 
                 java.net.http.HttpRequest request = java.net.http.HttpRequest.newBuilder()
-                        .uri(java.net.URI.create("http://localhost:8080/api/dashboard/deadlines?role=" + role + "&name=" + name))
+                        .uri(java.net.URI.create(ServerConfig.getBaseUrl() + "/api/dashboard/deadlines?role=" + role + "&name=" + name))
                         .GET().build();
 
                 java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());

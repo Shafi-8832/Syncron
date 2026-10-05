@@ -37,3 +37,6 @@ target/
 syncron.db
 *.sqlite
 *.db
+
+# 4. Local runtime config
+server.properties

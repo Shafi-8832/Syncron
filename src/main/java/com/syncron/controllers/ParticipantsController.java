@@ -1,9 +1,12 @@
 package com.syncron.controllers;
 
 import com.syncron.models.Student;
+import com.syncron.models.Teacher;
 import com.syncron.models.User;
-import com.syncron.utils.DatabaseHandler;
 import com.syncron.utils.NavigationManager;
+import com.syncron.utils.ServerConfig;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -14,8 +17,18 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 
+import java.lang.reflect.Type;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ParticipantsController {
 
@@ -31,7 +44,7 @@ public class ParticipantsController {
         roleFilter.setValue("All");
 
         String currentCourseCode = SessionManager.getCurrentCourseCode();
-        allParticipants = DatabaseHandler.getCourseParticipants(currentCourseCode);
+        allParticipants = fetchParticipantsFromServer(currentCourseCode);
 
         renderParticipantsList(allParticipants);
 
@@ -143,5 +156,78 @@ public class ParticipantsController {
         }
 
         renderParticipantsList(filtered);
+    }
+
+    private List<User> fetchParticipantsFromServer(String courseCode) {
+        List<User> participants = new ArrayList<>();
+        if (courseCode == null || courseCode.isBlank()) return participants;
+
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+            Gson gson = new Gson();
+            Type mapListType = new TypeToken<List<Map<String, Object>>>() {}.getType();
+            String safeCourseCode = URLEncoder.encode(courseCode, StandardCharsets.UTF_8);
+
+            HttpRequest teachersReq = HttpRequest.newBuilder()
+                    .uri(URI.create(ServerConfig.getBaseUrl() + "/api/courses/" + safeCourseCode + "/teachers"))
+                    .GET()
+                    .build();
+            HttpResponse<String> teachersRes = client.send(teachersReq, HttpResponse.BodyHandlers.ofString());
+
+            Map<String, User> mergedUsers = new LinkedHashMap<>();
+            if (teachersRes.statusCode() == 200) {
+                List<Map<String, Object>> teacherRows = gson.fromJson(teachersRes.body(), mapListType);
+                for (Map<String, Object> row : teacherRows) {
+                    Teacher t = new Teacher(
+                            getText(row, "id"),
+                            getText(row, "name"),
+                            getText(row, "email"),
+                            "",
+                            getTextOrDefault(row, "designation", "Lecturer")
+                    );
+                    mergedUsers.put(t.getId(), t);
+                }
+            }
+
+            HttpRequest usersReq = HttpRequest.newBuilder()
+                    .uri(URI.create(ServerConfig.getBaseUrl() + "/api/admin/all-users"))
+                    .GET()
+                    .build();
+            HttpResponse<String> usersRes = client.send(usersReq, HttpResponse.BodyHandlers.ofString());
+            if (usersRes.statusCode() == 200) {
+                List<Map<String, Object>> rows = gson.fromJson(usersRes.body(), mapListType);
+                for (Map<String, Object> row : rows) {
+                    String role = getText(row, "role");
+                    if (!"STUDENT".equalsIgnoreCase(role)) continue;
+
+                    Student s = new Student(
+                            getText(row, "id"),
+                            getText(row, "name"),
+                            getText(row, "email"),
+                            "",
+                            false
+                    );
+                    mergedUsers.put(s.getId(), s);
+                }
+            }
+
+            participants.addAll(mergedUsers.values());
+            participants.sort(Comparator.comparing((User u) -> !"TEACHER".equalsIgnoreCase(u.getRole()))
+                    .thenComparing(User::getName, String.CASE_INSENSITIVE_ORDER));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return participants;
+    }
+
+    private String getText(Map<String, Object> row, String key) {
+        Object value = row.get(key);
+        return value == null ? "" : String.valueOf(value);
+    }
+
+    private String getTextOrDefault(Map<String, Object> row, String key, String fallback) {
+        String value = getText(row, key);
+        return value.isBlank() || "null".equalsIgnoreCase(value) ? fallback : value;
     }
 }

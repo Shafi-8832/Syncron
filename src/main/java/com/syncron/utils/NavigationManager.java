@@ -3,6 +3,8 @@ package com.syncron.utils;
 import com.syncron.controllers.MainController;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.control.Label;
+import javafx.scene.layout.VBox;
 import javafx.scene.layout.StackPane;
 
 import java.io.IOException;
@@ -45,7 +47,14 @@ public class NavigationManager {
 
             return loader.getController();
         } catch (IOException e) {
-            e.printStackTrace();
+            VBox fallback = new VBox(10);
+            fallback.setStyle("-fx-padding: 24; -fx-alignment: center;");
+            Label title = new Label("Unable to open this page");
+            title.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+            Label details = new Label("Missing or invalid view: " + fxmlFileName);
+            details.setStyle("-fx-text-fill: #7F8C8D;");
+            fallback.getChildren().addAll(title, details);
+            contentArea.getChildren().setAll(fallback);
             return null;
         }
     }

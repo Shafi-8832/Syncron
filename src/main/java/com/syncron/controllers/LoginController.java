@@ -2,11 +2,15 @@ package com.syncron.controllers;
 
 import com.syncron.models.User;
 import com.syncron.utils.ServerConfig;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.geometry.Pos;
 
+import java.lang.reflect.Type;
+import java.util.Map;
 import java.util.Optional;
 
 public class LoginController {
@@ -136,12 +140,20 @@ public class LoginController {
             java.net.http.HttpResponse<String> response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString());
 
             if (response.statusCode() == 200) {
-                String responseBody = response.body();
-                String id = extractJsonValue(responseBody, "id");
-                String name = extractJsonValue(responseBody, "name");
-                String role = extractJsonValue(responseBody, "role");
-                String userEmail = extractJsonValue(responseBody, "email");
-                String status = extractJsonValue(responseBody, "status"); // Grab the status
+                Gson gson = new Gson();
+                Type mapType = new TypeToken<Map<String, Object>>() {}.getType();
+                Map<String, Object> responseBody = gson.fromJson(response.body(), mapType);
+
+                String id = getJsonText(responseBody, "id");
+                String name = getJsonText(responseBody, "name");
+                String role = getJsonText(responseBody, "role");
+                String userEmail = getJsonText(responseBody, "email");
+                String status = getJsonText(responseBody, "status");
+
+                if (id.isBlank() || role.isBlank()) {
+                    showError(loginErrorLabel, "Invalid login response from server.");
+                    return;
+                }
 
                 if (!role.equalsIgnoreCase(currentLoginRole)) {
                     showError(loginErrorLabel, "Role mismatch! Please select the " + role + " tab.");
@@ -167,10 +179,9 @@ public class LoginController {
                 if ("ADMIN".equalsIgnoreCase(role)) {
                     targetFxml = "/com/syncron/views/admin_dashboard.fxml";
                 } else if ("PENDING".equalsIgnoreCase(status)) {
-                    targetFxml = "/com/syncron/views/pending_dashboard.fxml"; // Fixed typo here
+                    targetFxml = "/com/syncron/views/pending_dashboard.fxml";
                 }
 
-                // THE FIX: Use targetFxml instead of the hardcoded string
                 javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource(targetFxml));
                 javafx.scene.Parent root = loader.load();
                 javafx.stage.Stage stage = (javafx.stage.Stage) loginIdField.getScene().getWindow();
@@ -178,7 +189,7 @@ public class LoginController {
 
             } else {
                 showError(loginErrorLabel, "Incorrect ID/Email or password.");
-            } //
+            }
 
         } catch (Exception e) {
             showError(loginErrorLabel, "❌ Could not connect to the Kernel Server.");
@@ -288,13 +299,10 @@ public class LoginController {
         });
     }
 
-    private String extractJsonValue(String json, String key) {
-        String search = "\"" + key + "\":\"";
-        int start = json.indexOf(search);
-        if (start == -1) return "";
-        start += search.length();
-        int end = json.indexOf("\"", start);
-        return json.substring(start, end);
+    private String getJsonText(Map<String, Object> json, String key) {
+        if (json == null) return "";
+        Object value = json.get(key);
+        return value == null ? "" : String.valueOf(value);
     }
 
     private void showError(Label label, String message) {

@@ -58,7 +58,10 @@ public class DatabaseHandler {
                 + "name TEXT, "
                 + "email TEXT UNIQUE, "
                 + "password TEXT, "
-                + "role TEXT);";
+                + "role TEXT, "
+                + "status TEXT DEFAULT 'PENDING', "
+                + "section TEXT, "
+                + "subsection TEXT);";
 
         String sqlSemesters = "CREATE TABLE IF NOT EXISTS semesters ("
                 + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
@@ -66,9 +69,10 @@ public class DatabaseHandler {
                 + "is_active INTEGER DEFAULT 1);";
 
         String sqlCourses = "CREATE TABLE IF NOT EXISTS courses ("
-                + "code TEXT PRIMARY KEY, "
-                + "title TEXT, "
-                + "course_type TEXT, "
+                + "course_code TEXT PRIMARY KEY, "
+                + "course_title TEXT, "
+                + "credits TEXT, "
+                + "type TEXT, "
                 + "semester_id INTEGER, "
                 + "FOREIGN KEY(semester_id) REFERENCES semesters(id));";
 
@@ -81,7 +85,8 @@ public class DatabaseHandler {
                 + "student_id TEXT, "
                 + "course_code TEXT, "
                 + "status TEXT DEFAULT 'PENDING', "
-                + "PRIMARY KEY (student_id, course_code));";
+                + "PRIMARY KEY (student_id, course_code), "
+                + "FOREIGN KEY(course_code) REFERENCES courses(course_code));";
 
         // --- EXISTING TABLES ---
 
@@ -92,7 +97,7 @@ public class DatabaseHandler {
                 "title TEXT, " +
                 "week_number INTEGER, " +
                 "flair_type TEXT, " +
-                "FOREIGN KEY(course_code) REFERENCES courses(code)" +
+                "FOREIGN KEY(course_code) REFERENCES courses(course_code)" +
                 ");";
 
         // 2. Modules (The "Items" inside weeks)
@@ -122,7 +127,7 @@ public class DatabaseHandler {
                 "syllabus TEXT, " +
                 "submission_link TEXT, " +
                 "author_name TEXT, " +
-                "FOREIGN KEY(course_code) REFERENCES courses(code)" +
+                "FOREIGN KEY(course_code) REFERENCES courses(course_code)" +
                 ");";
 
         try (Connection conn = connect();
@@ -154,7 +159,7 @@ public class DatabaseHandler {
             pstmt.setString(1, "Admin");
             pstmt.setString(2, "IICT Admin");
             pstmt.setString(3, "admin@iict.buet.ac.bd");
-            pstmt.setString(4, "admin69");
+            pstmt.setString(4, hashPassword("admin69"));
             pstmt.setString(5, "ADMIN");
 
             int rowsAffected = pstmt.executeUpdate();
@@ -521,7 +526,7 @@ public class DatabaseHandler {
 
     public static String injectLevel1Term2() {
         String sqlSemester = "INSERT INTO semesters (name, is_active) VALUES ('Level 1 Term 2', 1)";
-        String sqlCourse = "INSERT INTO courses (code, title, course_type, semester_id) VALUES (?, ?, 'THEORY', ?)";
+        String sqlCourse = "INSERT INTO courses (course_code, course_title, credits, type, semester_id) VALUES (?, ?, ?, 'Theory', ?)";
         String sqlUsers = "INSERT OR IGNORE INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)";
 
         try (Connection conn = connect();
@@ -544,7 +549,8 @@ public class DatabaseHandler {
             for (String[] course : courses) {
                 psCourse.setString(1, course[0]);
                 psCourse.setString(2, course[1]);
-                psCourse.setInt(3, semesterId);
+                psCourse.setString(3, "3.0");
+                psCourse.setInt(4, semesterId);
                 psCourse.executeUpdate();
             }
 

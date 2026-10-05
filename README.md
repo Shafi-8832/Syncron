@@ -81,44 +81,27 @@ git clone https://github.com/Shafi-8832/Syncron.git
 cd Syncron
 ```
 
-#### Step 2: Start the Backend Server
+#### Step 2: Start the API Server
 
-The backend is a Spring Boot application inside the `kernel-server/` folder.
+This repository contains the JavaFX client.  
+You must run a compatible Kernel API server separately (default: `http://localhost:8080`).
 
-```bash
-cd kernel-server
-```
+#### Step 3: Configure Client → Server URL (Optional)
 
-On macOS/Linux:
-```bash
-chmod +x mvnw
-./mvnw spring-boot:run
-```
+If your server is not on `localhost:8080`, set either:
 
-On Windows:
-```bash
-mvnw.cmd spring-boot:run
-```
+1. `server.properties` in project root:
+   ```properties
+   server.url=http://<SERVER_IP>:8080
+   ```
+2. or a JVM arg while running:
+   ```bash
+   mvn javafx:run -Dserver.url=http://<SERVER_IP>:8080
+   ```
 
-Wait until you see:
-```
-Started KernelServerApplication in X.XX seconds
-```
+#### Step 4: Start the JavaFX Client
 
-The server runs at `http://localhost:8080`. Keep this terminal open.
-
-#### Step 3: Seed the Database (First Time Only)
-
-The database is automatically created when the server starts. To populate it with BUET student rolls and teacher data:
-
-1. Make sure `buet_cse_7digit_rolls.txt` and `Teachers.txt` are in the project root
-2. Run `RealDataSeeder.java` (located in `src/main/java/com/syncron/utils/`)
-
-This creates all student accounts, teacher accounts, courses, and teacher-course assignments.
-
-#### Step 4: Start the Frontend Application
-
-Open a new terminal (keep the server running in the first one):
+Open a new terminal:
 
 ```bash
 cd Syncron
@@ -214,27 +197,15 @@ Syncron/
 ├── src/main/java/com/syncron/
 │   ├── HelloApplication.java          # App entry point
 │   ├── Launcher.java                  # JavaFX launcher (used by jpackage)
-│   ├── controllers/                   # All FXML controllers
-│   │   ├── HomeController.java        # Dashboard
-│   │   ├── MainController.java        # Course portal shell
-│   │   ├── CalendarController.java    # Deadline calendar
-│   │   └── ...
-│   ├── models/                        # Data models (User, Course, Assessment...)
-│   └── utils/                         # Utilities
-│       ├── NavigationManager.java     # SPA-style routing
-│       ├── ServerConfig.java          # Multi-device server URL config
-│       ├── DatabaseHandler.java       # SQLite operations
-│       └── TimeEngine.java           # Live countdown
+│   ├── controllers/                   # UI controllers
+│   ├── models/                        # Data models
+│   └── utils/                         # Navigation, server config, upload helpers
 ├── src/main/resources/com/syncron/
-│   ├── views/                         # All FXML files
-│   └── styles/                        # CSS stylesheets
-├── kernel-server/                     # Spring Boot backend
-│   └── src/main/java/com/kernel/kernel_server/
-│       ├── EvaluationController.java
-│       ├── DashboardApiController.java
-│       └── ...
-├── server.properties                  # Server URL config (auto-created)
-├── pom.xml                            # Frontend Maven config
+│   ├── views/                         # FXML views
+│   ├── styles/                        # CSS
+│   └── assets/                        # Static assets/fonts/images
+├── server.properties                  # Optional client server URL override
+├── pom.xml                            # Maven project file
 └── README.md
 ```
 
@@ -243,8 +214,8 @@ Syncron/
 Kernel follows a **client-server architecture**:
 
 - The **JavaFX frontend** handles all UI rendering and user interaction
-- The **Spring Boot backend** (default `localhost:8080`) handles data storage, authentication, and business logic via REST APIs
-- Both share the same **SQLite database file** located in the server directory
+- A separate **Kernel API server** (default `localhost:8080`) handles authentication, storage, and business logic via REST APIs
+- The client talks to that API using `ServerConfig` so you can switch servers without code changes
 
 When a teacher creates an assessment, the frontend sends a POST request to the server, which stores it in SQLite and auto-generates an announcement. When a student opens the calendar, the frontend fetches all evaluations via GET and renders them in the month grid. All changes are immediately visible to every connected client.
 

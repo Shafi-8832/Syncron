@@ -23,7 +23,7 @@ import java.util.Properties;
 public class ServerConfig {
 
     private static final String CONFIG_FILE = "server.properties";
-    private static final String DEFAULT_URL = ServerConfig.getBaseUrl() + "";
+    private static final String DEFAULT_URL = "http://localhost:8080";
     private static String cachedUrl = null;
 
     /**
@@ -47,8 +47,8 @@ public class ServerConfig {
             try (InputStream in = new FileInputStream(configFile)) {
                 Properties props = new Properties();
                 props.load(in);
-                String url = props.getProperty("server.url", DEFAULT_URL).trim();
-                cachedUrl = url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
+                String url = props.getProperty("server.url", DEFAULT_URL);
+                cachedUrl = normalize(url);
                 System.out.println("🌐 Server URL (from config): " + cachedUrl);
                 return cachedUrl;
             } catch (IOException e) {
@@ -70,6 +70,11 @@ public class ServerConfig {
         return cachedUrl;
     }
 
+    private static String normalize(String url) {
+        String normalized = (url == null || url.isBlank()) ? DEFAULT_URL : url.trim();
+        return normalized.endsWith("/") ? normalized.substring(0, normalized.length() - 1) : normalized;
+    }
+
     /**
      * Convenience: builds a full API URL.
      * Usage: ServerConfig.api("/api/dashboard/courses?role=STUDENT")
@@ -85,6 +90,5 @@ public class ServerConfig {
      */
     public static void reload() {
         cachedUrl = null;
-        getBaseUrl();
     }
 }
